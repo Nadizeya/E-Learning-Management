@@ -1,0 +1,241 @@
+{
+	"info": {
+		"_postman_id": "lms-user-api-collection",
+		"name": "LMS User API",
+		"description": "Complete API collection for LMS User Management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create New User (Student)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Michael\",\n  \"lastName\": \"Scott\",\n  \"email\": \"michael.scott@lms.com\",\n  \"password\": \"password123\",\n  \"isInstructor\": false\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Create a new student user"
+			},
+			"response": []
+		},
+		{
+			"name": "Create New User (Instructor)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Dwight\",\n  \"lastName\": \"Schrute\",\n  \"email\": \"dwight.schrute@lms.com\",\n  \"password\": \"beets123\",\n  \"isInstructor\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Create a new instructor user"
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Retrieve all users from the database"
+			},
+			"response": []
+		},
+		{
+			"name": "Get User by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/users/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users",
+						"1"
+					]
+				},
+				"description": "Get a specific user by their ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Get User by Email",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/users/email/john.doe@example.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users",
+						"email",
+						"john.doe@example.com"
+					]
+				},
+				"description": "Get a specific user by their email address"
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Michael\",\n  \"lastName\": \"Scott-Updated\",\n  \"email\": \"michael.scott.updated@lms.com\",\n  \"password\": \"newpassword123\",\n  \"isInstructor\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/users/6",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users",
+						"6"
+					]
+				},
+				"description": "Update an existing user's information"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/users/6",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users",
+						"6"
+					]
+				},
+				"description": "Delete a user by their ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Test Duplicate Email (Should Fail)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Duplicate\",\n  \"lastName\": \"User\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"test123\",\n  \"isInstructor\": false\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Test creating a user with an existing email - should return error"
+			},
+			"response": []
+		},
+		{
+			"name": "Test Invalid User ID (Should Fail)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/users/9999",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"users",
+						"9999"
+					]
+				},
+				"description": "Test getting a non-existent user - should return 404"
+			},
+			"response": []
+		}
+	]
+}
