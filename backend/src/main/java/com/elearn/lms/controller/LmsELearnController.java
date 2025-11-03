@@ -8,13 +8,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class LmsELearnController {
     @GetMapping("hello")
     public String SayHello() {
-        return "Hello From Asher";
+        return "Helloooooooo";
     }
 
     @GetMapping("hi")
     public String SayHi() {
         return "Hello From Asher";
     }
-
-    
 }
