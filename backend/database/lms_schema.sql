@@ -247,17 +247,17 @@ CREATE TABLE USER_BADGES (
 
 -- Insert sample admins
 INSERT INTO ADMINS (first_name, last_name, email, password_hash, permissions) VALUES
-('Admin', 'User', 'admin@lms.com', '$2a$10$SampleHashedPassword1', 'all,manage_users,manage_courses,manage_content,view_reports');
+('Admin', 'User', 'admin@lms.com', '$2a$10$u1YVQv1lX8r0mT3k1mQxpu7wG3c1d8bWb6x8h1Hq3yJbq0nG8l9J6', 'all,manage_users,manage_courses,manage_content,view_reports');
 
 -- Insert sample instructors
 INSERT INTO INSTRUCTORS (first_name, last_name, email, password_hash, bio, expertise) VALUES
-('Jane', 'Smith', 'jane.smith@example.com', '$2a$10$SampleHashedPassword2', 'Experienced web developer with 10+ years in the industry', 'Web Development, JavaScript, React'),
-('Bob', 'Johnson', 'bob.johnson@example.com', '$2a$10$SampleHashedPassword3', 'Data scientist specializing in machine learning', 'Data Science, Python, Machine Learning');
+('Jane', 'Smith', 'jane.smith@example.com', '$2a$10$u1YVQv1lX8r0mT3k1mQxpu7wG3c1d8bWb6x8h1Hq3yJbq0nG8l9J6', 'Experienced web developer with 10+ years in the industry', 'Web Development, JavaScript, React'),
+('Bob', 'Johnson', 'bob.johnson@example.com', '$2a$10$u1YVQv1lX8r0mT3k1mQxpu7wG3c1d8bWb6x8h1Hq3yJbq0nG8l9J6', 'Data scientist specializing in machine learning', 'Data Science, Python, Machine Learning');
 
 -- Insert sample students
 INSERT INTO STUDENTS (first_name, last_name, email, password_hash) VALUES
-('John', 'Doe', 'john.doe@example.com', '$2a$10$SampleHashedPassword4'),
-('Alice', 'Williams', 'alice.williams@example.com', '$2a$10$SampleHashedPassword5');
+('John', 'Doe', 'john.doe@example.com', '$2a$10$u1YVQv1lX8r0mT3k1mQxpu7wG3c1d8bWb6x8h1Hq3yJbq0nG8l9J6'),
+('Alice', 'Williams', 'alice.williams@example.com', '$2a$10$u1YVQv1lX8r0mT3k1mQxpu7wG3c1d8bWb6x8h1Hq3yJbq0nG8l9J6');
 
 -- Insert categories
 INSERT INTO CATEGORIES (name, description) VALUES

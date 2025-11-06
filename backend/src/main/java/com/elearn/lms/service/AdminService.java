@@ -5,6 +5,7 @@ import com.elearn.lms.dto.AdminResponse;
 import com.elearn.lms.entity.Admin;
 import com.elearn.lms.repository.AdminRepository;
 import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AdminService(AdminRepository adminRepository) {
+    public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
         this.adminRepository = adminRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Create new admin
@@ -31,7 +34,7 @@ public class AdminService {
         admin.setFirstName(request.getFirstName());
         admin.setLastName(request.getLastName());
         admin.setEmail(request.getEmail());
-        admin.setPasswordHash(hashPassword(request.getPassword())); // Use real hashing
+        admin.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         admin.setPermissions(request.getPermissions());
 
         // Save admin
@@ -77,7 +80,7 @@ public class AdminService {
         admin.setLastName(request.getLastName());
         admin.setEmail(request.getEmail());
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-            admin.setPasswordHash(hashPassword(request.getPassword()));
+            admin.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
         admin.setPermissions(request.getPermissions());
 
@@ -93,9 +96,12 @@ public class AdminService {
         adminRepository.deleteById(id);
     }
 
-    // Simple password hashing (use BCrypt in production)
-    private String hashPassword(String password) {
-        // In production, use BCryptPasswordEncoder
-        return "$2a$10$" + password;
+    public Admin authenticate(String email, String rawPassword) {
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        if (!passwordEncoder.matches(rawPassword, admin.getPasswordHash())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+        return admin;
     }
 }
