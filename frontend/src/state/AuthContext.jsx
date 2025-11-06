@@ -4,14 +4,24 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [admin, setAdmin] = useState(null)
+  const [student, setStudent] = useState(null)
 
   useEffect(() => {
-    const raw = localStorage.getItem('auth.admin')
-    if (raw) {
+    const adminRaw = localStorage.getItem('auth.admin')
+    if (adminRaw) {
       try {
-        setAdmin(JSON.parse(raw))
+        setAdmin(JSON.parse(adminRaw))
       } catch {
         localStorage.removeItem('auth.admin')
+      }
+    }
+
+    const studentRaw = localStorage.getItem('auth.student')
+    if (studentRaw) {
+      try {
+        setStudent(JSON.parse(studentRaw))
+      } catch {
+        localStorage.removeItem('auth.student')
       }
     }
   }, [])
@@ -21,12 +31,19 @@ export function AuthProvider({ children }) {
     localStorage.setItem('auth.admin', JSON.stringify(adminResponse))
   }
 
-  const logout = () => {
-    setAdmin(null)
-    localStorage.removeItem('auth.admin')
+  const loginStudent = (studentResponse) => {
+    setStudent(studentResponse)
+    localStorage.setItem('auth.student', JSON.stringify(studentResponse))
   }
 
-  const value = useMemo(() => ({ admin, login, logout }), [admin])
+  const logout = () => {
+    setAdmin(null)
+    setStudent(null)
+    localStorage.removeItem('auth.admin')
+    localStorage.removeItem('auth.student')
+  }
+
+  const value = useMemo(() => ({ admin, student, login, loginStudent, logout }), [admin, student])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
