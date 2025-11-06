@@ -5,11 +5,17 @@ import './index.css'
 import App from './App.jsx'
 import SignIn from './pages/SignIn.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
+import StudentHome from './pages/StudentHome.jsx'
+import Enroll from './pages/Enroll.jsx'
+import CoursePlayer from './pages/CoursePlayer.jsx'
 import { AuthProvider } from './state/AuthContext.jsx'
 
 const router = createBrowserRouter([
-  { path: '/', element: <SignIn /> },
+  { path: '/', element: <StudentHome /> },
+  { path: '/signin', element: <SignIn /> },
   { path: '/admin', element: <AdminDashboard /> },
+  { path: '/enroll/:id', element: <Enroll /> },
+  { path: '/course/:id', element: <CoursePlayer /> },
   { path: '/app', element: <App /> },
 ])
 

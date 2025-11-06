@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
@@ -5,22 +6,32 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [admin, setAdmin] = useState(null);
+  const [student, setStudent] = useState(null);
   const [token, setToken] = useState("");
 
   useEffect(() => {
-    const raw = localStorage.getItem("auth.admin");
+    const adminRaw = localStorage.getItem("auth.admin");
     const rawToken = localStorage.getItem("auth.token");
-    if (raw) {
+    if (adminRaw) {
       try {
-        const parsed = JSON.parse(raw);
-        setAdmin(parsed);
-        if (rawToken) {
-          setToken(rawToken);
-          axios.defaults.headers.common["Authorization"] = `Bearer ${rawToken}`;
-        }
+        const parsedAdmin = JSON.parse(adminRaw);
+        setAdmin(parsedAdmin);
       } catch {
         localStorage.removeItem("auth.admin");
-        localStorage.removeItem("auth.token");
+      }
+    }
+
+    if (rawToken) {
+      setToken(rawToken);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${rawToken}`;
+    }
+
+    const studentRaw = localStorage.getItem("auth.student");
+    if (studentRaw) {
+      try {
+        setStudent(JSON.parse(studentRaw));
+      } catch {
+        localStorage.removeItem("auth.student");
       }
     }
   }, []);
@@ -46,17 +57,24 @@ export function AuthProvider({ children }) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${jwtToken}`;
   };
 
+  const loginStudent = (studentResponse) => {
+    setStudent(studentResponse);
+    localStorage.setItem("auth.student", JSON.stringify(studentResponse));
+  };
+
   const logout = () => {
     setAdmin(null);
+    setStudent(null);
     setToken("");
     localStorage.removeItem("auth.admin");
+    localStorage.removeItem("auth.student");
     localStorage.removeItem("auth.token");
     delete axios.defaults.headers.common["Authorization"];
   };
 
   const value = useMemo(
-    () => ({ admin, token, login, logout }),
-    [admin, token]
+    () => ({ admin, student, token, login, loginStudent, logout }),
+    [admin, student, token]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
