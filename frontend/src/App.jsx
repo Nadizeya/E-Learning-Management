@@ -4,7 +4,7 @@ function App() {
   return (
     <>
       <h1>Admin App Shell</h1>
-      <p>Use the router to navigate. Default route is Sign In.</p>
+      <p>Use the router to navigate. Default route is Student Home.</p>
     </>
   )
 }
