@@ -1,118 +1,14 @@
 import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './StudentHome.css'
+import { COURSES } from '../data/courses.js'
 
-// Mock course data
-const MOCK_COURSES = [
-  {
-    id: 1,
-    title: 'Web Application Development',
-    instructor: 'Dr. Sarah Johnson',
-    rating: 4.8,
-    students: 12500,
-    price: 'Free',
-    level: 'Beginner',
-    duration: '6 weeks',
-    category: 'Computer Science',
-    thumbnail: '🌐',
-    color: '#667eea',
-  },
-  {
-    id: 2,
-    title: 'Machine Learning Fundamentals',
-    instructor: 'Prof. Michael Chen',
-    rating: 4.9,
-    students: 25000,
-    price: 'Free',
-    level: 'Intermediate',
-    duration: '8 weeks',
-    category: 'Data Science',
-    thumbnail: '🤖',
-    color: '#f093fb',
-  },
-  {
-    id: 3,
-    title: 'Digital Marketing Strategy',
-    instructor: 'Emma Williams',
-    rating: 4.7,
-    students: 8900,
-    price: 'Free',
-    level: 'Beginner',
-    duration: '4 weeks',
-    category: 'Business',
-    thumbnail: '📱',
-    color: '#4facfe',
-  },
-  {
-    id: 4,
-    title: 'Python for Data Science',
-    instructor: 'Dr. James Lee',
-    rating: 4.8,
-    students: 18000,
-    price: 'Free',
-    level: 'Beginner',
-    duration: '5 weeks',
-    category: 'Data Science',
-    thumbnail: '🐍',
-    color: '#43e97b',
-  },
-  {
-    id: 5,
-    title: 'UI/UX Design Principles',
-    instructor: 'Lisa Anderson',
-    rating: 4.9,
-    students: 15000,
-    price: 'Free',
-    level: 'Beginner',
-    duration: '6 weeks',
-    category: 'Design',
-    thumbnail: '🎨',
-    color: '#fa709a',
-  },
-  {
-    id: 6,
-    title: 'Cloud Computing with AWS',
-    instructor: 'Robert Martinez',
-    rating: 4.7,
-    students: 10500,
-    price: 'Free',
-    level: 'Advanced',
-    duration: '10 weeks',
-    category: 'Computer Science',
-    thumbnail: '☁️',
-    color: '#a8edea',
-  },
-  {
-    id: 7,
-    title: 'Financial Markets',
-    instructor: 'Prof. David Brown',
-    rating: 4.8,
-    students: 22000,
-    price: 'Free',
-    level: 'Beginner',
-    duration: '7 weeks',
-    category: 'Business',
-    thumbnail: '💰',
-    color: '#ffecd2',
-  },
-  {
-    id: 8,
-    title: 'Mobile App Development',
-    instructor: 'Jennifer Taylor',
-    rating: 4.6,
-    students: 9800,
-    price: 'Free',
-    level: 'Intermediate',
-    duration: '8 weeks',
-    category: 'Computer Science',
-    thumbnail: '📱',
-    color: '#ff9a9e',
-  }
-]
 
 const CATEGORIES = ['All', 'Computer Science', 'Data Science', 'Business', 'Design']
 
 export default function StudentHome() {
+  const navigate = useNavigate()
   const [student] = useState({ firstName: 'Alex' })
   const [enrolledCourses, setEnrolledCourses] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -120,7 +16,7 @@ export default function StudentHome() {
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
-    setEnrolledCourses([MOCK_COURSES[0], MOCK_COURSES[3]])
+    setEnrolledCourses([COURSES[0], COURSES[3]])
     
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
@@ -130,7 +26,7 @@ export default function StudentHome() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const filteredCourses = MOCK_COURSES.filter(course => {
+  const filteredCourses = COURSES.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory
     return matchesSearch && matchesCategory
@@ -161,6 +57,8 @@ export default function StudentHome() {
               </li>
             </ul>
             <div className="d-flex align-items-center gap-3">
+              <Link to="/signin" className="btn btn-outline-light">Admin Sign In</Link>
+              <Link to="/admin" className="btn btn-primary">Admin Dashboard</Link>
               <div className="user-avatar">
                 <span>{student?.firstName?.charAt(0) || 'G'}</span>
               </div>
@@ -271,7 +169,7 @@ export default function StudentHome() {
 
           <div className="row g-4">
             {filteredCourses.map(course => (
-              <div key={course.id} className="col-sm-6 col-md-4 col-lg-3">
+              <div key={course.id} className="col-12 col-sm-6 col-lg-4">
                 <CourseCard course={course} />
               </div>
             ))}
@@ -316,6 +214,7 @@ export default function StudentHome() {
 // Course Card Component
 function CourseCard({ course }) {
   const [isHovered, setIsHovered] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <div 
@@ -354,7 +253,7 @@ function CourseCard({ course }) {
           </div>
           <div className="card-footer">
             <span className="price">{course.price}</span>
-            <button className="btn-enroll">
+            <button className="btn-enroll" onClick={() => navigate(`/enroll/${course.id}`)}>
               Enroll Now
               <span className="btn-arrow">→</span>
             </button>
