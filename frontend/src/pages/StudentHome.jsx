@@ -57,6 +57,7 @@ export default function StudentHome() {
               </li>
             </ul>
             <div className="d-flex align-items-center gap-3">
+              <Link to="/settings" className="btn btn-outline-light">Settings</Link>
               <Link to="/signin" className="btn btn-outline-light">Admin Sign In</Link>
               <Link to="/admin" className="btn btn-primary">Admin Dashboard</Link>
               <div className="user-avatar">
@@ -146,6 +147,20 @@ export default function StudentHome() {
       {/* Course Catalog */}
       <section className="section course-catalog">
         <div className="container">
+          {/* Quick Links */}
+          <div className="row g-3 mb-3">
+            <div className="col-12 col-md-4">
+              <div className="card" style={{ borderRadius: 12, border: '1px solid #e5e7eb' }}>
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div>
+                    <div className="text-muted" style={{ fontSize: 12 }}>Account</div>
+                    <div className="fw-bold">Student Settings</div>
+                  </div>
+                  <Link to="/settings" className="btn btn-outline-secondary" style={{ borderRadius: 10 }}>Open</Link>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="section-header">
             <h2 className="section-title">
               <span className="section-icon">📚</span>
