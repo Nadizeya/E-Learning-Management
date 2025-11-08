@@ -5,10 +5,9 @@ export default function CourseModal({ course, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     title: course?.title || '',
     description: course?.description || '',
-    category: course?.category || '',
-    level: course?.level || 'BEGINNER',
-    price: course?.price || 0,
-    published: course?.published || false
+    categoryId: course?.categoryId || null,
+    instructorId: course?.instructorId || null,
+    status: course?.status || 'Draft'
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -20,12 +19,20 @@ export default function CourseModal({ course, onClose, onSuccess }) {
 
     try {
       const token = localStorage.getItem('token')
+      const userData = JSON.parse(localStorage.getItem('user'))
+      
+      // Use instructorId from the stored user data
+      const payload = {
+        ...formData,
+        instructorId: userData.instructorId
+      }
+
       if (course) {
-        await axios.put(`http://localhost:8080/api/courses/${course.id}`, formData, {
+        await axios.put(`http://localhost:8080/api/courses/${course.courseId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         })
       } else {
-        await axios.post('http://localhost:8080/api/courses', formData, {
+        await axios.post('http://localhost:8080/api/courses', payload, {
           headers: { Authorization: `Bearer ${token}` }
         })
       }
@@ -72,49 +79,27 @@ export default function CourseModal({ course, onClose, onSuccess }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Category *</label>
+              <label>Category ID *</label>
               <input
-                type="text"
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                placeholder="e.g., Programming"
+                type="number"
+                value={formData.categoryId || ''}
+                onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value) || null})}
+                placeholder="Enter category ID"
                 required
               />
+              <small>Enter the category ID (e.g., 1 for Programming)</small>
             </div>
 
             <div className="form-group">
-              <label>Level *</label>
+              <label>Status *</label>
               <select
-                value={formData.level}
-                onChange={(e) => setFormData({...formData, level: e.target.value})}
+                value={formData.status}
+                onChange={(e) => setFormData({...formData, status: e.target.value})}
               >
-                <option value="BEGINNER">Beginner</option>
-                <option value="INTERMEDIATE">Intermediate</option>
-                <option value="ADVANCED">Advanced</option>
+                <option value="Draft">Draft</option>
+                <option value="Published">Published</option>
               </select>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label>Price ($)</label>
-            <input
-              type="number"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          <div className="form-group checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={formData.published}
-                onChange={(e) => setFormData({...formData, published: e.target.checked})}
-              />
-              <span>Publish immediately</span>
-            </label>
           </div>
 
           <div className="modal-actions">

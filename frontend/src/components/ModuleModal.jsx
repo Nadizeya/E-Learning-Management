@@ -3,9 +3,10 @@ import axios from 'axios'
 
 export default function ModuleModal({ courseId, module, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
+    courseId: courseId,
     title: module?.title || '',
     description: module?.description || '',
-    orderIndex: module?.orderIndex || 0
+    moduleOrder: module?.moduleOrder || 0
   })
   const [loading, setLoading] = useState(false)
 
@@ -16,11 +17,11 @@ export default function ModuleModal({ courseId, module, onClose, onSuccess }) {
     try {
       const token = localStorage.getItem('token')
       if (module) {
-        await axios.put(`http://localhost:8080/api/modules/${module.id}`, formData, {
+        await axios.put(`http://localhost:8080/api/course-modules/${module.moduleId}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
       } else {
-        await axios.post(`http://localhost:8080/api/courses/${courseId}/modules`, formData, {
+        await axios.post(`http://localhost:8080/api/course-modules`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
       }

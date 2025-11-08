@@ -21,10 +21,13 @@ export default function CourseManagement() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get('http://localhost:8080/api/courses/instructor/my-courses', {
+      const userData = JSON.parse(localStorage.getItem('user'))
+      const instructorId = userData.instructorId
+      
+      const response = await axios.get(`http://localhost:8080/api/courses/instructor/${instructorId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setCourses(response.data)
+      setCourses(response.data.data || response.data)
     } catch (error) {
       console.error('Error fetching courses:', error)
     } finally {
@@ -73,13 +76,13 @@ export default function CourseManagement() {
       ) : (
         <div className="courses-grid">
           {courses.map(course => (
-            <div key={course.id} className="course-card">
+            <div key={course.courseId} className="course-card">
               <div className="course-card-header">
                 <div className="course-thumbnail">
                   <span className="course-emoji">📖</span>
                 </div>
-                <span className={`status-badge ${course.published ? 'published' : 'draft'}`}>
-                  {course.published ? 'Published' : 'Draft'}
+                <span className={`status-badge ${course.status === 'Published' ? 'published' : 'draft'}`}>
+                  {course.status}
                 </span>
               </div>
               <div className="course-card-body">
@@ -88,11 +91,11 @@ export default function CourseManagement() {
                 <div className="course-meta">
                   <span className="meta-item">
                     <span className="meta-icon">📚</span>
-                    {course.category}
+                    Category ID: {course.categoryId}
                   </span>
                   <span className="meta-item">
                     <span className="meta-icon">📊</span>
-                    {course.level}
+                    {course.status}
                   </span>
                 </div>
                 <div className="course-actions">
@@ -104,7 +107,7 @@ export default function CourseManagement() {
                   </button>
                   <button 
                     className="btn-danger" 
-                    onClick={() => handleDeleteCourse(course.id)}
+                    onClick={() => handleDeleteCourse(course.courseId)}
                   >
                     Delete
                   </button>
@@ -158,15 +161,15 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
 
   useEffect(() => {
     fetchModules()
-  }, [course.id])
+  }, [course.courseId])
 
   const fetchModules = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`http://localhost:8080/api/courses/${course.id}/modules`, {
+      const response = await axios.get(`http://localhost:8080/api/course-modules/course/${course.courseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setModules(response.data)
+      setModules(response.data.data || response.data)
     } catch (error) {
       console.error('Error:', error)
     }
@@ -175,7 +178,14 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
   const handleUpdateCourse = async () => {
     try {
       const token = localStorage.getItem('token')
-      await axios.put(`http://localhost:8080/api/courses/${course.id}`, courseData, {
+      const userData = JSON.parse(localStorage.getItem('user'))
+      
+      const payload = {
+        ...courseData,
+        instructorId: userData.instructorId
+      }
+      
+      await axios.put(`http://localhost:8080/api/courses/${course.courseId}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       })
       alert('Course updated!')
@@ -190,7 +200,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
     if (!confirm('Delete this module?')) return
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:8080/api/modules/${moduleId}`, {
+      await axios.delete(`http://localhost:8080/api/course-modules/${moduleId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       fetchModules()
@@ -239,44 +249,23 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Category</label>
+                    <label>Category ID</label>
                     <input
-                      type="text"
-                      value={courseData.category}
-                      onChange={(e) => setCourseData({...courseData, category: e.target.value})}
+                      type="number"
+                      value={courseData.categoryId || ''}
+                      onChange={(e) => setCourseData({...courseData, categoryId: parseInt(e.target.value) || null})}
                     />
                   </div>
                   <div className="form-group">
-                    <label>Level</label>
+                    <label>Status</label>
                     <select
-                      value={courseData.level}
-                      onChange={(e) => setCourseData({...courseData, level: e.target.value})}
+                      value={courseData.status}
+                      onChange={(e) => setCourseData({...courseData, status: e.target.value})}
                     >
-                      <option value="BEGINNER">Beginner</option>
-                      <option value="INTERMEDIATE">Intermediate</option>
-                      <option value="ADVANCED">Advanced</option>
+                      <option value="Draft">Draft</option>
+                      <option value="Published">Published</option>
                     </select>
                   </div>
-                </div>
-                <div className="form-group">
-                  <label>Price ($)</label>
-                  <input
-                    type="number"
-                    value={courseData.price}
-                    onChange={(e) => setCourseData({...courseData, price: parseFloat(e.target.value)})}
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div className="form-group checkbox-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={courseData.published}
-                      onChange={(e) => setCourseData({...courseData, published: e.target.checked})}
-                    />
-                    <span>Published</span>
-                  </label>
                 </div>
                 <button className="btn-primary" onClick={handleUpdateCourse}>
                   Save Changes
@@ -285,10 +274,8 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
             ) : (
               <div className="course-info">
                 <p><strong>Description:</strong> {course.description}</p>
-                <p><strong>Category:</strong> {course.category}</p>
-                <p><strong>Level:</strong> {course.level}</p>
-                <p><strong>Price:</strong> ${course.price}</p>
-                <p><strong>Status:</strong> {course.published ? 'Published' : 'Draft'}</p>
+                <p><strong>Category ID:</strong> {course.categoryId}</p>
+                <p><strong>Status:</strong> {course.status}</p>
               </div>
             )}
           </div>
@@ -308,7 +295,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
             ) : (
               <div className="modules-list">
                 {modules.map((module, index) => (
-                  <div key={module.id} className="module-item">
+                  <div key={module.moduleId} className="module-item">
                     <div className="module-number">{index + 1}</div>
                     <div className="module-info">
                       <h4>{module.title}</h4>
@@ -323,7 +310,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
                       </button>
                       <button 
                         className="btn-icon" 
-                        onClick={() => handleDeleteModule(module.id)}
+                        onClick={() => handleDeleteModule(module.moduleId)}
                       >
                         🗑️
                       </button>
@@ -337,7 +324,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
 
         {showModuleModal && (
           <ModuleModal 
-            courseId={course.id}
+            courseId={course.courseId}
             onClose={() => setShowModuleModal(false)}
             onSuccess={() => {
               setShowModuleModal(false)

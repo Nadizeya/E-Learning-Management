@@ -8,15 +8,15 @@ export default function ContentModal({ module, onClose }) {
 
   useEffect(() => {
     fetchContents()
-  }, [module.id])
+  }, [module.moduleId])
 
   const fetchContents = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`http://localhost:8080/api/modules/${module.id}/contents`, {
+      const response = await axios.get(`http://localhost:8080/api/course-contents/module/${module.moduleId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setContents(response.data)
+      setContents(response.data.data || response.data)
     } catch (error) {
       console.error('Error:', error)
     }
@@ -27,7 +27,7 @@ export default function ContentModal({ module, onClose }) {
     
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:8080/api/contents/${contentId}`, {
+      await axios.delete(`http://localhost:8080/api/course-contents/${contentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       fetchContents()
@@ -74,10 +74,10 @@ export default function ContentModal({ module, onClose }) {
             <div className="contents-list">
               {contents.map((content, index) => (
                 <ContentItem 
-                  key={content.id}
+                  key={content.contentId}
                   content={content}
                   index={index}
-                  onDelete={() => handleDeleteContent(content.id)}
+                  onDelete={() => handleDeleteContent(content.contentId)}
                 />
               ))}
             </div>
@@ -86,7 +86,7 @@ export default function ContentModal({ module, onClose }) {
 
         {showCreateContent && (
           <CreateContentForm 
-            moduleId={module.id}
+            moduleId={module.moduleId}
             contentType={contentType}
             onClose={() => setShowCreateContent(false)}
             onSuccess={() => {
@@ -102,10 +102,10 @@ export default function ContentModal({ module, onClose }) {
 
 function ContentItem({ content, index, onDelete }) {
   const getIcon = () => {
-    switch(content.type) {
-      case 'VIDEO': return '🎥'
-      case 'READING': return '📄'
-      case 'QUIZ': return '❓'
+    switch(content.contentType) {
+      case 'Video': return '🎥'
+      case 'Reading': return '📄'
+      case 'Quiz': return '❓'
       default: return '📌'
     }
   }
@@ -115,8 +115,8 @@ function ContentItem({ content, index, onDelete }) {
       <span className="content-icon">{getIcon()}</span>
       <div className="content-info">
         <h5>{content.title}</h5>
-        <span className="content-type">{content.type}</span>
-        {content.videoUrl && <small className="content-url">{content.videoUrl}</small>}
+        <span className="content-type">{content.contentType}</span>
+        {content.contentUrl && <small className="content-url">{content.contentUrl}</small>}
       </div>
       <button className="btn-icon" onClick={onDelete}>🗑️</button>
     </div>
@@ -139,19 +139,41 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
 
     try {
       const token = localStorage.getItem('token')
-      const payload = {
-        title: formData.title,
-        type: formData.type,
-        ...(formData.type === 'VIDEO' && { videoUrl: formData.videoUrl }),
-        ...(formData.type === 'READING' && { readingContent: formData.readingContent }),
-        ...(formData.type === 'QUIZ' && { quizData: JSON.stringify(formData.quizData) })
+      
+      // Determine contentUrl based on type
+      let contentUrl = ''
+      if (formData.type === 'VIDEO') {
+        contentUrl = formData.videoUrl
+      } else if (formData.type === 'READING') {
+        contentUrl = formData.readingContent
+      } else if (formData.type === 'QUIZ') {
+        contentUrl = JSON.stringify(formData.quizData)
       }
 
-      await axios.post(`http://localhost:8080/api/modules/${moduleId}/contents`, payload, {
+      // Map frontend types to backend format (Video, Reading, Quiz)
+      const contentTypeMap = {
+        'VIDEO': 'Video',
+        'READING': 'Reading',
+        'QUIZ': 'Quiz'
+      }
+
+      const payload = {
+        moduleId: moduleId,
+        title: formData.title,
+        contentType: contentTypeMap[formData.type],
+        contentUrl: contentUrl,
+        contentOrder: 0
+      }
+
+      console.log('Creating content with payload:', payload)
+      console.log('Module ID received:', moduleId)
+
+      await axios.post(`http://localhost:8080/api/course-contents`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       })
       onSuccess()
     } catch (error) {
+      console.error('Content creation error:', error.response?.data)
       alert('Error: ' + (error.response?.data?.message || error.message))
     } finally {
       setLoading(false)
