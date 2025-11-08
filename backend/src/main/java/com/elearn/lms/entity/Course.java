@@ -2,6 +2,8 @@ package com.elearn.lms.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "COURSES")
@@ -27,6 +29,10 @@ public class Course {
 
 	@Column(name = "status", length = 20)
 	private String status; // Draft, Published
+
+	@OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OrderBy("moduleOrder ASC")
+	private List<CourseModule> modules = new ArrayList<>();
 
 	@Column(name = "created_at", updatable = false)
 	private LocalDateTime createdAt;
@@ -118,6 +124,14 @@ public class Course {
 
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public List<CourseModule> getModules() {
+		return modules;
+	}
+
+	public void setModules(List<CourseModule> modules) {
+		this.modules = modules;
 	}
 }
 
