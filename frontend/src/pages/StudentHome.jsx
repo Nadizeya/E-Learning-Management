@@ -9,14 +9,24 @@ const CATEGORIES = ['All', 'Computer Science', 'Data Science', 'Business', 'Desi
 
 export default function StudentHome() {
   const navigate = useNavigate()
-  const [student] = useState({ firstName: 'Alex' })
+  const [student, setStudent] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isLoggedIn] = useState(false) // TODO: Replace with actual auth state
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showSignInDropdown, setShowSignInDropdown] = useState(false)
 
   useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token')
+    const userRole = localStorage.getItem('userRole')
+    const userData = localStorage.getItem('user')
+    
+    if (token && userRole === 'STUDENT' && userData) {
+      setIsLoggedIn(true)
+      setStudent(JSON.parse(userData))
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
     }
@@ -24,6 +34,15 @@ export default function StudentHome() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('userRole')
+    setIsLoggedIn(false)
+    setStudent(null)
+    navigate('/')
+  }
 
   const filteredCourses = COURSES.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -63,7 +82,7 @@ export default function StudentHome() {
                     <span>{student?.firstName?.charAt(0) || 'G'}</span>
                   </div>
                   <span className="user-name">Hi, {student?.firstName || 'Guest'}!</span>
-                  <button className="btn btn-logout">Logout</button>
+                  <button className="btn btn-logout" onClick={handleLogout}>Logout</button>
                 </>
               ) : (
                 <div className="signin-dropdown-wrapper">

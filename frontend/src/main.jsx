@@ -8,6 +8,7 @@ import StudentSignIn from './pages/StudentSignIn.jsx'
 import StudentSignUp from './pages/StudentSignUp.jsx'
 import InstructorSignIn from './pages/InstructorSignIn.jsx'
 import InstructorSignUp from './pages/InstructorSignUp.jsx'
+import InstructorDashboard from './pages/InstructorDashboard.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import StudentHome from './pages/StudentHome.jsx'
 import StudentSettings from './pages/StudentSettings.jsx'
@@ -22,7 +23,7 @@ const router = createBrowserRouter([
   { path: '/student/signup', element: <StudentSignUp /> },
   { path: '/instructor/signin', element: <InstructorSignIn /> },
   { path: '/instructor/signup', element: <InstructorSignUp /> },
-  { path: '/instructor/dashboard', element: <div>Instructor Dashboard Coming Soon</div> },
+  { path: '/instructor/dashboard', element: <InstructorDashboard /> },
   { path: '/admin', element: <AdminDashboard /> },
   { path: '/enroll/:id', element: <Enroll /> },
   { path: '/course/:id', element: <CoursePlayer /> },

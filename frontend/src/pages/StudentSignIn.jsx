@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 import './Auth.css'
 
 export default function StudentSignIn() {
@@ -15,20 +16,22 @@ export default function StudentSignIn() {
     setLoading(true)
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await axios.post('http://localhost:8080/api/students/auth/login', {
-      //   email,
-      //   password
-      // })
+      const response = await axios.post('http://localhost:8080/api/auth/student/login', {
+        email,
+        password
+      })
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Store token and user data
+      const { token, student } = response.data
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(student))
+      localStorage.setItem('userRole', 'STUDENT')
       
-      // For now, just navigate to student home
-      // In production, you'd store the token and user data
-      navigate('/student/home')
+      // Navigate to home page
+      navigate('/')
     } catch (err) {
-      setError('Invalid email or password')
+      const errorMsg = err?.response?.data?.message || 'Invalid email or password'
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
