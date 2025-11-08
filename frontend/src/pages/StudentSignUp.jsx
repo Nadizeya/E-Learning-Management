@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 import './Auth.css'
 
 export default function StudentSignUp() {
@@ -38,21 +39,18 @@ export default function StudentSignUp() {
     setLoading(true)
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await axios.post('http://localhost:8080/api/students/auth/register', {
-      //   firstName: formData.firstName,
-      //   lastName: formData.lastName,
-      //   email: formData.email,
-      //   password: formData.password
-      // })
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await axios.post('http://localhost:8080/api/auth/student/signup', {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password
+      })
       
       // Navigate to sign in page after successful registration
       navigate('/student/signin')
     } catch (err) {
-      setError('Registration failed. Please try again.')
+      const errorMsg = err?.response?.data?.message || 'Registration failed. Please try again.'
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }

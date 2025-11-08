@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 import './Auth.css'
 
 export default function InstructorSignIn() {
@@ -15,20 +16,22 @@ export default function InstructorSignIn() {
     setLoading(true)
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await axios.post('http://localhost:8080/api/instructors/auth/login', {
-      //   email,
-      //   password
-      // })
+      const response = await axios.post('http://localhost:8080/api/auth/instructor/login', {
+        email,
+        password
+      })
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Store token and user data
+      const { token, instructor } = response.data
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(instructor))
+      localStorage.setItem('userRole', 'INSTRUCTOR')
       
-      // For now, just navigate to instructor dashboard
-      // In production, you'd store the token and user data
+      // Navigate to instructor dashboard
       navigate('/instructor/dashboard')
     } catch (err) {
-      setError('Invalid email or password')
+      const errorMsg = err?.response?.data?.message || 'Invalid email or password'
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }

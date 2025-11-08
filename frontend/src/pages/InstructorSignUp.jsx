@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import axios from 'axios'
 import './Auth.css'
 
 export default function InstructorSignUp() {
@@ -8,6 +9,7 @@ export default function InstructorSignUp() {
     firstName: '',
     lastName: '',
     email: '',
+    bio: '',
     expertise: '',
     password: '',
     confirmPassword: ''
@@ -39,22 +41,20 @@ export default function InstructorSignUp() {
     setLoading(true)
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await axios.post('http://localhost:8080/api/instructors/auth/register', {
-      //   firstName: formData.firstName,
-      //   lastName: formData.lastName,
-      //   email: formData.email,
-      //   expertise: formData.expertise,
-      //   password: formData.password
-      // })
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await axios.post('http://localhost:8080/api/auth/instructor/signup', {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        bio: formData.bio,
+        expertise: formData.expertise,
+        password: formData.password
+      })
       
       // Navigate to sign in page after successful registration
       navigate('/instructor/signin')
     } catch (err) {
-      setError('Registration failed. Please try again.')
+      const errorMsg = err?.response?.data?.message || 'Registration failed. Please try again.'
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -121,6 +121,28 @@ export default function InstructorSignUp() {
               onChange={handleChange}
               placeholder="instructor@example.com"
               required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="bio">Bio</label>
+            <textarea
+              id="bio"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              placeholder="Tell us about yourself and your teaching experience"
+              rows="3"
+              required
+              style={{ 
+                width: '100%', 
+                padding: '0.875rem 1rem',
+                border: '2px solid #e5e7eb',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
             />
           </div>
 
