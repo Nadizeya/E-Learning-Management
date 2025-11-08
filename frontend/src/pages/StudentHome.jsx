@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './StudentHome.css'
 import { COURSES } from '../data/courses.js'
+import { courseAPI, categoryAPI } from '../services/api.js'
 
 
 const CATEGORIES = ['All', 'Computer Science', 'Data Science', 'Business', 'Design']
@@ -15,6 +16,8 @@ export default function StudentHome() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showSignInDropdown, setShowSignInDropdown] = useState(false)
+  const [courses, setCourses] = useState(COURSES) // Start with mock data as fallback
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in
@@ -26,6 +29,54 @@ export default function StudentHome() {
       setIsLoggedIn(true)
       setStudent(JSON.parse(userData))
     }
+
+    // Fetch courses from API
+    const fetchCourses = async () => {
+      try {
+        setLoading(true)
+        // Try to fetch all courses first, then filter by status
+        const allCourses = await courseAPI.getAllCourses()
+        console.log('Fetched courses:', allCourses)
+        
+        if (allCourses && allCourses.length > 0) {
+          // Filter published courses
+          const publishedCourses = allCourses.filter(c => c.status === 'Published')
+          
+          // Map backend courses to frontend format
+          const mappedCourses = publishedCourses.map(course => ({
+            id: course.courseId,
+            title: course.title,
+            instructor: course.instructor ? `${course.instructor.firstName} ${course.instructor.lastName}` : 'Instructor',
+            rating: 4.5,
+            students: 1000,
+            price: 'Free',
+            level: course.level || 'Beginner',
+            duration: '6 weeks',
+            category: course.category?.name || 'Computer Science',
+            thumbnail: '🎓',
+            color: '#667eea',
+            summary: course.description || 'Learn and master new skills'
+          }))
+          
+          console.log('Mapped courses:', mappedCourses)
+          
+          // Use mapped courses if available, otherwise keep mock data
+          if (mappedCourses.length > 0) {
+            setCourses(mappedCourses)
+          } else {
+            console.log('No published courses found, using mock data')
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch courses:', error)
+        console.log('Using mock data as fallback')
+        // Keep using mock data on error
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCourses()
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
@@ -44,7 +95,7 @@ export default function StudentHome() {
     navigate('/')
   }
 
-  const filteredCourses = COURSES.filter(course => {
+  const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory
     return matchesSearch && matchesCategory

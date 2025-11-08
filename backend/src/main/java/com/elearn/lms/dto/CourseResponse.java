@@ -11,6 +11,10 @@ public class CourseResponse {
 	private String title;
 	private String description;
 	private String status;
+	private String thumbnail;
+	private String color;
+	private String level;
+	private String duration;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
@@ -24,6 +28,10 @@ public class CourseResponse {
 		this.title = course.getTitle();
 		this.description = course.getDescription();
 		this.status = course.getStatus();
+		this.thumbnail = course.getThumbnail();
+		this.color = course.getColor();
+		this.level = course.getLevel();
+		this.duration = course.getDuration();
 		this.createdAt = course.getCreatedAt();
 		this.updatedAt = course.getUpdatedAt();
 	}
@@ -90,6 +98,38 @@ public class CourseResponse {
 
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	public String getLevel() {
+		return level;
+	}
+
+	public void setLevel(String level) {
+		this.level = level;
+	}
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
 	}
 }
 

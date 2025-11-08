@@ -7,7 +7,11 @@ export default function CourseModal({ course, onClose, onSuccess }) {
     description: course?.description || '',
     categoryId: course?.categoryId || null,
     instructorId: course?.instructorId || null,
-    status: course?.status || 'Draft'
+    status: course?.status || 'Draft',
+    thumbnail: course?.thumbnail || '🎓',
+    color: course?.color || '#667eea',
+    level: course?.level || 'Beginner',
+    duration: course?.duration || '6 weeks'
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -75,6 +79,58 @@ export default function CourseModal({ course, onClose, onSuccess }) {
               rows="4"
               required
             />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Thumbnail (Emoji)</label>
+              <input
+                type="text"
+                value={formData.thumbnail}
+                onChange={(e) => setFormData({...formData, thumbnail: e.target.value})}
+                placeholder="🎓"
+                maxLength="10"
+              />
+              <small>Use emoji: 💻 🎨 📊 🎓 🔬 📱 🌐 🤖</small>
+            </div>
+
+            <div className="form-group">
+              <label>Color (Hex)</label>
+              <input
+                type="text"
+                value={formData.color}
+                onChange={(e) => setFormData({...formData, color: e.target.value})}
+                placeholder="#667eea"
+                pattern="^#[0-9A-Fa-f]{6}$"
+              />
+              <small>Hex color code (e.g., #3b82f6)</small>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Level *</label>
+              <select
+                value={formData.level}
+                onChange={(e) => setFormData({...formData, level: e.target.value})}
+                required
+              >
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Duration</label>
+              <input
+                type="text"
+                value={formData.duration}
+                onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                placeholder="6 weeks"
+              />
+              <small>e.g., "6 weeks", "3 months"</small>
+            </div>
           </div>
 
           <div className="form-row">

@@ -27,6 +27,9 @@ public class CourseContent {
 
 	@Column(name = "content_url", length = 500)
 	private String contentUrl;
+	
+	@Column(name = "file_path", length = 500)
+	private String filePath; // For uploaded files (videos, PDFs, etc.)
 
 	@Column(name = "content_order", nullable = false)
 	private Integer contentOrder;
@@ -109,6 +112,14 @@ public class CourseContent {
 
 	public void setContentUrl(String contentUrl) {
 		this.contentUrl = contentUrl;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 	public Integer getContentOrder() {

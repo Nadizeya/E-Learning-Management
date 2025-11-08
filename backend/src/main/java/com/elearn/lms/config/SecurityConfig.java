@@ -39,6 +39,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/admins/auth/login").permitAll()
                         .requestMatchers("/api/auth/student/**").permitAll()
                         .requestMatchers("/api/auth/instructor/**").permitAll()
+                        // Allow public access to view courses and content
+                        .requestMatchers(HttpMethod.GET, "/api/courses/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/course-modules/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/course-contents/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        // Allow enrollment endpoints (students need to enroll)
+                        .requestMatchers("/api/enrollments/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

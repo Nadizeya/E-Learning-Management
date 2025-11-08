@@ -89,13 +89,18 @@ CREATE TABLE COURSES (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     status ENUM('Draft', 'Published') DEFAULT 'Draft',
+    thumbnail VARCHAR(10) DEFAULT '🎓' COMMENT 'Emoji or icon for course',
+    color VARCHAR(7) DEFAULT '#667eea' COMMENT 'Hex color for course theme',
+    level ENUM('Beginner', 'Intermediate', 'Advanced') DEFAULT 'Beginner',
+    duration VARCHAR(50) DEFAULT '6 weeks' COMMENT 'Estimated course duration',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES CATEGORIES(category_id) ON DELETE RESTRICT,
     FOREIGN KEY (instructor_id) REFERENCES INSTRUCTORS(instructor_id) ON DELETE CASCADE,
     INDEX idx_category (category_id),
     INDEX idx_instructor (instructor_id),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_level (level)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table 6: COURSE_MODULES
@@ -118,6 +123,7 @@ CREATE TABLE COURSE_CONTENT (
     title VARCHAR(255) NOT NULL,
     content_type ENUM('Video', 'Reading', 'Quiz') NOT NULL,
     content_url VARCHAR(500),
+    file_path VARCHAR(500) COMMENT 'Path to uploaded file (videos, PDFs, etc.)',
     content_order INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

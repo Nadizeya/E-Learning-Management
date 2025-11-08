@@ -10,6 +10,7 @@ public class CourseContentResponse {
 	private String title;
 	private String contentType; // Video, Reading, Quiz
 	private String contentUrl;
+	private String filePath; // For uploaded files
 	private Integer contentOrder;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
@@ -23,6 +24,7 @@ public class CourseContentResponse {
 		this.title = content.getTitle();
 		this.contentType = content.getContentType();
 		this.contentUrl = content.getContentUrl();
+		this.filePath = content.getFilePath();
 		this.contentOrder = content.getContentOrder();
 		this.createdAt = content.getCreatedAt();
 		this.updatedAt = content.getUpdatedAt();
@@ -66,6 +68,14 @@ public class CourseContentResponse {
 
 	public void setContentUrl(String contentUrl) {
 		this.contentUrl = contentUrl;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 	public Integer getContentOrder() {

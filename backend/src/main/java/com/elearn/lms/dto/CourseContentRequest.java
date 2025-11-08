@@ -6,6 +6,7 @@ public class CourseContentRequest {
 	private String title;
 	private String contentType; // Video, Reading, Quiz
 	private String contentUrl;
+	private String filePath; // For uploaded files
 	private Integer contentOrder;
 
 	public CourseContentRequest() {
@@ -49,6 +50,14 @@ public class CourseContentRequest {
 
 	public void setContentUrl(String contentUrl) {
 		this.contentUrl = contentUrl;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 	public Integer getContentOrder() {
