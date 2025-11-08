@@ -1,42 +1,162 @@
 import { useState } from 'react'
-import axios from 'axios'
+import { useNavigate, Link } from 'react-router-dom'
+import './Auth.css'
 
 export default function StudentSignUp() {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' })
-  const [message, setMessage] = useState('')
+  const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
 
-  const onSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setMessage('')
+    setError('')
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
+    setLoading(true)
+    
     try {
-      const res = await axios.post('/api/auth/student/signup', form)
-      setMessage(res.data.message || 'Signup successful')
+      // TODO: Replace with actual API call
+      // const response = await axios.post('http://localhost:8080/api/students/auth/register', {
+      //   firstName: formData.firstName,
+      //   lastName: formData.lastName,
+      //   email: formData.email,
+      //   password: formData.password
+      // })
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Navigate to sign in page after successful registration
+      navigate('/student/signin')
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Signup failed'
-      setMessage(msg)
-      alert(msg)
+      setError('Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '40px auto' }}>
-      <h2>Student Sign Up</h2>
-      <form onSubmit={onSubmit}>
-        <input name="firstName" placeholder="First name" value={form.firstName} onChange={onChange} required />
-        <br />
-        <input name="lastName" placeholder="Last name" value={form.lastName} onChange={onChange} required />
-        <br />
-        <input type="email" name="email" placeholder="Email" value={form.email} onChange={onChange} required />
-        <br />
-        <input type="password" name="password" placeholder="Password" value={form.password} onChange={onChange} required />
-        <br />
-        <button type="submit">Sign Up</button>
-      </form>
-      {message && <p>{message}</p>}
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="auth-header">
+          <Link to="/" className="back-link">
+            ← Back to Home
+          </Link>
+          <div className="auth-logo">
+            <span className="logo-icon">🎓</span>
+            <span className="logo-text">LearnHub</span>
+          </div>
+          <h1 className="auth-title">Create Student Account</h1>
+          <p className="auth-subtitle">Start your learning journey today</p>
+        </div>
+
+        {error && (
+          <div className="error-message">
+            <span className="error-icon">⚠️</span>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="firstName">First Name</label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="John"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="lastName">Last Name</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Doe"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="student@example.com"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="At least 6 characters"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter your password"
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn-submit" disabled={loading}>
+            {loading ? 'Creating account...' : 'Create Account'}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          Already have an account? <Link to="/student/signin">Sign in</Link>
+        </div>
+      </div>
     </div>
   )
 }
-
-

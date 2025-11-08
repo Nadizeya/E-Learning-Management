@@ -41,7 +41,7 @@ export default function Enroll() {
     <div style={{ minHeight: '100vh', background: 'radial-gradient(1000px 400px at 50% -50%, rgba(59,130,246,0.12), transparent), #f7f8fa' }}>
       <div className="container" style={{ paddingTop: 72, paddingBottom: 72 }}>
         <div className="row justify-content-center">
-          <div className="col-xl-10 col-lg-11">
+          <div className="col-xxl-9 col-xl-10 col-lg-11">
             <div className="card" style={{ border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.08)' }}>
               <div className="row g-0">
                 <div className="col-md-5" style={{ background: `linear-gradient(135deg, ${course.color} 0%, ${course.color}99 100%)`, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 36 }}>
@@ -76,11 +76,22 @@ export default function Enroll() {
                     <Badge text="Self-paced" />
                   </div>
 
-                  <ul style={{ marginTop: 14, color: '#4b5563' }}>
-                    <li>Hands-on projects and quizzes</li>
-                    <li>Certificate of completion</li>
-                    <li>Self-paced learning</li>
-                  </ul>
+                  <div className="row" style={{ marginTop: 14 }}>
+                    <div className="col-sm-6">
+                      <ul style={{ marginTop: 0, color: '#4b5563' }}>
+                        <li>Hands-on projects and quizzes</li>
+                        <li>Real-world case studies</li>
+                        <li>Downloadable resources</li>
+                      </ul>
+                    </div>
+                    <div className="col-sm-6">
+                      <ul style={{ marginTop: 0, color: '#4b5563' }}>
+                        <li>Certificate of completion</li>
+                        <li>Self-paced learning</li>
+                        <li>Lifetime access</li>
+                      </ul>
+                    </div>
+                  </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
                     <div>
@@ -97,6 +108,21 @@ export default function Enroll() {
                         <button className="btn btn-outline-secondary" style={{ padding: '10px 18px', borderRadius: 10 }} onClick={() => navigate(-1)}>Go Back</button>
                       </div>
                     )}
+                  </div>
+
+                  <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px dashed #e5e7eb', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span role="img" aria-label="shield">🛡️</span>
+                      <span style={{ color: '#6b7280' }}>7-day money-back guarantee</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span role="img" aria-label="clock">⏱️</span>
+                      <span style={{ color: '#6b7280' }}>Learn at your own pace</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span role="img" aria-label="sparkles">✨</span>
+                      <span style={{ color: '#6b7280' }}>Great for beginners to intermediate</span>
+                    </div>
                   </div>
                 </div>
               </div>

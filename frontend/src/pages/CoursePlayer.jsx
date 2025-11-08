@@ -12,6 +12,7 @@ export default function CoursePlayer() {
   const [activeId, setActiveId] = useState(lessons[0]?.id || '')
   const active = lessons.find(l => l.id === activeId)
   const index = lessons.findIndex(l => l.id === activeId)
+  const [isTheater, setIsTheater] = useState(false)
 
   useEffect(() => { if (!activeId && lessons[0]) setActiveId(lessons[0].id) }, [lessons, activeId])
 
@@ -36,7 +37,7 @@ export default function CoursePlayer() {
       <div className="container-fluid" style={{ paddingTop: 16, paddingBottom: 16 }}>
         <div className="row">
           {/* Sidebar */}
-          <aside className="col-12 col-lg-3" style={{ background: '#ffffff', borderRight: '1px solid #e5e7eb', minHeight: '100vh' }}>
+          <aside className="col-12 col-lg-3" style={{ background: '#ffffff', borderRight: '1px solid #e5e7eb', minHeight: '100vh', position: 'sticky', top: 0, padding: 0 }}>
             <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb' }}>
               <Link to={`/enroll/${id}?enrolled=1`} className="btn btn-outline-secondary btn-sm" style={{ borderRadius: 8 }}>Back</Link>
               <div style={{ marginTop: 12 }}>
@@ -45,7 +46,7 @@ export default function CoursePlayer() {
                 <div style={{ color: '#6b7280' }}>by {course.instructor}</div>
               </div>
             </div>
-            <div style={{ padding: 8 }}>
+            <div style={{ padding: 8, maxHeight: 'calc(100vh - 92px)', overflowY: 'auto' }}>
               {lessons.map(l => (
                 <button key={l.id} onClick={() => setActiveId(l.id)}
                   className={`w-100 text-start btn ${l.id===activeId ? 'btn-primary' : 'btn-outline-secondary'}`}
@@ -68,14 +69,15 @@ export default function CoursePlayer() {
                 <h4 style={{ color: '#111827', marginTop: 6, marginBottom: 0 }}>{active?.title}</h4>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-outline-secondary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={() => setIsTheater(v => !v)}>{isTheater ? 'Exit Theater' : 'Theater Mode'}</button>
                 <button className="btn btn-outline-secondary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={goPrev} disabled={index<=0}>Previous</button>
                 <button className="btn btn-primary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={goNext} disabled={index>=lessons.length-1}>Next</button>
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', boxShadow: '0 12px 30px rgba(0,0,0,0.06)' }}>
               {active?.type === 'video' ? (
-                <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+                <div style={isTheater ? { height: '70vh', position: 'relative' } : { position: 'relative', paddingTop: '56.25%' }}>
                   <iframe
                     title={active.title}
                     src={active.url}

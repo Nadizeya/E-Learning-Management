@@ -6,6 +6,100 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Sign In Dropdown in Navbar */
+.signin-dropdown-wrapper {
+  position: relative;
+}
+
+.btn-signin-nav {
+  background: white;
+  color: #667eea;
+  border: 2px solid white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-signin-nav:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+}
+
+.navbar-scrolled .btn-signin-nav {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.navbar-scrolled .btn-signin-nav:hover {
+  background: #764ba2;
+  border-color: #764ba2;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+}
+
+.signin-dropdown {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  min-width: 220px;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.3s ease;
+  z-index: 1000;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signin-dropdown .dropdown-item {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: none;
+  background: white;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2d3748;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.signin-dropdown .dropdown-item:hover {
+  background: #f7f8fa;
+  color: #667eea;
+}
+
+.signin-dropdown .dropdown-item:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.signin-dropdown .item-icon {
+  font-size: 1.5rem;
+}
+
 /* Enhanced Navigation */
 .navbar {
   background: transparent;

@@ -10,14 +10,13 @@ const CATEGORIES = ['All', 'Computer Science', 'Data Science', 'Business', 'Desi
 export default function StudentHome() {
   const navigate = useNavigate()
   const [student] = useState({ firstName: 'Alex' })
-  const [enrolledCourses, setEnrolledCourses] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isLoggedIn] = useState(false) // TODO: Replace with actual auth state
+  const [showSignInDropdown, setShowSignInDropdown] = useState(false)
 
   useEffect(() => {
-    setEnrolledCourses([COURSES[0], COURSES[3]])
-    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
     }
@@ -57,13 +56,46 @@ export default function StudentHome() {
               </li>
             </ul>
             <div className="d-flex align-items-center gap-3">
+              {isLoggedIn ? (
+                <>
+                  <Link to="/settings" className="btn btn-outline-light">Settings</Link>
+                  <div className="user-avatar">
+                    <span>{student?.firstName?.charAt(0) || 'G'}</span>
+                  </div>
+                  <span className="user-name">Hi, {student?.firstName || 'Guest'}!</span>
+                  <button className="btn btn-logout">Logout</button>
+                </>
+              ) : (
+                <div className="signin-dropdown-wrapper">
+                  <button 
+                    className="btn btn-signin-nav"
+                    onClick={() => setShowSignInDropdown(!showSignInDropdown)}
+                  >
+                    Sign In
+                    <span className="dropdown-arrow">{showSignInDropdown ? '▲' : '▼'}</span>
+                  </button>
+                  {showSignInDropdown && (
+                    <div className="signin-dropdown">
+                      <button 
+                        className="dropdown-item"
+                        onClick={() => navigate('/student/signin')}
+                      >
+                        <span className="item-icon">👨‍🎓</span>
+                        Sign in as Student
+                      </button>
+                      <button 
+                        className="dropdown-item"
+                        onClick={() => navigate('/instructor/signin')}
+                      >
+                        <span className="item-icon">👨‍🏫</span>
+                        Sign in as Instructor
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               <Link to="/signin" className="btn btn-outline-light">Admin Sign In</Link>
               <Link to="/admin" className="btn btn-primary">Admin Dashboard</Link>
-              <div className="user-avatar">
-                <span>{student?.firstName?.charAt(0) || 'G'}</span>
-              </div>
-              <span className="user-name">Hi, {student?.firstName || 'Guest'}!</span>
-              <button className="btn btn-logout">Logout</button>
             </div>
           </div>
         </div>
@@ -121,31 +153,23 @@ export default function StudentHome() {
         </div>
       </section>
 
-      {/* Continue Learning */}
-      {enrolledCourses.length > 0 && (
-        <section className="section enrolled-courses">
-          <div className="container">
-            <div className="section-header">
-              <h2 className="section-title">
-                <span className="section-icon">⚡</span>
-                Continue Learning
-              </h2>
-              <a href="#" className="view-all">View All</a>
-            </div>
-            <div className="row g-4">
-              {enrolledCourses.map(course => (
-                <div key={course.id} className="col-md-6 col-lg-4">
-                  <EnrolledCourseCard course={course} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Course Catalog */}
       <section className="section course-catalog">
         <div className="container">
+          {/* Quick Links */}
+          <div className="row g-3 mb-3">
+            <div className="col-12 col-md-4">
+              <div className="card" style={{ borderRadius: 12, border: '1px solid #e5e7eb' }}>
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div>
+                    <div className="text-muted" style={{ fontSize: 12 }}>Account</div>
+                    <div className="fw-bold">Student Settings</div>
+                  </div>
+                  <Link to="/settings" className="btn btn-outline-secondary" style={{ borderRadius: 10 }}>Open</Link>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="section-header">
             <h2 className="section-title">
               <span className="section-icon">📚</span>
@@ -259,45 +283,6 @@ function CourseCard({ course }) {
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-// Enrolled Course Card Component
-function EnrolledCourseCard({ course }) {
-  const progress = Math.floor(Math.random() * 100)
-  
-  return (
-    <div className="card enrolled-course-card">
-      <div className="enrolled-thumbnail">
-        <div 
-          className="thumbnail-background"
-          style={{ background: `linear-gradient(135deg, ${course.color} 0%, ${course.color}99 100%)` }}
-        >
-          <span className="thumbnail-emoji">{course.thumbnail}</span>
-        </div>
-        <div className="progress-overlay">
-          <div className="progress-text">{progress}% Complete</div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-      <div className="card-body">
-        <h6 className="card-title">{course.title}</h6>
-        <p className="instructor">{course.instructor}</p>
-        <div className="course-info">
-          <span className="info-item">{course.duration}</span>
-          <span className="info-item">{course.level}</span>
-        </div>
-        <button className="btn-continue">
-          Continue Learning
-          <span className="btn-icon">→</span>
-        </button>
       </div>
     </div>
   )
