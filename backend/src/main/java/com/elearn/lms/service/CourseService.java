@@ -26,6 +26,10 @@ public class CourseService {
 		course.setTitle(request.getTitle());
 		course.setDescription(request.getDescription());
 		course.setStatus(request.getStatus() != null ? request.getStatus() : "Draft");
+		course.setThumbnail(request.getThumbnail() != null ? request.getThumbnail() : "🎓");
+		course.setColor(request.getColor() != null ? request.getColor() : "#667eea");
+		course.setLevel(request.getLevel() != null ? request.getLevel() : "Beginner");
+		course.setDuration(request.getDuration() != null ? request.getDuration() : "6 weeks");
 
 		Course saved = courseRepository.save(course);
 		return new CourseResponse(saved);
@@ -68,6 +72,18 @@ public class CourseService {
 		course.setDescription(request.getDescription());
 		if (request.getStatus() != null && !request.getStatus().isEmpty()) {
 			course.setStatus(request.getStatus());
+		}
+		if (request.getThumbnail() != null) {
+			course.setThumbnail(request.getThumbnail());
+		}
+		if (request.getColor() != null) {
+			course.setColor(request.getColor());
+		}
+		if (request.getLevel() != null) {
+			course.setLevel(request.getLevel());
+		}
+		if (request.getDuration() != null) {
+			course.setDuration(request.getDuration());
 		}
 
 		Course updated = courseRepository.save(course);

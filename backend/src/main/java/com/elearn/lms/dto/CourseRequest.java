@@ -7,6 +7,10 @@ public class CourseRequest {
 	private String title;
 	private String description;
 	private String status; // Draft, Published
+	private String thumbnail;
+	private String color;
+	private String level;
+	private String duration;
 
 	public CourseRequest() {
 	}
@@ -57,6 +61,38 @@ public class CourseRequest {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	public String getLevel() {
+		return level;
+	}
+
+	public void setLevel(String level) {
+		this.level = level;
+	}
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
 	}
 }
 

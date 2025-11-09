@@ -30,6 +30,18 @@ public class Course {
 	@Column(name = "status", length = 20)
 	private String status; // Draft, Published
 
+	@Column(name = "thumbnail", length = 10)
+	private String thumbnail; // Emoji or icon
+
+	@Column(name = "color", length = 7)
+	private String color; // Hex color code
+
+	@Column(name = "level", length = 20)
+	private String level; // Beginner, Intermediate, Advanced
+
+	@Column(name = "duration", length = 50)
+	private String duration; // e.g., "6 weeks"
+
 	@OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
 	@OrderBy("moduleOrder ASC")
 	private List<CourseModule> modules = new ArrayList<>();
@@ -132,6 +144,38 @@ public class Course {
 
 	public void setModules(List<CourseModule> modules) {
 		this.modules = modules;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	public String getLevel() {
+		return level;
+	}
+
+	public void setLevel(String level) {
+		this.level = level;
+	}
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
 	}
 }
 

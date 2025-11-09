@@ -38,6 +38,7 @@ public class CourseContentService {
 		content.setTitle(request.getTitle());
 		content.setContentType(contentType);
 		content.setContentUrl(request.getContentUrl());
+		content.setFilePath(request.getFilePath());
 		content.setContentOrder(request.getContentOrder() != null ? request.getContentOrder() : 0);
 
 		CourseContent saved = courseContentRepository.save(content);
@@ -102,6 +103,10 @@ public class CourseContentService {
 
 		if (request.getContentUrl() != null) {
 			content.setContentUrl(request.getContentUrl());
+		}
+
+		if (request.getFilePath() != null) {
+			content.setFilePath(request.getFilePath());
 		}
 
 		if (request.getContentOrder() != null) {

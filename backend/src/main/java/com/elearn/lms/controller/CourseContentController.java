@@ -3,12 +3,19 @@ package com.elearn.lms.controller;
 import com.elearn.lms.dto.CourseContentRequest;
 import com.elearn.lms.dto.CourseContentResponse;
 import com.elearn.lms.service.CourseContentService;
+import com.elearn.lms.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +27,74 @@ public class CourseContentController {
 
 	@Autowired
 	private CourseContentService courseContentService;
+
+	@Autowired
+	private FileStorageService fileStorageService;
+
+	@PostMapping("/upload")
+	public ResponseEntity<?> uploadFile(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("moduleId") Long moduleId,
+			@RequestParam("title") String title,
+			@RequestParam("contentType") String contentType,
+			@RequestParam(value = "contentOrder", required = false) Integer contentOrder) {
+		try {
+			// Store the file
+			String filePath = fileStorageService.storeFile(file, contentType);
+			
+			// Create content record
+			CourseContentRequest request = new CourseContentRequest();
+			request.setModuleId(moduleId);
+			request.setTitle(title);
+			request.setContentType(contentType);
+			request.setFilePath(filePath);
+			request.setContentOrder(contentOrder);
+			
+			CourseContentResponse content = courseContentService.createContent(request);
+			
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("message", "File uploaded successfully");
+			response.put("data", content);
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("success", false);
+			error.put("message", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+		}
+	}
+
+	@GetMapping("/files/{contentType}/{fileName:.+}")
+	public ResponseEntity<Resource> downloadFile(
+			@PathVariable String contentType,
+			@PathVariable String fileName,
+			HttpServletRequest request) {
+		try {
+			// Load file as Resource
+			Resource resource = fileStorageService.loadFileAsResource(contentType + "/" + fileName);
+
+			// Try to determine file's content type
+			String contentTypeHeader = null;
+			try {
+				contentTypeHeader = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+			} catch (IOException ex) {
+				// Could not determine file type
+			}
+
+			// Fallback to the default content type if type could not be determined
+			if (contentTypeHeader == null) {
+				contentTypeHeader = "application/octet-stream";
+			}
+
+			return ResponseEntity.ok()
+					.contentType(MediaType.parseMediaType(contentTypeHeader))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+					.body(resource);
+		} catch (Exception e) {
+			return ResponseEntity.notFound().build();
+		}
+	}
 
 	@PostMapping
 	public ResponseEntity<?> createContent(@RequestBody CourseContentRequest request) {
