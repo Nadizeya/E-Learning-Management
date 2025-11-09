@@ -205,10 +205,109 @@ export const categoryAPI = {
   },
 };
 
+// Quiz API
+export const quizAPI = {
+  // Get quiz for student (without correct answers)
+  getQuizForStudent: async (quizId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/quizzes/${quizId}/student`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch quiz');
+    const data = await response.json();
+    return data.data;
+  },
+
+  // Get quiz by content ID (for student)
+  getQuizByContentId: async (contentId) => {
+    const token = localStorage.getItem('token');
+    console.log('=== FETCHING QUIZ BY CONTENT ID ===');
+    console.log('Content ID:', contentId);
+    try {
+      // First get the quiz (instructor version to get quizId)
+      const response = await fetch(`${API_BASE_URL}/quizzes/content/${contentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        // Quiz might not exist yet, return null
+        if (response.status === 404) {
+          console.log('Quiz not found for contentId:', contentId);
+          return null;
+        }
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error('Failed to fetch quiz');
+      }
+      
+      const data = await response.json();
+      console.log('Quiz data received:', data);
+      
+      // Get student version (without correct answers)
+      if (data.success && data.data?.quizId) {
+        console.log('Fetching student version of quiz ID:', data.data.quizId);
+        const studentQuiz = await quizAPI.getQuizForStudent(data.data.quizId);
+        console.log('Student quiz data:', studentQuiz);
+        return studentQuiz;
+      }
+      
+      console.log('No quizId found in response');
+      return null;
+    } catch (err) {
+      console.error('Error in getQuizByContentId:', err);
+      // If quiz doesn't exist, return null instead of throwing
+      if (err.message.includes('404') || err.message.includes('not found')) {
+        return null;
+      }
+      throw err;
+    }
+  },
+
+  // Submit quiz attempt
+  submitQuizAttempt: async (quizId, studentId, answers) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/quizzes/attempt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        quizId,
+        studentId,
+        answers,
+      }),
+    });
+    if (!response.ok) throw new Error('Failed to submit quiz');
+    const data = await response.json();
+    return data.data;
+  },
+
+  // Get quiz attempts for a student
+  getStudentAttempts: async (studentId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/quizzes/student/${studentId}/attempts`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch attempts');
+    const data = await response.json();
+    return data.data;
+  },
+};
+
 export default {
   courseAPI,
   courseModuleAPI,
   courseContentAPI,
   enrollmentAPI,
   categoryAPI,
+  quizAPI,
 };

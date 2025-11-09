@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { courseAPI, courseModuleAPI, courseContentAPI } from '../services/api.js'
+import QuizPlayer from '../components/QuizPlayer.jsx'
 
 export default function CoursePlayer() {
   const { id } = useParams()
@@ -12,8 +13,18 @@ export default function CoursePlayer() {
   const [loading, setLoading] = useState(true)
   const [activeContentId, setActiveContentId] = useState(null)
   const [isTheater, setIsTheater] = useState(false)
+  const [studentId, setStudentId] = useState(null)
 
   useEffect(() => {
+    // Get student ID from localStorage
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      const user = JSON.parse(userData)
+      if (user.studentId) {
+        setStudentId(user.studentId)
+      }
+    }
+
     const fetchCourseData = async () => {
       try {
         setLoading(true)
@@ -138,15 +149,23 @@ export default function CoursePlayer() {
               ) : activeContent?.contentType?.toUpperCase() === 'DOCUMENT' || activeContent?.contentType?.toUpperCase() === 'READING' ? (
                 <div style={{ padding: 20, color: '#1f2937', lineHeight: 1.7 }}>
                   <p style={{ margin: 0, marginBottom: 12 }}><strong>Document:</strong> {activeContent.title}</p>
-                  <a 
-                    href={`http://localhost:8080/api/course-contents/files/${activeContent.filePath}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-primary"
-                  >
-                    Download Document
-                  </a>
+                  {activeContent.filePath ? (
+                    <a 
+                      href={`http://localhost:8080/api/course-contents/files/${activeContent.filePath}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                    >
+                      Download Document
+                    </a>
+                  ) : (
+                    <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>
+                      {activeContent.contentUrl || 'No content available'}
+                    </div>
+                  )}
                 </div>
+              ) : activeContent?.contentType?.toUpperCase() === 'QUIZ' ? (
+                <QuizPlayer content={activeContent} studentId={studentId} />
               ) : (
                 <div style={{ padding: 20, color: '#1f2937', lineHeight: 1.7 }}>
                   <p style={{ margin: 0 }}>{activeContent?.description || 'No content available'}</p>
