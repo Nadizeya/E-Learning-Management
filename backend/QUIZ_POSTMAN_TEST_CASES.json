@@ -1,0 +1,309 @@
+{
+  "info": {
+    "name": "Quiz API Test Cases",
+    "description": "Complete JSON test cases for Quiz API endpoints. Note: Before creating a quiz, you must first create a CourseContent with contentType 'Quiz' using the /api/course-contents endpoint. This file contains only quiz-specific endpoints (/api/quizzes).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Quiz with Questions",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contentId\": 3,\n  \"title\": \"HTML Basics Quiz\",\n  \"maxScore\": 100.0,\n  \"questions\": [\n    {\n      \"questionText\": \"What does HTML stand for?\",\n      \"options\": [\n        \"HyperText Markup Language\",\n        \"High Tech Modern Language\",\n        \"Home Tool Markup Language\",\n        \"Hyperlink and Text Markup Language\"\n      ],\n      \"correctAnswer\": \"0\"\n    },\n    {\n      \"questionText\": \"Which tag is used for the largest heading?\",\n      \"options\": [\n        \"<h1>\",\n        \"<h6>\",\n        \"<head>\",\n        \"<header>\"\n      ],\n      \"correctAnswer\": \"0\"\n    },\n    {\n      \"questionText\": \"What is the correct HTML element for inserting a line break?\",\n      \"options\": [\n        \"<br>\",\n        \"<break>\",\n        \"<lb>\",\n        \"<line>\"\n      ],\n      \"correctAnswer\": \"0\"\n    },\n    {\n      \"questionText\": \"Which attribute is used to define inline styles?\",\n      \"options\": [\n        \"class\",\n        \"style\",\n        \"styles\",\n        \"font\"\n      ],\n      \"correctAnswer\": \"1\"\n    },\n    {\n      \"questionText\": \"What is the correct HTML for creating a hyperlink?\",\n      \"options\": [\n        \"<a url=\\\"http://example.com\\\">Example</a>\",\n        \"<a href=\\\"http://example.com\\\">Example</a>\",\n        \"<a>http://example.com</a>\",\n        \"<a name=\\\"http://example.com\\\">Example</a>\"\n      ],\n      \"correctAnswer\": \"1\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes"]
+        }
+      }
+    },
+    {
+      "name": "2. Get Quiz (Instructor View - With Answers)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/1?includeCorrectAnswers=true",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "1"],
+          "query": [
+            {
+              "key": "includeCorrectAnswers",
+              "value": "true"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Get Quiz (Student View - Without Answers)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/1/student",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "1", "student"]
+        }
+      }
+    },
+    {
+      "name": "4. Submit Quiz Attempt (All Correct)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quizId\": 1,\n  \"studentId\": 1,\n  \"answers\": {\n    \"1\": \"0\",\n    \"2\": \"0\",\n    \"3\": \"0\",\n    \"4\": \"1\",\n    \"5\": \"1\"\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/attempt",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "attempt"]
+        }
+      }
+    },
+    {
+      "name": "5. Submit Quiz Attempt (Some Incorrect)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quizId\": 1,\n  \"studentId\": 2,\n  \"answers\": {\n    \"1\": \"0\",\n    \"2\": \"1\",\n    \"3\": \"2\",\n    \"4\": \"0\",\n    \"5\": \"1\"\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/attempt",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "attempt"]
+        }
+      }
+    },
+    {
+      "name": "6. Submit Quiz Attempt (Using Letters)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quizId\": 1,\n  \"studentId\": 1,\n  \"answers\": {\n    \"1\": \"A\",\n    \"2\": \"A\",\n    \"3\": \"A\",\n    \"4\": \"B\",\n    \"5\": \"B\"\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/attempt",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "attempt"]
+        }
+      }
+    },
+    {
+      "name": "7. Get All Attempts for Quiz",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/1/attempts",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "1", "attempts"]
+        }
+      }
+    },
+    {
+      "name": "8. Get All Attempts for Student",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/student/1/attempts",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "student", "1", "attempts"]
+        }
+      }
+    },
+    {
+      "name": "9. Get Attempts for Student and Quiz",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/1/student/1/attempts",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "1", "student", "1", "attempts"]
+        }
+      }
+    },
+    {
+      "name": "10. Get Quiz by Content ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/content/3?includeCorrectAnswers=true",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "content", "3"],
+          "query": [
+            {
+              "key": "includeCorrectAnswers",
+              "value": "true"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Update Quiz",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contentId\": 3,\n  \"title\": \"HTML Basics Quiz - Updated\",\n  \"maxScore\": 50.0,\n  \"questions\": [\n    {\n      \"questionText\": \"What does HTML stand for?\",\n      \"options\": [\n        \"HyperText Markup Language\",\n        \"High Tech Modern Language\",\n        \"Home Tool Markup Language\",\n        \"Hyperlink and Text Markup Language\"\n      ],\n      \"correctAnswer\": \"0\"\n    },\n    {\n      \"questionText\": \"Which tag is used for the largest heading?\",\n      \"options\": [\n        \"<h1>\",\n        \"<h6>\",\n        \"<head>\",\n        \"<header>\"\n      ],\n      \"correctAnswer\": \"0\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "1"]
+        }
+      }
+    },
+    {
+      "name": "12. Delete Quiz",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/quizzes/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "quizzes", "1"]
+        }
+      }
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Create Quiz - Invalid Content ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentId\": 999,\n  \"title\": \"Test Quiz\",\n  \"maxScore\": 100.0,\n  \"questions\": []\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/quizzes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "quizzes"]
+            }
+          }
+        },
+        {
+          "name": "Submit Quiz - Invalid Quiz ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": 999,\n  \"studentId\": 1,\n  \"answers\": {}\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/quizzes/attempt",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "quizzes", "attempt"]
+            }
+          }
+        },
+        {
+          "name": "Submit Quiz - Empty Answers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": 1,\n  \"studentId\": 1,\n  \"answers\": {}\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/quizzes/attempt",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "quizzes", "attempt"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

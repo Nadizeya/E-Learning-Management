@@ -200,6 +200,7 @@ CREATE TABLE QUIZ_QUESTIONS (
     question_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quiz_id BIGINT NOT NULL,
     question_text TEXT NOT NULL,
+    options TEXT COMMENT 'JSON array of options for MCQ: ["Option A", "Option B", "Option C", "Option D"]',
     correct_answer TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
