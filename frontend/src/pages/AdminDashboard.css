@@ -1,0 +1,125 @@
+/* ============================================
+   Admin Dashboard Container
+   ============================================ */
+.admin-dashboard-container {
+  min-height: 100vh;
+  background: #f6fbfd;
+}
+
+.admin-dashboard-content {
+  min-width: 0;
+}
+
+/* ============================================
+   Table Styles
+   ============================================ */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* ============================================
+   Modal Styles
+   ============================================ */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.25) !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem;
+}
+
+.modal-backdrop .modal-dialog {
+  margin: auto !important;
+  max-width: 800px;
+  width: 100%;
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  transform: translateX(20px) !important;
+}
+
+@media (max-width: 900px) {
+  .modal-backdrop .modal-dialog {
+    transform: none !important;
+  }
+}
+
+.modal-dialog-scrollable {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-body-scrollable {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* ============================================
+   Detail Section Styles
+   ============================================ */
+.detail-section {
+  margin-bottom: 1.5rem;
+}
+
+.detail-label {
+  font-weight: bold;
+  color: #0dcaf0; /* Bootstrap info color */
+}
+
+/* ============================================
+   Badge Icon
+   ============================================ */
+.badge-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 10px;
+  object-fit: contain;
+}
+
+/* ============================================
+   Loading Spinner Container
+   ============================================ */
+.loading-container {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* ============================================
+   Empty State
+   ============================================ */
+.empty-state {
+  color: #6c757d;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 768px) {
+  .modal-dialog-scrollable {
+    max-height: 95vh;
+    margin: 1rem;
+  }
+
+  .modal-body-scrollable {
+    max-height: 75vh;
+  }
+
+  .detail-section {
+    margin-bottom: 1rem;
+  }
+}
+
