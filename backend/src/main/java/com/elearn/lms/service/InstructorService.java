@@ -1,7 +1,6 @@
 package com.elearn.lms.service;
 
 import com.elearn.lms.dto.InstructorSignupRequest;
-import com.elearn.lms.dto.InstructorUpdateRequest;
 import com.elearn.lms.entity.Instructor;
 import com.elearn.lms.repository.InstructorRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,20 +48,12 @@ public class InstructorService {
         return instructorRepository.save(i);
     }
 
-    @Transactional
-    public Instructor update(Long id, InstructorUpdateRequest request) {
-        Instructor i = findByIdOrThrow(id);
-        if (request.getFirstName() != null) i.setFirstName(request.getFirstName());
-        if (request.getLastName() != null) i.setLastName(request.getLastName());
-        if (request.getEmail() != null) i.setEmail(request.getEmail());
-        if (request.getPassword() != null && !request.getPassword().isEmpty()) i.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        if (request.getBio() != null) i.setBio(request.getBio());
-        if (request.getExpertise() != null) i.setExpertise(request.getExpertise());
-        return instructorRepository.save(i);
-    }
+    // Update method removed
 
     @Transactional
     public void delete(Long id) { instructorRepository.deleteById(id); }
+    
+    // Password change method removed
 }
 
 

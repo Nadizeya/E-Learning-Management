@@ -1,7 +1,6 @@
 package com.elearn.lms.controller;
 
 import com.elearn.lms.dto.StudentSignupRequest;
-import com.elearn.lms.dto.StudentUpdateRequest;
 import com.elearn.lms.entity.Student;
 import com.elearn.lms.service.StudentService;
 import jakarta.validation.Valid;
@@ -39,16 +38,15 @@ public class StudentController {
         }
     }
 
-    @PutMapping("/{id}")
-    public Student update(@PathVariable Long id, @Valid @RequestBody StudentUpdateRequest request) {
-        return studentService.update(id, request);
-    }
+    // Update endpoint removed
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         studentService.delete(id);
         return ResponseEntity.noContent().build();
     }
+    
+    // Password change endpoint removed
 }
 
 

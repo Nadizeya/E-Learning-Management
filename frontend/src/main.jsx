@@ -11,9 +11,10 @@ import InstructorSignUp from './pages/InstructorSignUp.jsx'
 import InstructorDashboard from './pages/InstructorDashboard.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import StudentHome from './pages/StudentHome.jsx'
-import StudentSettings from './pages/StudentSettings.jsx'
 import Enroll from './pages/Enroll.jsx'
 import CoursePlayer from './pages/CoursePlayer.jsx'
+import MyCourses from './pages/MyCourses.jsx'
+import Accomplishments from './pages/Accomplishments.jsx'
 import { AuthProvider } from './state/AuthContext.jsx'
 
 const router = createBrowserRouter([
@@ -27,7 +28,8 @@ const router = createBrowserRouter([
   { path: '/admin', element: <AdminDashboard /> },
   { path: '/enroll/:id', element: <Enroll /> },
   { path: '/course/:id', element: <CoursePlayer /> },
-  { path: '/settings', element: <StudentSettings /> },
+  { path: '/my-courses', element: <MyCourses /> },
+  { path: '/accomplishments', element: <Accomplishments /> },
   { path: '/app', element: <App /> },
 ])
 

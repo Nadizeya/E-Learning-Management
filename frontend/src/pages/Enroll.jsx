@@ -12,6 +12,10 @@ export default function Enroll() {
   const [enrolling, setEnrolling] = useState(false)
   const [enrolled, setEnrolled] = useState(searchParams.get('enrolled') === '1')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false)
+
+  // State to track if user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     const fetchCourseAndEnrollmentStatus = async () => {
@@ -23,7 +27,10 @@ export default function Enroll() {
 
         // Check if user is already enrolled
         const userData = localStorage.getItem('user')
-        if (userData) {
+        const token = localStorage.getItem('token')
+        
+        if (userData && token) {
+          setIsLoggedIn(true)
           const user = JSON.parse(userData)
           try {
             const isEnrolled = await enrollmentAPI.checkEnrollment(user.studentId, id)
@@ -32,6 +39,8 @@ export default function Enroll() {
           } catch (error) {
             console.error('Failed to check enrollment status:', error)
           }
+        } else {
+          setIsLoggedIn(false)
         }
       } catch (error) {
         console.error('Failed to fetch course:', error)
@@ -57,8 +66,8 @@ export default function Enroll() {
     // Check authentication first before setting loading state
     const userData = localStorage.getItem('user')
     if (!userData) {
-      alert('Please sign in to enroll in this course')
-      navigate('/student/signin')
+      // Show sign-in prompt instead of alert
+      setShowSignInPrompt(true)
       return
     }
     
@@ -135,14 +144,112 @@ export default function Enroll() {
         </div>
       )}
       
+      {/* Sign In Prompt Modal */}
+      {showSignInPrompt && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: 12,
+            padding: 24,
+            maxWidth: 400,
+            width: '90%',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            textAlign: 'center',
+          }}>
+            <h3 style={{ marginTop: 0, color: '#111827' }}>Sign In Required</h3>
+            <p style={{ color: '#4b5563', marginBottom: 24 }}>Please sign in to enroll in this course.</p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button 
+                onClick={() => setShowSignInPrompt(false)} 
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 8, 
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#4b5563',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => navigate('/student/signin')} 
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 8, 
+                  border: 'none',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="container" style={{ paddingTop: 72, paddingBottom: 72 }}>
         <div className="row justify-content-center">
           <div className="col-xxl-9 col-xl-10 col-lg-11">
             <div className="card" style={{ border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.08)' }}>
               <div className="row g-0">
-                <div className="col-md-5" style={{ background: `linear-gradient(135deg, ${courseColor} 0%, ${courseColor}99 100%)`, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 36 }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 68, lineHeight: 1 }}>{courseThumbnail}</div>
+                <div className="col-md-5" style={{ 
+                  background: courseThumbnail && courseThumbnail.startsWith('data:image') 
+                    ? 'none' 
+                    : `linear-gradient(135deg, ${courseColor} 0%, ${courseColor}99 100%)`, 
+                  color: 'white', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  padding: 36,
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  {courseThumbnail && courseThumbnail.startsWith('data:image') ? (
+                    <>
+                      <img 
+                        src={courseThumbnail} 
+                        alt={course.title}
+                        style={{ 
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover' 
+                        }} 
+                      />
+                      {/* Dark overlay for better text visibility */}
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0,0,0,0.4)',
+                        zIndex: 1
+                      }} />
+                    </>
+                  ) : null}
+                  <div style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+                    {!courseThumbnail.startsWith('data:image') && (
+                      <div style={{ fontSize: 68, lineHeight: 1 }}>{courseThumbnail}</div>
+                    )}
                     <div style={{ marginTop: 20, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
                       <span style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 999, padding: '6px 12px', fontWeight: 700, letterSpacing: 0.5 }}>{courseCategory}</span>
                       <span style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 999, padding: '6px 12px', fontWeight: 700, letterSpacing: 0.5 }}>{courseLevel}</span>
@@ -190,8 +297,26 @@ export default function Enroll() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
-                    {!enrolled ? (
-                      <button type="button" className="btn btn-primary" style={{ padding: '10px 18px', borderRadius: 10, fontWeight: 700 }} onClick={onEnroll} disabled={enrolling}>
+                    {!isLoggedIn ? (
+                      <div>
+                        <button 
+                          type="button" 
+                          className="btn btn-primary" 
+                          style={{ padding: '10px 18px', borderRadius: 10, fontWeight: 700 }} 
+                          onClick={() => navigate('/student/signin')}
+                        >
+                          Sign In to Enroll
+                        </button>
+                        <p style={{ marginTop: 8, color: '#6b7280', fontSize: 14 }}>You need to be signed in to enroll in courses</p>
+                      </div>
+                    ) : !enrolled ? (
+                      <button 
+                        type="button" 
+                        className="btn btn-primary" 
+                        style={{ padding: '10px 18px', borderRadius: 10, fontWeight: 700 }} 
+                        onClick={onEnroll} 
+                        disabled={enrolling}
+                      >
                         {enrolling ? 'Enrolling…' : 'Confirm Enrollment'}
                       </button>
                     ) : (

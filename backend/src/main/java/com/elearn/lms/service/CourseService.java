@@ -26,8 +26,7 @@ public class CourseService {
 		course.setTitle(request.getTitle());
 		course.setDescription(request.getDescription());
 		course.setStatus(request.getStatus() != null ? request.getStatus() : "Draft");
-		course.setThumbnail(request.getThumbnail() != null ? request.getThumbnail() : "🎓");
-		course.setColor(request.getColor() != null ? request.getColor() : "#667eea");
+		course.setThumbnail(request.getThumbnail() != null ? request.getThumbnail() : "");
 		course.setLevel(request.getLevel() != null ? request.getLevel() : "Beginner");
 		course.setDuration(request.getDuration() != null ? request.getDuration() : "6 weeks");
 
@@ -75,9 +74,6 @@ public class CourseService {
 		}
 		if (request.getThumbnail() != null) {
 			course.setThumbnail(request.getThumbnail());
-		}
-		if (request.getColor() != null) {
-			course.setColor(request.getColor());
 		}
 		if (request.getLevel() != null) {
 			course.setLevel(request.getLevel());

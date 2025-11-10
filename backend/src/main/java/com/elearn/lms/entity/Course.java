@@ -14,6 +14,8 @@ public class Course {
 	@Column(name = "course_id")
 	private Long courseId;
 
+	// Color field removed as instructors may not be familiar with color codes
+
 	// Foreign keys kept as scalar IDs for simplicity
 	@Column(name = "category_id", nullable = false)
 	private Long categoryId;
@@ -30,11 +32,8 @@ public class Course {
 	@Column(name = "status", length = 20)
 	private String status; // Draft, Published
 
-	@Column(name = "thumbnail", length = 10)
-	private String thumbnail; // Emoji or icon
-
-	@Column(name = "color", length = 7)
-	private String color; // Hex color code
+	@Column(name = "thumbnail", columnDefinition = "LONGTEXT")
+	private String thumbnail; // Base64 encoded image or URL
 
 	@Column(name = "level", length = 20)
 	private String level; // Beginner, Intermediate, Advanced
@@ -154,14 +153,6 @@ public class Course {
 		this.thumbnail = thumbnail;
 	}
 
-	public String getColor() {
-		return color;
-	}
-
-	public void setColor(String color) {
-		this.color = color;
-	}
-
 	public String getLevel() {
 		return level;
 	}
@@ -177,6 +168,8 @@ public class Course {
 	public void setDuration(String duration) {
 		this.duration = duration;
 	}
+	
+	// Color getters and setters removed
 }
 
 

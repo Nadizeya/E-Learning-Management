@@ -309,5 +309,5 @@ export default {
   courseContentAPI,
   enrollmentAPI,
   categoryAPI,
-  quizAPI,
+  quizAPI
 };
