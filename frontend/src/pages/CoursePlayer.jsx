@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { courseAPI, courseModuleAPI, courseContentAPI } from '../services/api.js'
+import QuizPlayer from '../components/QuizPlayer.jsx'
 
 export default function CoursePlayer() {
   const { id } = useParams()
@@ -11,9 +12,30 @@ export default function CoursePlayer() {
   const [contents, setContents] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeContentId, setActiveContentId] = useState(null)
-  const [isTheater, setIsTheater] = useState(false)
+  const [studentId, setStudentId] = useState(null)
+  const [completedContents, setCompletedContents] = useState([])
 
   useEffect(() => {
+    // Get student ID from localStorage
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      const user = JSON.parse(userData)
+      if (user.studentId) {
+        setStudentId(user.studentId)
+        
+        // Load completed contents from localStorage
+        const savedProgress = localStorage.getItem(`course_progress_${id}_${user.studentId}`)
+        if (savedProgress) {
+          try {
+            const parsedProgress = JSON.parse(savedProgress)
+            setCompletedContents(parsedProgress.completedContents || [])
+          } catch (e) {
+            console.error('Error parsing saved progress:', e)
+          }
+        }
+      }
+    }
+
     const fetchCourseData = async () => {
       try {
         setLoading(true)
@@ -66,8 +88,34 @@ export default function CoursePlayer() {
   const goPrev = () => {
     if (activeIndex > 0) setActiveContentId(contents[activeIndex - 1].contentId)
   }
+  
   const goNext = () => {
     if (activeIndex < contents.length - 1) setActiveContentId(contents[activeIndex + 1].contentId)
+  }
+  
+  const markAsCompleted = (contentId) => {
+    if (!studentId || !contentId) return;
+    
+    // Add contentId to completed contents if not already there
+    if (!completedContents.includes(contentId)) {
+      const updatedCompletedContents = [...completedContents, contentId];
+      setCompletedContents(updatedCompletedContents);
+      
+      // Save to localStorage
+      const progressData = {
+        courseId: id,
+        studentId,
+        completedContents: updatedCompletedContents,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      localStorage.setItem(`course_progress_${id}_${studentId}`, JSON.stringify(progressData));
+      
+      // Show success message
+      alert('Progress saved! This content has been marked as completed.');
+    } else {
+      alert('You have already completed this content.');
+    }
   }
 
   if (loading) {
@@ -98,9 +146,20 @@ export default function CoursePlayer() {
               {contents.map(content => (
                 <button key={content.contentId} onClick={() => setActiveContentId(content.contentId)}
                   className={`w-100 text-start btn ${content.contentId===activeContentId ? 'btn-primary' : 'btn-outline-secondary'}`}
-                  style={{ marginBottom: 8, borderRadius: 10, padding: '10px 12px' }}>
+                  style={{ 
+                    marginBottom: 8, 
+                    borderRadius: 10, 
+                    padding: '10px 12px',
+                    position: 'relative',
+                    borderLeft: completedContents.includes(content.contentId) ? '4px solid #10b981' : 'none'
+                  }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600 }}>{content.title}</span>
+                    <span style={{ fontWeight: 600 }}>
+                      {completedContents.includes(content.contentId) && (
+                        <span style={{ color: '#10b981', marginRight: 5 }}>✓</span>
+                      )}
+                      {content.title}
+                    </span>
                     <span style={{ fontSize: 12, opacity: 0.85 }}>{content.contentType}</span>
                   </div>
                   <div style={{ fontSize: 12, opacity: 0.8 }}>{content.moduleName}</div>
@@ -117,7 +176,6 @@ export default function CoursePlayer() {
                 <h4 style={{ color: '#111827', marginTop: 6, marginBottom: 0 }}>{activeContent?.title || 'Select a lesson'}</h4>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-outline-secondary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={() => setIsTheater(v => !v)}>{isTheater ? 'Exit Theater' : 'Theater Mode'}</button>
                 <button className="btn btn-outline-secondary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={goPrev} disabled={activeIndex<=0}>Previous</button>
                 <button className="btn btn-primary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={goNext} disabled={activeIndex>=contents.length-1}>Next</button>
               </div>
@@ -125,7 +183,7 @@ export default function CoursePlayer() {
 
             <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', boxShadow: '0 12px 30px rgba(0,0,0,0.06)' }}>
               {activeContent?.contentType?.toUpperCase() === 'VIDEO' ? (
-                <div style={isTheater ? { height: '70vh', position: 'relative' } : { position: 'relative', paddingTop: '56.25%' }}>
+                <div style={{ position: 'relative', paddingTop: '56.25%' }}>
                   <video
                     controls
                     style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: '0', background: '#000' }}
@@ -138,38 +196,85 @@ export default function CoursePlayer() {
               ) : activeContent?.contentType?.toUpperCase() === 'DOCUMENT' || activeContent?.contentType?.toUpperCase() === 'READING' ? (
                 <div style={{ padding: 20, color: '#1f2937', lineHeight: 1.7 }}>
                   <p style={{ margin: 0, marginBottom: 12 }}><strong>Document:</strong> {activeContent.title}</p>
-                  <a 
-                    href={`http://localhost:8080/api/course-contents/files/${activeContent.filePath}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-primary"
-                  >
-                    Download Document
-                  </a>
+                  {activeContent.filePath ? (
+                    <a 
+                      href={`http://localhost:8080/api/course-contents/files/${activeContent.filePath}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                    >
+                      Download Document
+                    </a>
+                  ) : (
+                    <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>
+                      {activeContent.contentUrl || 'No content available'}
+                    </div>
+                  )}
                 </div>
+              ) : activeContent?.contentType?.toUpperCase() === 'QUIZ' ? (
+                <QuizPlayer content={activeContent} studentId={studentId} />
               ) : (
                 <div style={{ padding: 20, color: '#1f2937', lineHeight: 1.7 }}>
                   <p style={{ margin: 0 }}>{activeContent?.description || 'No content available'}</p>
                 </div>
               )}
             </div>
-
-            {/* Tabs area */}
-            <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
-              <button className="btn btn-outline-secondary btn-sm" style={{ borderRadius: 8 }}>Overview</button>
-              <button className="btn btn-outline-secondary btn-sm" style={{ borderRadius: 8 }}>Notes</button>
-              <button className="btn btn-outline-secondary btn-sm" style={{ borderRadius: 8 }}>Resources</button>
-              <button className="btn btn-outline-secondary btn-sm" style={{ borderRadius: 8 }}>Discussion</button>
-            </div>
-
-            {/* Notes quick area */}
-            <div style={{ marginTop: 12, background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}>
-              <div style={{ color: '#6b7280', marginBottom: 6, fontSize: 14 }}>Quick Note</div>
-              <textarea rows={3} placeholder="Write a note for this lesson..."
-                style={{ width: '100%', background: '#f9fafb', color: '#111827', border: '1px solid #e5e7eb', borderRadius: 10, padding: 10 }} />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                <button className="btn btn-primary btn-sm" style={{ borderRadius: 8 }}>Save Note</button>
+            
+            {/* Mark as Completed Button */}
+            {activeContentId && (
+              <div style={{ 
+                marginTop: 16, 
+                padding: 16, 
+                background: '#f9fafb', 
+                borderRadius: 12, 
+                border: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <h5 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
+                    {completedContents.includes(activeContentId) ? 
+                      'You have completed this lesson' : 
+                      'Track your progress'}
+                  </h5>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#6b7280' }}>
+                    {completedContents.includes(activeContentId) ? 
+                      'Great job! Continue to the next lesson.' : 
+                      'Mark this lesson as completed when you finish.'}
+                  </p>
+                </div>
+                <button 
+                  className={`btn ${completedContents.includes(activeContentId) ? 'btn-success' : 'btn-primary'}`}
+                  style={{ borderRadius: 8, padding: '8px 16px' }}
+                  onClick={() => markAsCompleted(activeContentId)}
+                  disabled={completedContents.includes(activeContentId)}
+                >
+                  {completedContents.includes(activeContentId) ? 
+                    'Completed ✓' : 
+                    'Mark as Completed'}
+                </button>
               </div>
+            )}
+            
+            {/* Navigation buttons for mobile */}
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12 }} className="d-lg-none">
+              <button 
+                className="btn btn-outline-secondary" 
+                style={{ borderRadius: 8, flex: 1 }} 
+                onClick={goPrev} 
+                disabled={activeIndex<=0}
+              >
+                Previous Lesson
+              </button>
+              <button 
+                className="btn btn-primary" 
+                style={{ borderRadius: 8, flex: 1 }} 
+                onClick={goNext} 
+                disabled={activeIndex>=contents.length-1}
+              >
+                Next Lesson
+              </button>
             </div>
           </main>
         </div>

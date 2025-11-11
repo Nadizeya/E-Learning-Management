@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './StudentHome.css'
-import { COURSES } from '../data/courses.js'
 import { courseAPI, categoryAPI } from '../services/api.js'
 
 
-const CATEGORIES = ['All', 'Computer Science', 'Data Science', 'Business', 'Design']
+// Categories will be fetched from the backend
 
 export default function StudentHome() {
   const navigate = useNavigate()
@@ -16,8 +15,10 @@ export default function StudentHome() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showSignInDropdown, setShowSignInDropdown] = useState(false)
-  const [courses, setCourses] = useState(COURSES) // Start with mock data as fallback
-  const [loading, setLoading] = useState(false)
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState(['All'])
+  const [error, setError] = useState('')
 
   useEffect(() => {
     // Check if user is logged in
@@ -30,53 +31,74 @@ export default function StudentHome() {
       setStudent(JSON.parse(userData))
     }
 
-    // Fetch courses from API
-    const fetchCourses = async () => {
+    // Fetch courses and categories from API
+    const fetchData = async () => {
       try {
         setLoading(true)
-        // Try to fetch all courses first, then filter by status
+        setError('')
+        
+        // Fetch categories first
+        try {
+          const categoriesData = await categoryAPI.getAllCategories()
+          if (categoriesData && categoriesData.length > 0) {
+            // Extract category names and add 'All' option
+            const categoryNames = ['All', ...categoriesData.map(cat => cat.name)]
+            setCategories(categoryNames)
+          }
+        } catch (err) {
+          console.error('Failed to fetch categories:', err)
+          // Keep default 'All' category if fetch fails
+        }
+        
+        // Fetch courses
         const allCourses = await courseAPI.getAllCourses()
-        console.log('Fetched courses:', allCourses)
         
         if (allCourses && allCourses.length > 0) {
           // Filter published courses
           const publishedCourses = allCourses.filter(c => c.status === 'Published')
           
-          // Map backend courses to frontend format
-          const mappedCourses = publishedCourses.map(course => ({
-            id: course.courseId,
-            title: course.title,
-            instructor: course.instructor ? `${course.instructor.firstName} ${course.instructor.lastName}` : 'Instructor',
-            rating: 4.5,
-            students: 1000,
-            price: 'Free',
-            level: course.level || 'Beginner',
-            duration: '6 weeks',
-            category: course.category?.name || 'Computer Science',
-            thumbnail: '🎓',
-            color: '#667eea',
-            summary: course.description || 'Learn and master new skills'
-          }))
+          // Map backend courses to frontend format with real data
+          const mappedCourses = publishedCourses.map(course => {
+            // Get instructor name
+            const instructorName = course.instructor 
+              ? `${course.instructor.firstName} ${course.instructor.lastName}` 
+              : 'Instructor'
+            
+            // Get category name
+            const categoryName = course.category?.name || 'General'
+            
+            return {
+              id: course.courseId,
+              title: course.title,
+              instructor: instructorName,
+              rating: course.rating || 4.5, // Use default rating if not available
+              students: course.enrollmentCount || 0, // Use real enrollment count if available
+              price: 'Free', // Assuming all courses are free for now
+              level: course.level || 'Beginner',
+              duration: course.duration || '6 weeks',
+              category: categoryName,
+              thumbnail: course.thumbnail,
+              summary: course.description || ''
+            }
+          })
           
-          console.log('Mapped courses:', mappedCourses)
+          setCourses(mappedCourses)
           
-          // Use mapped courses if available, otherwise keep mock data
-          if (mappedCourses.length > 0) {
-            setCourses(mappedCourses)
-          } else {
-            console.log('No published courses found, using mock data')
+          if (mappedCourses.length === 0) {
+            setError('No published courses found. Check back later for new courses.')
           }
+        } else {
+          setError('No courses available at the moment. Please check back later.')
         }
       } catch (error) {
-        console.error('Failed to fetch courses:', error)
-        console.log('Using mock data as fallback')
-        // Keep using mock data on error
+        console.error('Failed to fetch data:', error)
+        setError('Failed to load courses. Please try again later.')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchCourses()
+    fetchData()
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
@@ -127,14 +149,58 @@ export default function StudentHome() {
             </ul>
             <div className="d-flex align-items-center gap-3">
               {isLoggedIn ? (
-                <>
-                  <Link to="/settings" className="btn btn-outline-light">Settings</Link>
-                  <div className="user-avatar">
-                    <span>{student?.firstName?.charAt(0) || 'G'}</span>
+                <div className="user-dropdown-wrapper">
+                  <div 
+                    className="user-profile-button"
+                    onClick={() => setShowSignInDropdown(!showSignInDropdown)}
+                  >
+                    <div className="user-avatar">
+                      <span>{student?.firstName?.charAt(0) || 'H'}</span>
+                    </div>
+                    <span className="user-name d-none d-md-inline">Hi, {student?.firstName || 'Hello'}!</span>
                   </div>
-                  <span className="user-name">Hi, {student?.firstName || 'Guest'}!</span>
-                  <button className="btn btn-logout" onClick={handleLogout}>Logout</button>
-                </>
+                  
+                  {showSignInDropdown && (
+                    <div className="user-dropdown">
+                      <div className="user-dropdown-header">
+                        <div className="user-dropdown-name">{student?.firstName} {student?.lastName}</div>
+                        <div className="user-dropdown-email">{student?.email}</div>
+                      </div>
+                      
+                      <div className="user-dropdown-menu">
+                        {/* Profile link removed */}
+                        
+                        <Link 
+                          to="/my-courses" 
+                          className="dropdown-item" 
+                          onClick={() => setShowSignInDropdown(false)}
+                        >
+                          <span className="dropdown-item-icon">📚</span> My Courses
+                        </Link>
+                        
+                        <Link 
+                          to="/accomplishments" 
+                          className="dropdown-item" 
+                          onClick={() => setShowSignInDropdown(false)}
+                        >
+                          <span className="dropdown-item-icon">🏆</span> Accomplishments
+                        </Link>
+                        
+                        <div className="dropdown-divider"></div>
+                        
+                        <button 
+                          className="dropdown-item dropdown-item-logout" 
+                          onClick={() => {
+                            handleLogout();
+                            setShowSignInDropdown(false);
+                          }}
+                        >
+                          <span className="dropdown-item-icon">🚪</span> Log Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="signin-dropdown-wrapper">
                   <button 
@@ -173,72 +239,116 @@ export default function StudentHome() {
 
       {/* Hero Section */}
       <section className="hero-section">
-        <div className="hero-background">
-          <div className="hero-shape shape-1"></div>
-          <div className="hero-shape shape-2"></div>
-          <div className="hero-shape shape-3"></div>
+        {/* Animated shapes */}
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'hidden', zIndex: 1 }}>
+          <div style={{ 
+            position: 'absolute', 
+            width: '300px', 
+            height: '300px', 
+            borderRadius: '50%', 
+            background: 'rgba(255,255,255,0.1)', 
+            top: '-100px', 
+            right: '-50px',
+            animation: 'float 8s infinite ease-in-out'
+          }}></div>
+          <div style={{ 
+            position: 'absolute', 
+            width: '200px', 
+            height: '200px', 
+            borderRadius: '50%', 
+            background: 'rgba(255,255,255,0.1)', 
+            bottom: '-50px', 
+            left: '10%',
+            animation: 'float 10s infinite ease-in-out'
+          }}></div>
+          <div style={{ 
+            position: 'absolute', 
+            width: '150px', 
+            height: '150px', 
+            borderRadius: '50%', 
+            background: 'rgba(255,255,255,0.1)', 
+            top: '20%', 
+            left: '5%',
+            animation: 'float 7s infinite ease-in-out'
+          }}></div>
         </div>
-        <div className="container">
-          <div className="row justify-content-center text-center">
-            <div className="col-lg-8">
+        
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+          <div className="row align-items-center">
+            <div className="col-lg-6 mb-5 mb-lg-0">
               <div className="hero-content">
-                <h1 className="hero-title">
-                  Learn <span className="highlight">Without Limits</span>
+                <div style={{ marginBottom: '20px', display: 'inline-block', background: 'rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: '20px' }}>
+                  <span style={{ marginRight: '8px' }}>✨</span>
+                  <span style={{ fontWeight: 500 }}>Welcome to LearnHub</span>
+                </div>
+                <h1 style={{ 
+                  fontSize: '3.5rem', 
+                  fontWeight: 800, 
+                  marginBottom: '20px',
+                  lineHeight: 1.2
+                }}>
+                  Learn <span style={{ color: '#4CC9F0' }}>Without Limits</span>
                 </h1>
-                <p className="hero-subtitle">
-                  Start, switch, or advance your career with thousands of courses from world-class instructors
+                <p style={{ 
+                  fontSize: '1.2rem', 
+                  marginBottom: '30px',
+                  opacity: 0.9,
+                  fontWeight: 300,
+                  lineHeight: 1.6
+                }}>
+                  Discover top-quality courses taught by industry experts. Start your learning journey today and unlock your potential.
                 </p>
                 <div className="search-container">
-                  <div className="input-group search-input-group">
-                    <span className="input-group-text">
+                  <div className="search-input-wrapper">
+                    <div className="search-icon-container">
                       <i className="search-icon">🔍</i>
-                    </span>
+                    </div>
                     <input
                       type="text"
-                      className="form-control"
+                      className="search-input"
                       placeholder="What do you want to learn today?"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    <button className="btn btn-search">Search</button>
+                    <button className="search-button">Search</button>
                   </div>
                 </div>
-                <div className="hero-stats">
-                  <div className="stat-item">
-                    <span className="stat-number">10K+</span>
-                    <span className="stat-label">Courses</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-number">50K+</span>
-                    <span className="stat-label">Students</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-number">200+</span>
-                    <span className="stat-label">Instructors</span>
-                  </div>
-                </div>
+              </div>
+            </div>
+            <div className="col-lg-6 d-none d-lg-block">
+              <div style={{ position: 'relative', textAlign: 'center' }}>
+                <div style={{ 
+                  position: 'absolute',
+                  width: '300px',
+                  height: '300px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.1)',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: -1
+                }}></div>
+                <img 
+                  src="https://img.freepik.com/free-vector/online-learning-concept-illustration_114360-4735.jpg" 
+                  alt="Learning illustration" 
+                  style={{ 
+                    maxWidth: '100%',
+                    height: 'auto',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                  }}
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
-
+      
       {/* Course Catalog */}
       <section className="section course-catalog">
         <div className="container">
           {/* Quick Links */}
           <div className="row g-3 mb-3">
-            <div className="col-12 col-md-4">
-              <div className="card" style={{ borderRadius: 12, border: '1px solid #e5e7eb' }}>
-                <div className="card-body d-flex align-items-center justify-content-between">
-                  <div>
-                    <div className="text-muted" style={{ fontSize: 12 }}>Account</div>
-                    <div className="fw-bold">Student Settings</div>
-                  </div>
-                  <Link to="/settings" className="btn btn-outline-secondary" style={{ borderRadius: 10 }}>Open</Link>
-                </div>
-              </div>
-            </div>
           </div>
           <div className="section-header">
             <h2 className="section-title">
@@ -249,7 +359,7 @@ export default function StudentHome() {
 
           {/* Categories */}
           <div className="categories-filter">
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <button
                 key={cat}
                 className={`category-filter-btn ${selectedCategory === cat ? 'active' : ''}`}
@@ -261,24 +371,34 @@ export default function StudentHome() {
             ))}
           </div>
 
-          <div className="row g-4">
-            {filteredCourses.map(course => (
-              <div key={course.id} className="col-12 col-sm-6 col-lg-4">
-                <CourseCard course={course} />
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="section cta-section">
-        <div className="container">
-          <div className="cta-content text-center">
-            <h2>Ready to Start Learning?</h2>
-            <p>Join thousands of students achieving their goals</p>
-            <button className="btn btn-cta">Get Started Today</button>
-          </div>
+              <p className="mt-3">Loading courses...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-5">
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+              <h3>Oops!</h3>
+              <p className="text-muted">{error}</p>
+            </div>
+          ) : filteredCourses.length === 0 ? (
+            <div className="text-center py-5">
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+              <h3>No courses found</h3>
+              <p className="text-muted">Try adjusting your search or browse different categories</p>
+            </div>
+          ) : (
+            <div className="row g-4">
+              {filteredCourses.map(course => (
+                <div key={course.id} className="col-12 col-sm-6 col-lg-4">
+                  <CourseCard course={course} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -313,43 +433,163 @@ function CourseCard({ course }) {
   return (
     <div 
       className="card course-card"
+      style={{
+        borderRadius: '8px',
+        overflow: 'hidden',
+        boxShadow: isHovered ? '0 5px 15px rgba(0,0,0,0.08)' : '0 2px 6px rgba(0,0,0,0.04)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: isHovered ? 'translateY(-3px)' : 'none',
+        border: '1px solid #e5e7eb',
+        height: '100%'
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="card-inner">
-        <div 
-          className="course-thumbnail"
-          style={{ background: `linear-gradient(135deg, ${course.color} 0%, ${course.color}99 100%)` }}
-        >
-          <span className="thumbnail-emoji">{course.thumbnail}</span>
-          <span className={`badge level-badge ${course.level.toLowerCase()}`}>{course.level}</span>
-          <div className={`hover-overlay ${isHovered ? 'active' : ''}`}>
-            <button className="btn-preview">Quick Preview</button>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* Course Thumbnail */}
+        <div style={{ 
+          position: 'relative',
+          height: '160px',
+          overflow: 'hidden',
+          background: course.thumbnail && course.thumbnail.startsWith('data:image') 
+            ? 'none' 
+            : `linear-gradient(135deg, #667eea 0%, #764ba2 100%)` 
+        }}>
+          {course.thumbnail && course.thumbnail.startsWith('data:image') ? (
+            <img 
+              src={course.thumbnail} 
+              alt={course.title}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover',
+                transition: 'transform 0.2s ease',
+                transform: isHovered ? 'scale(1.01)' : 'scale(1)'
+              }} 
+            />
+          ) : (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: '100%',
+              fontSize: '3.5rem',
+              background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
+              color: 'white'
+            }}>
+              <span>{course.thumbnail || '🎓'}</span>
+            </div>
+          )}
+          
+          {/* Level Badge */}
+          <div style={{ 
+            position: 'absolute', 
+            bottom: '12px', 
+            left: '12px', 
+            zIndex: 2,
+            background: 'rgba(255,255,255,0.9)',
+            color: '#333',
+            padding: '5px 12px',
+            borderRadius: '20px',
+            fontWeight: 600,
+            fontSize: '0.75rem',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+            textTransform: 'capitalize'
+          }}>
+            {course.level}
           </div>
         </div>
-        <div className="card-body">
-          <span className="category-tag">{course.category}</span>
-          <h5 className="card-title">{course.title}</h5>
-          <p className="instructor">{course.instructor}</p>
-          <div className="course-meta">
-            <div className="rating">
-              <span className="stars">⭐</span>
-              <span className="rating-value">{course.rating}</span>
+        
+        {/* Card Content */}
+        <div style={{ 
+          padding: '20px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          flexGrow: 1
+        }}>
+          {/* Category */}
+          <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ 
+              width: '24px', 
+              height: '24px', 
+              borderRadius: '4px', 
+              background: '#4361ee', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '0.7rem',
+              fontWeight: 'bold',
+              color: 'white'
+            }}>
+              {course.category?.charAt(0) || 'L'}
             </div>
-            <div className="students">
-              <span className="student-icon">👥</span>
-              <span className="student-count">{(course.students / 1000).toFixed(1)}k</span>
-            </div>
-            <div className="duration">
-              <span className="duration-icon">⏱️</span>
-              <span className="duration-value">{course.duration}</span>
-            </div>
+            <span style={{ fontSize: '0.85rem', color: '#4361ee', fontWeight: 600 }}>
+              {course.category || 'General'}
+            </span>
           </div>
-          <div className="card-footer">
-            <span className="price">{course.price}</span>
-            <button className="btn-enroll" onClick={() => navigate(`/enroll/${course.id}`)}>
+          
+          {/* Title */}
+          <h5 style={{ 
+            fontSize: '1.2rem', 
+            fontWeight: 700, 
+            marginBottom: '10px',
+            lineHeight: 1.3,
+            color: '#111827'
+          }}>
+            {course.title}
+          </h5>
+          
+          {/* Specialization Tag */}
+          <div style={{ marginBottom: '15px' }}>
+            <span style={{ 
+              fontSize: '0.85rem', 
+              color: '#6b7280'
+            }}>
+              Specialization
+            </span>
+          </div>
+          
+          {/* Course Duration */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            marginTop: 'auto',
+            paddingTop: '15px',
+            borderTop: '1px solid #f3f4f6'
+          }}>
+            <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+              <span style={{ marginRight: '5px' }}>⏱️</span>
+              {course.duration || '6 weeks'}
+            </span>
+          </div>
+          
+          {/* Enroll Button */}
+          <div style={{ 
+            marginTop: '20px'
+          }}>
+            <button 
+              onClick={() => navigate(`/enroll/${course.id}`)}
+              style={{
+                width: '100%',
+                background: '#4361ee',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '10px 0',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#3a56d4'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#4361ee'
+              }}
+            >
               Enroll Now
-              <span className="btn-arrow">→</span>
             </button>
           </div>
         </div>

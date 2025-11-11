@@ -44,6 +44,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/course-modules/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/course-contents/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        // Allow quiz endpoints - students need to view and submit quizzes
+                        .requestMatchers(HttpMethod.GET, "/api/quizzes/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/quizzes/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/quizzes/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/quizzes/**").permitAll()
                         // Allow enrollment endpoints (students need to enroll)
                         .requestMatchers("/api/enrollments/**").permitAll()
                         .anyRequest().authenticated()

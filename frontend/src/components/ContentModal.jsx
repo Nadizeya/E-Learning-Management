@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import QuizModal from './QuizModal'
 
 export default function ContentModal({ module, onClose }) {
   const [contents, setContents] = useState([])
   const [showCreateContent, setShowCreateContent] = useState(false)
   const [contentType, setContentType] = useState('VIDEO')
+  const [showQuizModal, setShowQuizModal] = useState(false)
+  const [selectedContentForQuiz, setSelectedContentForQuiz] = useState(null)
 
   useEffect(() => {
     fetchContents()
@@ -78,6 +81,13 @@ export default function ContentModal({ module, onClose }) {
                   content={content}
                   index={index}
                   onDelete={() => handleDeleteContent(content.contentId)}
+                  onCreateQuiz={() => {
+                    console.log('Opening QuizModal for content:', content)
+                    console.log('Content ID:', content.contentId)
+                    console.log('Content Type:', content.contentType)
+                    setSelectedContentForQuiz(content)
+                    setShowQuizModal(true)
+                  }}
                 />
               ))}
             </div>
@@ -95,12 +105,27 @@ export default function ContentModal({ module, onClose }) {
             }}
           />
         )}
+
+        {showQuizModal && selectedContentForQuiz && (
+          <QuizModal
+            content={selectedContentForQuiz}
+            onClose={() => {
+              setShowQuizModal(false)
+              setSelectedContentForQuiz(null)
+            }}
+            onSuccess={() => {
+              setShowQuizModal(false)
+              setSelectedContentForQuiz(null)
+              fetchContents()
+            }}
+          />
+        )}
       </div>
     </div>
   )
 }
 
-function ContentItem({ content, index, onDelete }) {
+function ContentItem({ content, index, onDelete, onCreateQuiz }) {
   const getIcon = () => {
     switch(content.contentType) {
       case 'Video': return '🎥'
@@ -118,7 +143,18 @@ function ContentItem({ content, index, onDelete }) {
         <span className="content-type">{content.contentType}</span>
         {content.contentUrl && <small className="content-url">{content.contentUrl}</small>}
       </div>
-      <button className="btn-icon" onClick={onDelete}>🗑️</button>
+      <div className="content-actions">
+        {(content.contentType === 'Quiz' || content.contentType === 'QUIZ') && (
+          <button 
+            className="btn-secondary small" 
+            onClick={onCreateQuiz}
+            title="Create/Edit Quiz"
+          >
+            ✏️ Quiz
+          </button>
+        )}
+        <button className="btn-icon" onClick={onDelete}>🗑️</button>
+      </div>
     </div>
   )
 }
@@ -128,8 +164,7 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
     title: '',
     type: contentType,
     videoUrl: '',
-    readingContent: '',
-    quizData: { questions: [] }
+    readingContent: ''
   })
   const [loading, setLoading] = useState(false)
   const [uploadType, setUploadType] = useState('url') // 'url' or 'file'
@@ -250,7 +285,8 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
       } else if (formData.type === 'READING') {
         contentUrl = formData.readingContent
       } else if (formData.type === 'QUIZ') {
-        contentUrl = JSON.stringify(formData.quizData)
+        // For Quiz content, we don't need contentUrl - it will be created via QuizModal
+        contentUrl = ''
       }
 
       // Map frontend types to backend format (Video, Reading, Quiz)
@@ -270,11 +306,20 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
 
       console.log('Creating content with payload:', payload)
       console.log('Module ID received:', moduleId)
+      console.log('Content Type being sent:', payload.contentType)
 
-      await axios.post(`http://localhost:8080/api/course-contents`, payload, {
+      const response = await axios.post(`http://localhost:8080/api/course-contents`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      onSuccess()
+      
+      console.log('Content created response:', response.data)
+      
+      if (response.data.success || response.data.data) {
+        console.log('Content created successfully with ID:', response.data.data?.contentId || response.data.data?.id)
+        onSuccess()
+      } else {
+        setUploadError(response.data.message || 'Failed to create content')
+      }
     } catch (error) {
       console.error('Content creation error:', error.response?.data)
       setUploadError(error.response?.data?.message || error.message)
@@ -422,21 +467,22 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
 
           {contentType === 'QUIZ' && (
             <div className="form-group">
-              <label>Quiz Questions (JSON format)</label>
-              <textarea
-                value={JSON.stringify(formData.quizData, null, 2)}
-                onChange={(e) => {
-                  try {
-                    setFormData({...formData, quizData: JSON.parse(e.target.value)})
-                  } catch {}
-                }}
-                placeholder='{"questions": [{"question": "What is...?", "options": ["A", "B", "C", "D"], "answer": 0}]}'
-                rows="10"
-              />
-              <small>
-                Format: {`{"questions": [{"question": "...", "options": ["A", "B", "C", "D"], "answer": 0}]}`}
-                <br />
-                The "answer" field is the index of the correct option (0-based)
+              <div style={{ 
+                padding: '16px', 
+                background: '#eff6ff', 
+                border: '1px solid #3b82f6', 
+                borderRadius: '8px',
+                marginBottom: '12px'
+              }}>
+                <p style={{ margin: 0, color: '#1e40af', fontWeight: '600' }}>
+                  ℹ️ Quiz Content Created
+                </p>
+                <p style={{ margin: '8px 0 0 0', color: '#1e3a8a', fontSize: '0.9rem' }}>
+                  After creating this quiz content, click the "✏️ Quiz" button to add questions and create the actual quiz.
+                </p>
+              </div>
+              <small style={{ color: '#6b7280' }}>
+                Note: You only need to provide a title. The quiz questions will be added using the Quiz editor.
               </small>
             </div>
           )}

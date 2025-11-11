@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link, useSearchParams } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { courseAPI, enrollmentAPI } from '../services/api.js'
+import { courseAPI, enrollmentAPI, courseModuleAPI, courseContentAPI, instructorAPI } from '../services/api.js'
 
 export default function Enroll() {
   const { id } = useParams()
@@ -12,6 +12,16 @@ export default function Enroll() {
   const [enrolling, setEnrolling] = useState(false)
   const [enrolled, setEnrolled] = useState(searchParams.get('enrolled') === '1')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false)
+  const [modules, setModules] = useState([])
+  const [moduleLoading, setModuleLoading] = useState(false)
+  const [courseContents, setCourseContents] = useState({})
+  const [contentLoading, setContentLoading] = useState(false)
+  const [instructor, setInstructor] = useState(null)
+  const [instructorLoading, setInstructorLoading] = useState(false)
+
+  // State to track if user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     const fetchCourseAndEnrollmentStatus = async () => {
@@ -23,7 +33,10 @@ export default function Enroll() {
 
         // Check if user is already enrolled
         const userData = localStorage.getItem('user')
-        if (userData) {
+        const token = localStorage.getItem('token')
+        
+        if (userData && token) {
+          setIsLoggedIn(true)
           const user = JSON.parse(userData)
           try {
             const isEnrolled = await enrollmentAPI.checkEnrollment(user.studentId, id)
@@ -32,6 +45,16 @@ export default function Enroll() {
           } catch (error) {
             console.error('Failed to check enrollment status:', error)
           }
+        } else {
+          setIsLoggedIn(false)
+        }
+
+        // Fetch course modules
+        fetchCourseModules(id)
+        
+        // Fetch instructor if instructorId is available
+        if (courseData.instructorId) {
+          fetchInstructor(courseData.instructorId)
         }
       } catch (error) {
         console.error('Failed to fetch course:', error)
@@ -42,6 +65,79 @@ export default function Enroll() {
 
     fetchCourseAndEnrollmentStatus()
   }, [id])
+
+  // Function to fetch course modules
+  const fetchCourseModules = async (courseId) => {
+    try {
+      setModuleLoading(true)
+      const moduleData = await courseModuleAPI.getModulesByCourseId(courseId)
+      console.log('Fetched modules:', moduleData)
+      
+      if (moduleData && moduleData.length > 0) {
+        // Sort modules by order
+        const sortedModules = [...moduleData].sort((a, b) => a.moduleOrder - b.moduleOrder)
+        setModules(sortedModules)
+        
+        // Fetch content for each module
+        for (const module of sortedModules) {
+          fetchModuleContents(module.moduleId)
+        }
+      } else {
+        setModules([])
+      }
+    } catch (error) {
+      console.error('Failed to fetch modules:', error)
+      setModules([])
+    } finally {
+      setModuleLoading(false)
+    }
+  }
+
+  // Function to fetch instructor details
+  const fetchInstructor = async (instructorId) => {
+    try {
+      setInstructorLoading(true)
+      const instructorData = await instructorAPI.getInstructorById(instructorId)
+      console.log(`Fetched instructor for ID ${instructorId}:`, instructorData)
+      setInstructor(instructorData)
+    } catch (error) {
+      console.error(`Failed to fetch instructor for ID ${instructorId}:`, error)
+      setInstructor(null)
+    } finally {
+      setInstructorLoading(false)
+    }
+  }
+
+  // Function to fetch module contents
+  const fetchModuleContents = async (moduleId) => {
+    try {
+      setContentLoading(true)
+      const contentData = await courseContentAPI.getContentsByModuleId(moduleId)
+      console.log(`Fetched contents for module ${moduleId}:`, contentData)
+      
+      if (contentData && contentData.length > 0) {
+        // Sort contents by order
+        const sortedContents = [...contentData].sort((a, b) => a.contentOrder - b.contentOrder)
+        setCourseContents(prev => ({
+          ...prev,
+          [moduleId]: sortedContents
+        }))
+      } else {
+        setCourseContents(prev => ({
+          ...prev,
+          [moduleId]: []
+        }))
+      }
+    } catch (error) {
+      console.error(`Failed to fetch contents for module ${moduleId}:`, error)
+      setCourseContents(prev => ({
+        ...prev,
+        [moduleId]: []
+      }))
+    } finally {
+      setContentLoading(false)
+    }
+  }
 
   if (!course) {
     return (
@@ -57,8 +153,8 @@ export default function Enroll() {
     // Check authentication first before setting loading state
     const userData = localStorage.getItem('user')
     if (!userData) {
-      alert('Please sign in to enroll in this course')
-      navigate('/student/signin')
+      // Show sign-in prompt instead of alert
+      setShowSignInPrompt(true)
       return
     }
     
@@ -111,7 +207,7 @@ export default function Enroll() {
   const courseDuration = course.duration || '6 weeks'
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(1000px 400px at 50% -50%, rgba(59,130,246,0.12), transparent), #f7f8fa' }}>
+    <div style={{ minHeight: '100vh', background: '#f7f8fa' }}>
       {/* Success Message */}
       {showSuccess && (
         <div style={{
@@ -135,88 +231,382 @@ export default function Enroll() {
         </div>
       )}
       
-      <div className="container" style={{ paddingTop: 72, paddingBottom: 72 }}>
-        <div className="row justify-content-center">
-          <div className="col-xxl-9 col-xl-10 col-lg-11">
-            <div className="card" style={{ border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', boxShadow: '0 16px 40px rgba(0,0,0,0.08)' }}>
-              <div className="row g-0">
-                <div className="col-md-5" style={{ background: `linear-gradient(135deg, ${courseColor} 0%, ${courseColor}99 100%)`, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 36 }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 68, lineHeight: 1 }}>{courseThumbnail}</div>
-                    <div style={{ marginTop: 20, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 999, padding: '6px 12px', fontWeight: 700, letterSpacing: 0.5 }}>{courseCategory}</span>
-                      <span style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 999, padding: '6px 12px', fontWeight: 700, letterSpacing: 0.5 }}>{courseLevel}</span>
-                      <span style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 999, padding: '6px 12px', fontWeight: 700, letterSpacing: 0.5 }}>{courseDuration}</span>
-                    </div>
-                    <div style={{ marginTop: 18, background: 'rgba(255,255,255,0.28)', height: 1 }} />
-                    <div style={{ marginTop: 18, fontWeight: 700, fontSize: 20 }}>Status: {course.status}</div>
-                    <div style={{ opacity: 0.95 }}>Course ID: {course.courseId}</div>
-                  </div>
-                </div>
-                <div className="col-md-7" style={{ padding: 28 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 12 }}>
-                    <div>
-                      <h1 style={{ margin: 0, fontSize: 36, lineHeight: 1.25 }}>{course.title}</h1>
-                      <p style={{ color: '#6b7280', marginTop: 6 }}>by {course.instructor?.firstName} {course.instructor?.lastName}</p>
-                    </div>
-                    <Link to="/" className="btn btn-outline-secondary" style={{ height: 38, padding: '6px 14px', borderRadius: 10 }}>Back</Link>
-                  </div>
+      {/* Sign In Prompt Modal */}
+      {showSignInPrompt && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: 12,
+            padding: 24,
+            maxWidth: 400,
+            width: '90%',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            textAlign: 'center',
+          }}>
+            <h3 style={{ marginTop: 0, color: '#111827' }}>Sign In Required</h3>
+            <p style={{ color: '#4b5563', marginBottom: 24 }}>Please sign in to enroll in this course.</p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button 
+                onClick={() => setShowSignInPrompt(false)} 
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 8, 
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#4b5563',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => navigate('/student/signin')} 
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 8, 
+                  border: 'none',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="container" style={{ paddingTop: 40, paddingBottom: 40, maxWidth: 1000 }}>
+        {/* Header with logo and back button - simplified */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
+          <div>
+            {course.thumbnail && course.thumbnail.startsWith('data:image') ? (
+              <img 
+                src={course.thumbnail} 
+                alt={course.title} 
+                style={{ height: 60, width: 120, objectFit: 'contain' }}
+              />
+            ) : (
+              <div style={{ 
+                height: 60, 
+                width: 120, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                fontSize: 24,
+                color: '#4361ee',
+                border: '1px solid #e5e7eb',
+                borderRadius: 8
+              }}>
+                {course.thumbnail || '🎓'}
+              </div>
+            )}
+          </div>
+          <Link to="/" className="btn btn-outline-secondary" style={{ 
+            height: 38, 
+            padding: '6px 14px', 
+            borderRadius: 6,
+            border: '1px solid #e5e7eb',
+            color: '#4b5563',
+            background: 'white'
+          }}>Back to Home</Link>
+        </div>
 
-                  <div style={{ marginTop: 14, padding: 16, background: '#f3f4f6', borderRadius: 12 }}>
-                    <p style={{ margin: 0, color: '#1f2937' }}>{course.description || 'No description available'}</p>
-                  </div>
+        {/* Course Title and Info */}
+        <div style={{ marginBottom: 30 }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: 12, color: '#111827' }}>
+            {course.title}
+          </h1>
+          <p style={{ fontSize: '1.1rem', color: '#4b5563', marginBottom: 16, maxWidth: 800 }}>
+            {course.description || 'No description available'}
+          </p>
+          
+          {/* Course Stats - simplified */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 24 }}>
+            <div style={{ marginRight: 24 }}>
+              <span style={{ color: '#6b7280' }}>Beginner level</span>
+            </div>
+            
+            <div style={{ marginRight: 24 }}>
+              <span style={{ color: '#6b7280' }}>2 weeks</span>
+            </div>
+            
+            <div>
+              <span style={{ color: '#6b7280' }}>Learn at your own pace</span>
+            </div>
+          </div>
 
-                  <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-                    <Badge text="Projects" />
-                    <Badge text="Certificate" />
-                    <Badge text="Self-paced" />
-                  </div>
+          {/* Enroll/Start Learning Button */}
+          <div style={{ marginBottom: 40 }}>
+            {!isLoggedIn ? (
+              <button 
+                className="btn" 
+                style={{ 
+                  padding: '12px 24px', 
+                  borderRadius: 6, 
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  background: '#4361ee',
+                  color: 'white',
+                  border: 'none'
+                }} 
+                onClick={() => navigate('/student/signin')}
+              >
+                Sign In to Enroll
+              </button>
+            ) : !enrolled ? (
+              <button 
+                className="btn" 
+                style={{ 
+                  padding: '12px 24px', 
+                  borderRadius: 6, 
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  background: '#4361ee',
+                  color: 'white',
+                  border: 'none'
+                }} 
+                onClick={onEnroll} 
+                disabled={enrolling}
+              >
+                {enrolling ? 'Enrolling...' : 'Enroll'}
+              </button>
+            ) : (
+              <button 
+                className="btn" 
+                style={{ 
+                  padding: '12px 24px', 
+                  borderRadius: 6, 
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  background: '#2e7d32',
+                  color: 'white',
+                  border: 'none'
+                }}
+                onClick={() => navigate(`/course/${course.courseId}`)}
+              >
+                Start Learning
+              </button>
+            )}
+            <p style={{ marginTop: 8, color: '#6b7280', fontSize: 14 }}>
+              {enrolled ? 'You are enrolled in this course' : ''}
+            </p>
+          </div>
+        </div>
 
-                  <div className="row" style={{ marginTop: 14 }}>
-                    <div className="col-sm-6">
-                      <ul style={{ marginTop: 0, color: '#4b5563' }}>
-                        <li>Hands-on projects and quizzes</li>
-                        <li>Real-world case studies</li>
-                        <li>Downloadable resources</li>
-                      </ul>
+        {/* Course Content */}
+        <div className="row">
+          <div className="col-lg-8">
+            {/* Course Series */}
+            <div style={{ marginBottom: 40 }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>
+                {moduleLoading ? 'Loading modules...' : 
+                 modules.length === 0 ? 'No modules available' : 
+                 modules.length === 1 ? '1 module' : 
+                 `${modules.length} modules`}
+              </h2>
+              <p style={{ color: '#4b5563', marginBottom: 24 }}>Course content and materials</p>
+              
+              {/* Module List */}
+              <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                {moduleLoading ? (
+                  <div style={{ padding: 24, textAlign: 'center' }}>
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
                     </div>
-                    <div className="col-sm-6">
-                      <ul style={{ marginTop: 0, color: '#4b5563' }}>
-                        <li>Certificate of completion</li>
-                        <li>Self-paced learning</li>
-                        <li>Lifetime access</li>
-                      </ul>
-                    </div>
+                    <p style={{ marginTop: 12, color: '#6b7280' }}>Loading course modules...</p>
                   </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
-                    {!enrolled ? (
-                      <button type="button" className="btn btn-primary" style={{ padding: '10px 18px', borderRadius: 10, fontWeight: 700 }} onClick={onEnroll} disabled={enrolling}>
-                        {enrolling ? 'Enrolling…' : 'Confirm Enrollment'}
-                      </button>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 10 }}>
-                        <Link to={`/course/${course.courseId}`} className="btn btn-success" style={{ padding: '10px 18px', borderRadius: 10, fontWeight: 700 }}>Start Learning</Link>
-                        <button className="btn btn-outline-secondary" style={{ padding: '10px 18px', borderRadius: 10 }} onClick={() => navigate(-1)}>Go Back</button>
+                ) : modules.length === 0 ? (
+                  <div style={{ padding: 24, textAlign: 'center' }}>
+                    <p style={{ color: '#6b7280' }}>No modules available for this course yet.</p>
+                  </div>
+                ) : (
+                  <div>
+                    {modules.map((module, index) => (
+                      <div key={module.moduleId} style={{ 
+                        padding: '16px 24px', 
+                        borderBottom: index < modules.length - 1 ? '1px solid #e5e7eb' : 'none',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 4 }}>
+                              {index + 1}. {module.title}
+                            </h3>
+                            <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>
+                              {courseContents[module.moduleId]?.length || 0} {courseContents[module.moduleId]?.length === 1 ? 'lesson' : 'lessons'}
+                            </p>
+                          </div>
+                          <button 
+                            style={{ 
+                              background: 'none', 
+                              border: 'none', 
+                              color: '#4361ee', 
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontSize: '0.9rem'
+                            }}
+                            onClick={() => {
+                              if (enrolled) {
+                                // If already enrolled, navigate to the course player
+                                navigate(`/course/${course.courseId}`);
+                              } else {
+                                // If not enrolled, show enrollment prompt
+                                alert('Please enroll to view content details');
+                              }
+                            }}
+                          >
+                            Details
+                          </button>
+                        </div>
+                        
+                        {/* Show first 2 contents as preview */}
+                        {courseContents[module.moduleId] && courseContents[module.moduleId].slice(0, 2).map((content, i) => (
+                          <div key={content.contentId} style={{ 
+                            marginTop: 12,
+                            marginLeft: 16,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            color: '#6b7280',
+                            fontSize: '0.9rem'
+                          }}>
+                            <span style={{ 
+                              width: 20, 
+                              height: 20, 
+                              borderRadius: '50%', 
+                              background: '#e5e7eb',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 12,
+                              color: '#4b5563'
+                            }}>
+                              {content.contentType === 'VIDEO' ? '▶' : content.contentType === 'QUIZ' ? 'Q' : 'T'}
+                            </span>
+                            <span>{content.title}</span>
+                          </div>
+                        ))}
+                        
+                        {/* Show more indicator if there are more contents */}
+                        {courseContents[module.moduleId] && courseContents[module.moduleId].length > 2 && (
+                          <div style={{ 
+                            marginTop: 12,
+                            marginLeft: 16,
+                            color: '#6b7280',
+                            fontSize: '0.9rem'
+                          }}>
+                            + {courseContents[module.moduleId].length - 2} more items
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-
-                  <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px dashed #e5e7eb', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span role="img" aria-label="shield">🛡️</span>
-                      <span style={{ color: '#6b7280' }}>7-day money-back guarantee</span>
+                )}
+              </div>
+            </div>
+            
+            {/* What You'll Learn */}
+            {modules.length > 0 && (
+              <div style={{ marginBottom: 40 }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>What you'll learn</h2>
+                <div style={{ background: '#f9fafb', padding: 20, borderRadius: 12 }}>
+                  <p style={{ color: '#4b5563' }}>
+                    {course.description || 'This course will provide you with the skills and knowledge needed to succeed.'}
+                  </p>
+                  
+                  {modules.length > 0 && (
+                    <div style={{ marginTop: 16 }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 12 }}>Course modules include:</h3>
+                      <ul style={{ paddingLeft: 20 }}>
+                        {modules.slice(0, 4).map(module => (
+                          <li key={module.moduleId} style={{ marginBottom: 8, color: '#4b5563' }}>
+                            {module.title}
+                          </li>
+                        ))}
+                        {modules.length > 4 && (
+                          <li style={{ marginBottom: 8, color: '#4b5563' }}>And {modules.length - 4} more modules</li>
+                        )}
+                      </ul>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span role="img" aria-label="clock">⏱️</span>
-                      <span style={{ color: '#6b7280' }}>Learn at your own pace</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span role="img" aria-label="sparkles">✨</span>
-                      <span style={{ color: '#6b7280' }}>Great for beginners to intermediate</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="col-lg-4">
+            {/* Course Info Card */}
+            <div style={{ 
+              background: 'white', 
+              borderRadius: 12, 
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              padding: 24,
+              marginBottom: 24
+            }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 16 }}>Course Information</h3>
+              
+              {course.category && (
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>Category</h4>
+                  <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>{course.category.name || 'General'}</p>
+                </div>
+              )}
+              
+              {course.status && (
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>Status</h4>
+                  <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>{course.status}</p>
+                </div>
+              )}
+              
+              {course.createdAt && (
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>Created</h4>
+                  <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>
+                    {new Date(course.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {/* Course Stats */}
+            <div style={{ 
+              background: 'white', 
+              borderRadius: 12, 
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              padding: 24
+            }}>
+              {course.level && (
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>Level</h4>
+                  <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>{course.level}</p>
+                </div>
+              )}
+              
+              {course.duration && (
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>Duration</h4>
+                  <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>{course.duration}</p>
+                </div>
+              )}
+              
+              <div>
+                <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 8 }}>Learning Style</h4>
+                <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem' }}>Self-paced learning</p>
               </div>
             </div>
           </div>

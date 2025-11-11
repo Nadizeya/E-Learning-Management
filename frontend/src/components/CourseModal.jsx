@@ -8,13 +8,43 @@ export default function CourseModal({ course, onClose, onSuccess }) {
     categoryId: course?.categoryId || null,
     instructorId: course?.instructorId || null,
     status: course?.status || 'Draft',
-    thumbnail: course?.thumbnail || '🎓',
-    color: course?.color || '#667eea',
+    thumbnail: course?.thumbnail || '',
     level: course?.level || 'Beginner',
     duration: course?.duration || '6 weeks'
   })
+  const [imagePreview, setImagePreview] = useState(course?.thumbnail || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [imageError, setImageError] = useState('')
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImageError('');
+    
+    if (file) {
+      // Validate file type
+      if (!file.type.match('image.*')) {
+        setImageError('Please select an image file (JPEG, PNG, etc.)');
+        return;
+      }
+      
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setImageError('Image size should be less than 2MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+        setFormData({ ...formData, thumbnail: reader.result });
+      };
+      reader.onerror = () => {
+        setImageError('Failed to read the image file');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -83,27 +113,57 @@ export default function CourseModal({ course, onClose, onSuccess }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Thumbnail (Emoji)</label>
-              <input
-                type="text"
-                value={formData.thumbnail}
-                onChange={(e) => setFormData({...formData, thumbnail: e.target.value})}
-                placeholder="🎓"
-                maxLength="10"
-              />
-              <small>Use emoji: 💻 🎨 📊 🎓 🔬 📱 🌐 🤖</small>
-            </div>
-
-            <div className="form-group">
-              <label>Color (Hex)</label>
-              <input
-                type="text"
-                value={formData.color}
-                onChange={(e) => setFormData({...formData, color: e.target.value})}
-                placeholder="#667eea"
-                pattern="^#[0-9A-Fa-f]{6}$"
-              />
-              <small>Hex color code (e.g., #3b82f6)</small>
+              <label>Course Thumbnail Image *</label>
+              <div className="file-input-container" style={{ position: 'relative', marginBottom: '10px' }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="file-input"
+                  id="course-thumbnail"
+                  style={{ 
+                    display: 'none' 
+                  }}
+                />
+                <label 
+                  htmlFor="course-thumbnail"
+                  style={{
+                    display: 'inline-block',
+                    padding: '8px 16px',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginRight: '10px'
+                  }}
+                >
+                  Choose Image
+                </label>
+                <span>{formData.thumbnail ? 'Image selected' : 'No image selected'}</span>
+              </div>
+              
+              {imageError && <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>{imageError}</div>}
+              
+              {imagePreview && (
+                <div className="image-preview" style={{ 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px',
+                  padding: '10px',
+                  backgroundColor: '#f9f9f9'
+                }}>
+                  <img 
+                    src={imagePreview} 
+                    alt="Course thumbnail preview" 
+                    style={{ 
+                      width: '100%', 
+                      maxHeight: '200px', 
+                      objectFit: 'contain',
+                      borderRadius: '4px'
+                    }} 
+                  />
+                </div>
+              )}
+              <small>Upload an image for your course (recommended size: 16:9 ratio, max 2MB)</small>
             </div>
           </div>
 

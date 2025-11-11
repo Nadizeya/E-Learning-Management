@@ -8,7 +8,6 @@ public class CourseRequest {
 	private String description;
 	private String status; // Draft, Published
 	private String thumbnail;
-	private String color;
 	private String level;
 	private String duration;
 
@@ -71,13 +70,7 @@ public class CourseRequest {
 		this.thumbnail = thumbnail;
 	}
 
-	public String getColor() {
-		return color;
-	}
-
-	public void setColor(String color) {
-		this.color = color;
-	}
+	// Color field removed as instructors may not be familiar with color codes
 
 	public String getLevel() {
 		return level;

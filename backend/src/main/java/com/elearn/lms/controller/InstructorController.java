@@ -1,7 +1,6 @@
 package com.elearn.lms.controller;
 
 import com.elearn.lms.dto.InstructorSignupRequest;
-import com.elearn.lms.dto.InstructorUpdateRequest;
 import com.elearn.lms.entity.Instructor;
 import com.elearn.lms.service.InstructorService;
 import jakarta.validation.Valid;
@@ -54,20 +53,7 @@ public class InstructorController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody InstructorUpdateRequest request) {
-        logger.info("Updating instructor with ID: {}", id);
-        logger.debug("Update request - bio: '{}', expertise: '{}'", request.getBio(), request.getExpertise());
-        try {
-            Instructor updated = instructorService.update(id, request);
-            logger.info("Instructor updated successfully with ID: {}", updated.getId());
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException ex) {
-            logger.error("Update failed: {}", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", ex.getMessage()));
-        }
-    }
+    // Update endpoint removed
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
@@ -83,6 +69,8 @@ public class InstructorController {
         }
     }
 
+    // Password change endpoint removed
+    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
         String errors = ex.getBindingResult()

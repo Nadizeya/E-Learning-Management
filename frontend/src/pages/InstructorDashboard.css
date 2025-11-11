@@ -897,3 +897,143 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Content Actions */
+.content-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-icon.small {
+  padding: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.btn-icon.danger {
+  color: #dc2626;
+}
+
+.btn-icon.danger:hover {
+  background: #fee2e2;
+}
+
+.btn-secondary.small {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Quiz Modal Styles */
+.questions-section {
+  margin-top: 2rem;
+}
+
+.questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.question-card {
+  background: #f7f8fa;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.question-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.question-header h4 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.options-section {
+  margin-top: 1rem;
+}
+
+.options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.options-header label {
+  margin: 0;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.option-row:hover {
+  border-color: #667eea;
+  background: #f9fafb;
+}
+
+.option-row input[type="radio"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.option-input {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.option-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.warning-text {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+.empty-state.small {
+  padding: 1.5rem;
+  text-align: center;
+  background: #f7f8fa;
+  border-radius: 10px;
+  color: #718096;
+}
+
+.empty-state.small p {
+  margin: 0;
+  font-size: 0.9rem;
+}

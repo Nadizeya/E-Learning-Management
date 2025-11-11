@@ -12,7 +12,6 @@ public class CourseResponse {
 	private String description;
 	private String status;
 	private String thumbnail;
-	private String color;
 	private String level;
 	private String duration;
 	private LocalDateTime createdAt;
@@ -29,7 +28,6 @@ public class CourseResponse {
 		this.description = course.getDescription();
 		this.status = course.getStatus();
 		this.thumbnail = course.getThumbnail();
-		this.color = course.getColor();
 		this.level = course.getLevel();
 		this.duration = course.getDuration();
 		this.createdAt = course.getCreatedAt();
@@ -108,13 +106,7 @@ public class CourseResponse {
 		this.thumbnail = thumbnail;
 	}
 
-	public String getColor() {
-		return color;
-	}
-
-	public void setColor(String color) {
-		this.color = color;
-	}
+	// Color field removed as instructors may not be familiar with color codes
 
 	public String getLevel() {
 		return level;
