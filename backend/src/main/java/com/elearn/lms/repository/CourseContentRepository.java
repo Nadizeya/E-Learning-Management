@@ -12,6 +12,8 @@ public interface CourseContentRepository extends JpaRepository<CourseContent, Lo
 	List<CourseContent> findByModuleIdOrderByContentOrderAsc(Long moduleId);
 
 	List<CourseContent> findByModule_ModuleId(Long moduleId);
+	
+	List<CourseContent> findByModuleId(Long moduleId);
 
 	List<CourseContent> findByContentType(String contentType);
 

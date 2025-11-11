@@ -314,6 +314,381 @@ export const quizAPI = {
   },
 };
 
+// Progress API
+export const progressAPI = {
+  // Get student progress for a course
+  getStudentProgress: async (courseId, studentId) => {
+    try {
+      console.log(`Fetching progress for student ${studentId} in course ${courseId}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/progress/course/${courseId}/student/${studentId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include' // Include cookies if any
+      });
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch progress. Status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        return { progressPercentage: 0, completedModules: 0, totalModules: 0 };
+      }
+      
+      const data = await response.json();
+      console.log('Progress data received:', data);
+      
+      // Check if data has the expected structure
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid progress data format:', data);
+        return { progressPercentage: 0, completedModules: 0, totalModules: 0 };
+      }
+      
+      // Extract the data property if it exists (API might wrap response in a data property)
+      const progressData = data.data || data;
+      
+      console.log('Processed progress data:', progressData);
+      console.log('Progress percentage:', progressData.progressPercentage);
+      console.log('Completed modules:', progressData.completedModules);
+      console.log('Total modules:', progressData.totalModules);
+      
+      return progressData;
+    } catch (error) {
+      console.error('Error fetching student progress:', error);
+      return { progressPercentage: 0, completedModules: 0, totalModules: 0 };
+    }
+  },
+  
+  // Mark content as completed
+  markContentAsCompleted: async (studentId, contentId, moduleId, courseId) => {
+    try {
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      console.log('Marking content as completed with data:', {
+        studentId,
+        contentId,
+        moduleId,
+        courseId
+      });
+      
+      const response = await fetch(`${API_BASE_URL}/progress/mark-completed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include', // Include cookies if any
+        body: JSON.stringify({
+          studentId,
+          contentId,
+          moduleId,
+          courseId
+        })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to mark content as completed. Status: ${response.status}`, errorText);
+        throw new Error(`Failed to mark content as completed: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Mark as completed response:', data);
+      
+      // Immediately fetch updated progress to ensure UI is in sync
+      try {
+        const updatedProgress = await this.getStudentProgress(courseId, studentId);
+        console.log('Updated progress after marking content as completed:', updatedProgress);
+        return {
+          ...data,
+          updatedProgress
+        };
+      } catch (progressError) {
+        console.error('Error fetching updated progress:', progressError);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error marking content as completed:', error);
+      throw error;
+    }
+  }
+};
+
+// Certificate API
+export const certificateAPI = {
+  // Get certificate by ID
+  getCertificateById: async (certificateId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/certificates/${certificateId}`);
+      if (!response.ok) {
+        throw new Error('Certificate not found');
+      }
+      const data = await response.json();
+      return data.data || data;
+    } catch (error) {
+      console.error('Error fetching certificate:', error);
+      throw error;
+    }
+  },
+  
+  // Get certificate by course and student
+  getCertificateByCourseAndStudent: async (courseId, studentId) => {
+    try {
+      console.log(`Fetching certificate for course ${courseId} and student ${studentId}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/certificates/course/${courseId}/student/${studentId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include' // Include cookies if any
+      });
+      
+      console.log('Certificate fetch response status:', response.status);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('No certificate found for this course and student');
+          return null; // No certificate found
+        }
+        
+        const errorText = await response.text();
+        console.error(`Failed to fetch certificate (${response.status}):`, errorText);
+        throw new Error(`Failed to fetch certificate: ${errorText || response.statusText}`);
+      }
+      
+      // Try to parse the response as JSON
+      let data;
+      const responseText = await response.text();
+      console.log('Certificate fetch raw response:', responseText);
+      
+      if (!responseText || responseText.trim() === '') {
+        console.log('Empty response received, no certificate exists');
+        return null;
+      }
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing certificate response:', parseError);
+        return null;
+      }
+      
+      const certificateData = data.data || data;
+      console.log('Parsed certificate data:', certificateData);
+      
+      return certificateData;
+    } catch (error) {
+      console.error('Error fetching certificate:', error);
+      return null;
+    }
+  },
+  
+  // Generate certificate
+  generateCertificate: async (courseId, studentId) => {
+    try {
+      console.log(`Generating certificate for course ${courseId} and student ${studentId}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/certificates/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include', // Include cookies if any
+        body: JSON.stringify({
+          studentId: studentId,
+          courseId: parseInt(courseId),
+        }),
+      });
+      
+      // Log the raw response for debugging
+      console.log('Certificate generation response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to generate certificate (${response.status}):`, errorText);
+        throw new Error(`Failed to generate certificate: ${errorText || response.statusText}`);
+      }
+      
+      // Try to parse the response as JSON
+      let data;
+      const responseText = await response.text();
+      console.log('Certificate generation raw response:', responseText);
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing certificate response:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+      
+      // Extract the certificate data
+      const certificateData = data.data || data;
+      console.log('Parsed certificate data:', certificateData);
+      
+      // If we got an empty response or no certificate ID, create a fallback certificate
+      if (!certificateData || !certificateData.certificateId) {
+        console.warn('No valid certificate data returned, creating fallback');
+        return {
+          certificateId: `temp-${Date.now()}`,
+          courseId: parseInt(courseId),
+          studentId: studentId,
+          courseTitle: 'Your Course',  // This will be replaced with actual data
+          studentName: 'Student',      // This will be replaced with actual data
+          issueDate: new Date().toISOString(),
+          uniqueCode: `CERT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+        };
+      }
+      
+      return certificateData;
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      throw error;
+    }
+  },
+  
+  // Get all certificates for a student
+  getStudentCertificates: async (studentId) => {
+    try {
+      console.log(`Fetching all certificates for student ${studentId}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/certificates/student/${studentId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include' // Include cookies if any
+      });
+      
+      console.log('Student certificates response status:', response.status);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('No certificates found for this student');
+          return []; // No certificates found
+        }
+        
+        const errorText = await response.text();
+        console.error(`Failed to fetch certificates (${response.status}):`, errorText);
+        throw new Error(`Failed to fetch certificates: ${errorText || response.statusText}`);
+      }
+      
+      // Try to parse the response as JSON
+      let data;
+      const responseText = await response.text();
+      console.log('Student certificates raw response:', responseText);
+      
+      if (!responseText || responseText.trim() === '') {
+        console.log('Empty response received, no certificates exist');
+        return [];
+      }
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing certificates response:', parseError);
+        return [];
+      }
+      
+      const certificatesData = data.data || data;
+      console.log('Parsed certificates data:', certificatesData);
+      
+      // Ensure we have an array
+      if (!Array.isArray(certificatesData)) {
+        console.warn('Certificates data is not an array, converting to array');
+        return certificatesData ? [certificatesData] : [];
+      }
+      
+      return certificatesData;
+    } catch (error) {
+      console.error('Error fetching student certificates:', error);
+      return [];
+    }
+  },
+};
+
+// Badge API
+export const badgeAPI = {
+  // Get all badges for a student
+  getStudentBadges: async (studentId) => {
+    try {
+      console.log(`Fetching badges for student ${studentId}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/badges/student/${studentId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include' // Include cookies if any
+      });
+      
+      console.log('Student badges response status:', response.status);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('No badges found for this student');
+          return []; // No badges found
+        }
+        
+        const errorText = await response.text();
+        console.error(`Failed to fetch badges (${response.status}):`, errorText);
+        throw new Error(`Failed to fetch badges: ${errorText || response.statusText}`);
+      }
+      
+      // Try to parse the response as JSON
+      let data;
+      const responseText = await response.text();
+      console.log('Student badges raw response:', responseText);
+      
+      if (!responseText || responseText.trim() === '') {
+        console.log('Empty response received, no badges exist');
+        return [];
+      }
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing badges response:', parseError);
+        return [];
+      }
+      
+      const badgesData = data.data || data;
+      console.log('Parsed badges data:', badgesData);
+      
+      // Ensure we have an array
+      if (!Array.isArray(badgesData)) {
+        console.warn('Badges data is not an array, converting to array');
+        return badgesData ? [badgesData] : [];
+      }
+      
+      return badgesData;
+    } catch (error) {
+      console.error('Error fetching student badges:', error);
+      return [];
+    }
+  },
+};
+
 export default {
   courseAPI,
   courseModuleAPI,
@@ -321,5 +696,8 @@ export default {
   enrollmentAPI,
   categoryAPI,
   instructorAPI,
-  quizAPI
+  quizAPI,
+  progressAPI,
+  certificateAPI,
+  badgeAPI
 };

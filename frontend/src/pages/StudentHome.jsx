@@ -168,7 +168,6 @@ export default function StudentHome() {
                       </div>
                       
                       <div className="user-dropdown-menu">
-                        {/* Profile link removed */}
                         
                         <Link 
                           to="/my-courses" 

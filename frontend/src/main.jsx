@@ -15,6 +15,8 @@ import Enroll from './pages/Enroll.jsx'
 import CoursePlayer from './pages/CoursePlayer.jsx'
 import MyCourses from './pages/MyCourses.jsx'
 import Accomplishments from './pages/Accomplishments.jsx'
+import CertificateViewPage from './pages/CertificateViewPage.jsx'
+import VerifyCertificate from './pages/VerifyCertificate.jsx'
 import { AuthProvider } from './state/AuthContext.jsx'
 
 const router = createBrowserRouter([
@@ -27,9 +29,12 @@ const router = createBrowserRouter([
   { path: '/instructor/dashboard', element: <InstructorDashboard /> },
   { path: '/admin', element: <AdminDashboard /> },
   { path: '/enroll/:id', element: <Enroll /> },
-  { path: '/course/:id', element: <CoursePlayer /> },
+  { path: '/course-player/:id', element: <CoursePlayer /> },
   { path: '/my-courses', element: <MyCourses /> },
   { path: '/accomplishments', element: <Accomplishments /> },
+  { path: '/certificate/:id', element: <CertificateViewPage /> },
+  { path: '/verify-certificate/:code', element: <VerifyCertificate /> },
+  { path: '/verify-certificate', element: <VerifyCertificate /> },
   { path: '/app', element: <App /> },
 ])
 
