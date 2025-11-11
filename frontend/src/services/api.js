@@ -158,39 +158,134 @@ export const courseContentAPI = {
 export const enrollmentAPI = {
   // Enroll in course
   enrollInCourse: async (studentId, courseId) => {
-    console.log('Sending enrollment request:', { studentId, courseId });
-    const response = await fetch(`${API_BASE_URL}/enrollments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ studentId, courseId }),
-    });
-    
-    const data = await response.json();
-    console.log('Enrollment response:', data);
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to enroll in course');
+    try {
+      console.log('Sending enrollment request:', { studentId, courseId });
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/enrollments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ studentId, courseId }),
+      });
+      
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        // Try to get error message from response if possible
+        let errorMessage = 'Failed to enroll in course';
+        try {
+          const errorData = await response.text();
+          // Check if the response is valid JSON
+          try {
+            const parsedError = JSON.parse(errorData);
+            errorMessage = parsedError.message || errorMessage;
+          } catch (parseError) {
+            // If not valid JSON, use the raw text if it exists
+            if (errorData) errorMessage = errorData;
+          }
+        } catch (textError) {
+          // If we can't even get text, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      // Parse JSON response safely
+      let data;
+      try {
+        const responseText = await response.text();
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('Error parsing enrollment response:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+      
+      console.log('Enrollment response:', data);
+      return data.data;
+    } catch (error) {
+      console.error('Error in enrollInCourse:', error);
+      throw error;
     }
-    
-    return data.data;
   },
 
   // Get enrollments by student ID
   getEnrollmentsByStudentId: async (studentId) => {
-    const response = await fetch(`${API_BASE_URL}/enrollments/student/${studentId}`);
-    if (!response.ok) throw new Error('Failed to fetch enrollments');
-    const data = await response.json();
-    return data.data;
+    try {
+      console.log(`Fetching enrollments for student ${studentId}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/enrollments/student/${studentId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch enrollments: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch enrollments');
+      }
+      
+      // Parse JSON response safely
+      let data;
+      try {
+        const responseText = await response.text();
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('Error parsing enrollments response:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+      
+      console.log('Enrollments response:', data);
+      return data.data || [];
+    } catch (error) {
+      console.error('Error in getEnrollmentsByStudentId:', error);
+      throw error;
+    }
   },
 
   // Check if student is enrolled in a course
   checkEnrollment: async (studentId, courseId) => {
-    const response = await fetch(`${API_BASE_URL}/enrollments/check?studentId=${studentId}&courseId=${courseId}`);
-    if (!response.ok) throw new Error('Failed to check enrollment');
-    const data = await response.json();
-    return data.isEnrolled; // Returns true/false
+    try {
+      console.log(`Checking enrollment for student ${studentId} in course ${courseId}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/enrollments/check?studentId=${studentId}&courseId=${courseId}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.warn(`Failed to check enrollment status: ${response.status} ${response.statusText}`);
+        return false; // Assume not enrolled if check fails
+      }
+      
+      // Parse JSON response safely
+      let data;
+      try {
+        const responseText = await response.text();
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('Error parsing enrollment check response:', parseError);
+        return false; // Assume not enrolled if parsing fails
+      }
+      
+      console.log('Enrollment check response:', data);
+      return data.isEnrolled === true; // Ensure boolean result
+    } catch (error) {
+      console.error('Error in checkEnrollment:', error);
+      return false; // Assume not enrolled on error
+    }
   },
 };
 

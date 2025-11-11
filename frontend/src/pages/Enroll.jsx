@@ -19,6 +19,7 @@ export default function Enroll() {
   const [contentLoading, setContentLoading] = useState(false)
   const [instructor, setInstructor] = useState(null)
   const [instructorLoading, setInstructorLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   // State to track if user is logged in
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -150,9 +151,14 @@ export default function Enroll() {
   }
 
   const onEnroll = async () => {
+    // Reset any previous error messages
+    setErrorMessage('')
+    
     // Check authentication first before setting loading state
     const userData = localStorage.getItem('user')
-    if (!userData) {
+    const token = localStorage.getItem('token')
+    
+    if (!userData || !token) {
       // Show sign-in prompt instead of alert
       setShowSignInPrompt(true)
       return
@@ -162,6 +168,10 @@ export default function Enroll() {
     
     try {
       const user = JSON.parse(userData)
+      
+      if (!user.studentId) {
+        throw new Error('Invalid student information. Please sign in again.')
+      }
       
       console.log('Enrolling student:', user.studentId, 'in course:', id)
       const result = await enrollmentAPI.enrollInCourse(user.studentId, id)
@@ -175,8 +185,8 @@ export default function Enroll() {
       setTimeout(() => setShowSuccess(false), 3000)
     } catch (error) {
       console.error('Failed to enroll:', error)
-      // Only show alert on error
-      alert('Failed to enroll in the course. ' + (error.message || 'Please try again.'))
+      // Set error message instead of using alert
+      setErrorMessage(error.message || 'Failed to enroll in the course. Please try again.')
     } finally {
       setEnrolling(false)
     }
@@ -228,6 +238,47 @@ export default function Enroll() {
         }}>
           <span style={{ fontSize: 24 }}>✓</span>
           <span>Successfully enrolled in the course!</span>
+        </div>
+      )}
+      
+      {/* Error Message */}
+      {errorMessage && (
+        <div style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999,
+          background: '#ef4444',
+          color: 'white',
+          padding: '16px 24px',
+          borderRadius: 12,
+          boxShadow: '0 10px 40px rgba(239, 68, 68, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          fontWeight: 600,
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          <span style={{ fontSize: 24 }}>⚠️</span>
+          <div>
+            <div>Enrollment Failed</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 400 }}>{errorMessage}</div>
+            <button 
+              onClick={() => setErrorMessage('')} 
+              style={{ 
+                background: 'rgba(255,255,255,0.2)', 
+                border: 'none', 
+                borderRadius: 4, 
+                padding: '2px 8px', 
+                marginTop: 8, 
+                color: 'white', 
+                cursor: 'pointer',
+                fontSize: '0.75rem'
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
       
@@ -364,7 +415,7 @@ export default function Enroll() {
                   color: 'white',
                   border: 'none'
                 }} 
-                onClick={() => navigate('/student/signin')}
+                onClick={() => setShowSignInPrompt(true)}
               >
                 Sign In to Enroll
               </button>
