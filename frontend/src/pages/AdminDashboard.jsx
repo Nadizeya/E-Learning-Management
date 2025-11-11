@@ -436,13 +436,30 @@ function InstructorsTab() {
 function CoursesTab() {
   const { data: list, loading, error, refetch } = useDataFetch('http://localhost:8080/api/courses')
   const [selectedCourse, setSelectedCourse] = useState(null)
-  const [details, setDetails] = useState({ instructor: null, enrollments: [], loading: false })
+  const [details, setDetails] = useState({ instructor: null, enrollments: [], category: null, loading: false })
   const [editCourse, setEditCourse] = useState({ open: false, id: null, title: '' }) // will be removed
   const [deleteCourse, setDeleteCourse] = useState({ id: null, open: false, reason: '' })
   const [modules, setModules] = useState({ open: false, list: [], loading: false })
+  const [categories, setCategories] = useState([])  
+  
+  // Fetch all categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await axios.get('http://localhost:8080/api/categories')
+        const categories = categoriesData.data?.data || categoriesData.data || []
+        console.log('Fetched categories:', categories)
+        setCategories(categories)
+      } catch (error) {
+        console.error('Failed to fetch categories:', error)
+      }
+    }
+    
+    fetchCategories()
+  }, [])
 
   const fetchCourseDetails = async (courseId) => {
-    setDetails({ instructor: null, enrollments: [], loading: true })
+    setDetails({ instructor: null, enrollments: [], category: null, loading: true })
     try {
       const courseRes = await axios.get(`http://localhost:8080/api/courses/${courseId}`)
       const course = courseRes.data?.data || courseRes.data
@@ -460,19 +477,39 @@ function CoursesTab() {
         const enrollmentRes = await axios.get(`http://localhost:8080/api/enrollments/course/${courseId}`)
         enrollments = enrollmentRes.data?.data || []
       } catch (e) { console.error('Failed to load enrollments:', e) }
+      
+      // Find category information if course has categoryId
+      let category = null
+      if (course.categoryId) {
+        category = categories.find(cat => cat.id === course.categoryId || cat.categoryId === course.categoryId)
+        if (!category) {
+          try {
+            const categoryRes = await axios.get(`http://localhost:8080/api/categories/${course.categoryId}`)
+            category = categoryRes.data?.data || categoryRes.data
+          } catch (e) { console.error('Failed to load category:', e) }
+        }
+      }
 
-      setDetails({ instructor, enrollments, loading: false })
+      setDetails({ instructor, enrollments, category, loading: false })
       setSelectedCourse(course)
     } catch (e) {
       console.error(e)
-      setDetails({ instructor: null, enrollments: [], loading: false })
+      setDetails({ instructor: null, enrollments: [], category: null, loading: false })
     }
   }
 
   const columns = [
     { key: 'title', label: 'Course name' },
     { key: 'courseId', label: 'Course Id', render: (c) => c.courseId || c.id || 'N/A' },
-    { key: 'categoryType', label: 'Category Type', render: (c) => c.categoryType || 'N/A' },
+    { 
+      key: 'category', 
+      label: 'Category', 
+      render: (c) => {
+        if (!c.categoryId) return 'N/A';
+        const category = categories.find(cat => cat.id === c.categoryId || cat.categoryId === c.categoryId);
+        return category ? category.name : c.categoryType || 'N/A';
+      } 
+    },
     { key: 'createdBy', label: 'Created By', render: (c) => c.instructorId ? `Instructor #${c.instructorId}` : 'N/A' },
     { key: 'status', label: 'Status', render: (c) => c.status || 'N/A' },
     { key: 'duration', label: 'Duration', render: (c) => c.duration || 'N/A' },
@@ -514,6 +551,16 @@ function CoursesTab() {
               View Modules
             </button>
           </div>
+          <DetailSection label="1. Category">
+            <p className="form-control-plaintext fs-5">
+              {details.category ? details.category.name : (selectedCourse?.categoryType || 'N/A')}
+            </p>
+            {details.category && details.category.description && (
+              <p className="form-control-plaintext text-muted">
+                {details.category.description}
+              </p>
+            )}
+          </DetailSection>
           <DetailSection label="2. Created By">
             <p className="form-control-plaintext fs-5">
               {details.instructor ? `${details.instructor.firstName} ${details.instructor.lastName}` : 'N/A'}
