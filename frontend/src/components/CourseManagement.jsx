@@ -3,6 +3,7 @@ import axios from 'axios'
 import CourseModal from './CourseModal'
 import ModuleModal from './ModuleModal'
 import ContentModal from './ContentModal'
+import { categoryAPI } from '../services/api.js'
 
 export default function CourseManagement() {
   const [courses, setCourses] = useState([])
@@ -24,10 +25,33 @@ export default function CourseManagement() {
       const userData = JSON.parse(localStorage.getItem('user'))
       const instructorId = userData.instructorId
       
+      // Fetch courses
       const response = await axios.get(`http://localhost:8080/api/courses/instructor/${instructorId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setCourses(response.data.data || response.data)
+      const coursesData = response.data.data || response.data
+      
+      // Fetch categories to map IDs to names
+      try {
+        const categoriesData = await categoryAPI.getAllCategories()
+        
+        // Add category name to each course
+        if (categoriesData && categoriesData.length > 0) {
+          const coursesWithCategories = coursesData.map(course => {
+            const category = categoriesData.find(cat => cat.categoryId === course.categoryId)
+            return {
+              ...course,
+              category: category || { name: 'Unknown Category' }
+            }
+          })
+          setCourses(coursesWithCategories)
+        } else {
+          setCourses(coursesData)
+        }
+      } catch (categoryError) {
+        console.error('Error fetching categories:', categoryError)
+        setCourses(coursesData)
+      }
     } catch (error) {
       console.error('Error fetching courses:', error)
     } finally {
@@ -91,7 +115,7 @@ export default function CourseManagement() {
                 <div className="course-meta">
                   <span className="meta-item">
                     <span className="meta-icon">📚</span>
-                    Category ID: {course.categoryId}
+                    {course.category?.name || `Category ID: ${course.categoryId}`}
                   </span>
                   <span className="meta-item">
                     <span className="meta-icon">📊</span>
@@ -158,9 +182,13 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
   const [showModuleModal, setShowModuleModal] = useState(false)
   const [editingCourse, setEditingCourse] = useState(false)
   const [courseData, setCourseData] = useState(course)
+  const [categories, setCategories] = useState([])
+  const [categoryName, setCategoryName] = useState('Loading...')
+  const [loadingCategories, setLoadingCategories] = useState(false)
 
   useEffect(() => {
     fetchModules()
+    fetchCategories()
   }, [course.courseId])
 
   const fetchModules = async () => {
@@ -171,7 +199,27 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
       })
       setModules(response.data.data || response.data)
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error fetching modules:', error)
+    }
+  }
+  
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true)
+      const categoriesData = await categoryAPI.getAllCategories()
+      
+      if (categoriesData && categoriesData.length > 0) {
+        setCategories(categoriesData)
+        
+        // Find the category name for this course
+        const courseCategory = categoriesData.find(cat => cat.categoryId === course.categoryId)
+        setCategoryName(courseCategory ? courseCategory.name : 'Unknown Category')
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+      setCategoryName('Category Not Found')
+    } finally {
+      setLoadingCategories(false)
     }
   }
 
@@ -249,12 +297,25 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Category ID</label>
-                    <input
-                      type="number"
-                      value={courseData.categoryId || ''}
-                      onChange={(e) => setCourseData({...courseData, categoryId: parseInt(e.target.value) || null})}
-                    />
+                    <label>Category</label>
+                    {loadingCategories ? (
+                      <div>Loading categories...</div>
+                    ) : categories.length === 0 ? (
+                      <div className="error-message">No categories available</div>
+                    ) : (
+                      <select
+                        value={courseData.categoryId || ''}
+                        onChange={(e) => setCourseData({...courseData, categoryId: parseInt(e.target.value) || null})}
+                        required
+                      >
+                        <option value="" disabled>Select a category</option>
+                        {categories.map(category => (
+                          <option key={category.categoryId} value={category.categoryId}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                   <div className="form-group">
                     <label>Status</label>
@@ -274,7 +335,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
             ) : (
               <div className="course-info">
                 <p><strong>Description:</strong> {course.description}</p>
-                <p><strong>Category ID:</strong> {course.categoryId}</p>
+                <p><strong>Category:</strong> {loadingCategories ? 'Loading...' : categoryName}</p>
                 <p><strong>Status:</strong> {course.status}</p>
               </div>
             )}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { courseAPI, courseModuleAPI, courseContentAPI } from '../services/api.js'
+import { courseAPI, courseModuleAPI, courseContentAPI, progressAPI } from '../services/api.js'
 import QuizPlayer from '../components/QuizPlayer.jsx'
 
 export default function CoursePlayer() {
@@ -14,64 +14,176 @@ export default function CoursePlayer() {
   const [activeContentId, setActiveContentId] = useState(null)
   const [studentId, setStudentId] = useState(null)
   const [completedContents, setCompletedContents] = useState([])
+  const [courseProgress, setCourseProgress] = useState({
+    progressPercentage: 0,
+    completedModules: 0,
+    totalModules: 0
+  })
+
+  // Fetch student progress from backend
+  const fetchStudentProgress = async (studentId) => {
+    try {
+      console.log(`Fetching progress for student ${studentId} in course ${id}`);
+      
+      // Use the progressAPI service to fetch student progress
+      const progressData = await progressAPI.getStudentProgress(id, studentId);
+      
+      // Update course progress state
+      setCourseProgress({
+        progressPercentage: progressData.progressPercentage || 0,
+        completedModules: progressData.completedModules || 0,
+        totalModules: progressData.totalModules || 0
+      });
+      
+      // Update completed contents based on backend data
+      const completedContentIds = [];
+      if (progressData.moduleProgress) {
+        progressData.moduleProgress.forEach(module => {
+          if (module.completedContentIds) {
+            console.log(`Module ${module.moduleId} completed contents:`, module.completedContentIds);
+            completedContentIds.push(...module.completedContentIds);
+          }
+        });
+        
+        if (completedContentIds.length > 0) {
+          console.log('Setting completed contents:', completedContentIds);
+          setCompletedContents(completedContentIds);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching student progress:', error);
+      // If there's an error fetching progress, we'll still initialize with the modules from fetchCourseData
+      console.log('Error fetching progress, will initialize after course data is loaded');
+    }
+  };
+
+  // Function to fetch course data
+  const fetchCourseData = async () => {
+    try {
+      setLoading(true)
+      // Fetch course details
+      console.log('Fetching course details for ID:', id)
+      const courseData = await courseAPI.getCourseById(id)
+      console.log('Course data received:', courseData)
+      setCourse(courseData)
+      
+      // Fetch course modules
+      console.log('Fetching modules for course ID:', id)
+      const modulesData = await courseModuleAPI.getModulesByCourseId(id)
+      console.log('Modules data received:', modulesData)
+      setModules(modulesData)
+      
+      // Initialize course progress with total modules
+      // This ensures we show the correct total even if no progress has been made yet
+      setCourseProgress(prev => ({
+        ...prev,
+        totalModules: modulesData.length
+      }))
+      
+      // Fetch all contents for all modules
+      const allContents = []
+      for (const module of modulesData) {
+        console.log('Fetching contents for module ID:', module.moduleId)
+        try {
+          const moduleContents = await courseContentAPI.getContentsByModuleId(module.moduleId)
+          console.log('Contents for module', module.moduleId, ':', moduleContents)
+          allContents.push(...moduleContents.map(c => ({ 
+            ...c, 
+            moduleName: module.title,
+            moduleId: module.moduleId // Ensure moduleId is included for each content
+          })))
+        } catch (moduleError) {
+          console.error('Error fetching contents for module', module.moduleId, ':', moduleError)
+        }
+      }
+      console.log('All course contents:', allContents)
+      setContents(allContents)
+      
+      // Set first content as active
+      if (allContents.length > 0) {
+        setActiveContentId(allContents[0].contentId)
+        console.log('Active content set to:', allContents[0])
+      } else {
+        console.warn('No content found for this course')
+      }
+      
+      // If we have a studentId, fetch the latest progress data
+      if (studentId) {
+        try {
+          console.log('Fetching latest progress data for student:', studentId);
+          const progressData = await progressAPI.getStudentProgress(id, studentId);
+          console.log('Latest progress data:', progressData);
+          
+          // Update progress state with the latest data
+          setCourseProgress({
+            progressPercentage: progressData.progressPercentage || 0,
+            completedModules: progressData.completedModules || 0,
+            totalModules: progressData.totalModules || modulesData.length
+          });
+          
+          // Update completed contents
+          if (progressData.moduleProgress) {
+            const completedContentIds = [];
+            progressData.moduleProgress.forEach(module => {
+              if (module.completedContentIds) {
+                completedContentIds.push(...module.completedContentIds);
+              }
+            });
+            
+            if (completedContentIds.length > 0) {
+              console.log('Setting completed contents from API:', completedContentIds);
+              setCompletedContents(completedContentIds);
+            }
+          }
+        } catch (progressError) {
+          console.error('Error fetching latest progress:', progressError);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch course data:', error)
+      alert('Failed to load course data. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Get student ID from localStorage
-    const userData = localStorage.getItem('user')
-    if (userData) {
-      const user = JSON.parse(userData)
-      if (user.studentId) {
-        setStudentId(user.studentId)
-        
-        // Load completed contents from localStorage
-        const savedProgress = localStorage.getItem(`course_progress_${id}_${user.studentId}`)
-        if (savedProgress) {
-          try {
-            const parsedProgress = JSON.parse(savedProgress)
-            setCompletedContents(parsedProgress.completedContents || [])
-          } catch (e) {
-            console.error('Error parsing saved progress:', e)
+    const loadData = async () => {
+      // Get student ID from localStorage
+      const userData = localStorage.getItem('user')
+      if (userData) {
+        const user = JSON.parse(userData)
+        if (user.studentId) {
+          setStudentId(user.studentId)
+          
+          // Load completed contents from localStorage as backup
+          const savedProgress = localStorage.getItem(`course_progress_${id}_${user.studentId}`)
+          if (savedProgress) {
+            try {
+              const parsedProgress = JSON.parse(savedProgress)
+              setCompletedContents(parsedProgress.completedContents || [])
+            } catch (e) {
+              console.error('Error parsing saved progress:', e)
+            }
           }
-        }
-      }
-    }
-
-    const fetchCourseData = async () => {
-      try {
-        setLoading(true)
-        // Fetch course details
-        const courseData = await courseAPI.getCourseById(id)
-        setCourse(courseData)
-        
-        // Fetch course modules
-        const modulesData = await courseModuleAPI.getModulesByCourseId(id)
-        setModules(modulesData)
-        
-        // Fetch all contents for all modules
-        const allContents = []
-        for (const module of modulesData) {
-          const moduleContents = await courseContentAPI.getContentsByModuleId(module.moduleId)
-          allContents.push(...moduleContents.map(c => ({ ...c, moduleName: module.title })))
-        }
-        console.log('All course contents:', allContents)
-        setContents(allContents)
-        
-        // Set first content as active
-        if (allContents.length > 0) {
-          setActiveContentId(allContents[0].contentId)
-          console.log('Active content set to:', allContents[0])
+          
+          // Fetch course data after setting studentId
+          await fetchCourseData()
+          
+          // Load progress from backend after course data is loaded
+          await fetchStudentProgress(user.studentId)
         } else {
-          console.warn('No content found for this course')
+          // No student ID, just fetch course data
+          await fetchCourseData()
         }
-      } catch (error) {
-        console.error('Failed to fetch course data:', error)
-      } finally {
-        setLoading(false)
+      } else {
+        // No user data, just fetch course data
+        await fetchCourseData()
       }
     }
-
-    fetchCourseData()
-  }, [id])
+    
+    loadData()
+  }, [id]);
 
   const activeContent = contents.find(c => c.contentId === activeContentId)
   const activeIndex = contents.findIndex(c => c.contentId === activeContentId)
@@ -93,28 +205,121 @@ export default function CoursePlayer() {
     if (activeIndex < contents.length - 1) setActiveContentId(contents[activeIndex + 1].contentId)
   }
   
-  const markAsCompleted = (contentId) => {
+  const markAsCompleted = async (contentId) => {
     if (!studentId || !contentId) return;
     
     // Add contentId to completed contents if not already there
     if (!completedContents.includes(contentId)) {
-      const updatedCompletedContents = [...completedContents, contentId];
-      setCompletedContents(updatedCompletedContents);
-      
-      // Save to localStorage
-      const progressData = {
-        courseId: id,
-        studentId,
-        completedContents: updatedCompletedContents,
-        lastUpdated: new Date().toISOString()
-      };
-      
-      localStorage.setItem(`course_progress_${id}_${studentId}`, JSON.stringify(progressData));
-      
-      // Show success message
-      alert('Progress saved! This content has been marked as completed.');
+      try {
+        // Get the active content to get moduleId
+        const activeContent = contents.find(c => c.contentId === contentId);
+        if (!activeContent) {
+          console.error('Could not find active content with ID:', contentId);
+          alert('Error: Could not find the content to mark as completed.');
+          return;
+        }
+        
+        // Find the module that contains this content
+        const moduleForContent = modules.find(m => {
+          // Check if this module contains the content
+          return m.moduleId === activeContent.moduleId;
+        });
+        
+        if (!moduleForContent) {
+          console.error('Could not find module for content:', contentId);
+          alert('Error: Could not find the module for this content.');
+          return;
+        }
+        
+        try {
+          // Use the progressAPI service to mark content as completed
+          const result = await progressAPI.markContentAsCompleted(
+            studentId,
+            contentId,
+            moduleForContent.moduleId,
+            parseInt(id)
+          );
+          
+          console.log('Mark as completed result:', result);
+          
+          // Update local state
+          const updatedCompletedContents = [...completedContents, contentId];
+          setCompletedContents(updatedCompletedContents);
+          
+          // Update progress state if available in the result
+          if (result && result.updatedProgress) {
+            console.log('Updating progress from API response:', result.updatedProgress);
+            setCourseProgress({
+              progressPercentage: result.updatedProgress.progressPercentage || 0,
+              completedModules: result.updatedProgress.completedModules || 0,
+              totalModules: result.updatedProgress.totalModules || modules.length
+            });
+          }
+          
+          // Save to localStorage as backup
+          const progressData = {
+            courseId: id,
+            studentId,
+            completedContents: updatedCompletedContents,
+            lastUpdated: new Date().toISOString()
+          };
+          
+          localStorage.setItem(`course_progress_${id}_${studentId}`, JSON.stringify(progressData));
+          
+          // Show success message
+          alert('Progress saved! This content has been marked as completed.');
+          
+          // Force a refresh of the progress data
+          await fetchStudentProgress(studentId);
+        } catch (apiError) {
+          console.error('API Error:', apiError);
+          
+          // Handle specific error messages
+          if (apiError.message && apiError.message.includes('403')) {
+            alert('Permission denied. You may need to log in again to continue.');
+            // Optionally refresh the token or redirect to login
+            // localStorage.removeItem('token');
+            // navigate('/student/signin');
+          } else {
+            alert(`Failed to save progress: ${apiError.message || 'Unknown error'}. Please try again.`);
+          }
+        }
+      } catch (error) {
+        console.error('Error in markAsCompleted:', error);
+        alert('An error occurred while saving progress.');
+      }
     } else {
       alert('You have already completed this content.');
+    }
+  }
+  
+  // Check if course is completed to show badge/certificate
+  const checkCourseCompletion = async () => {
+    try {
+      console.log(`Checking course completion for student ${studentId} in course ${id}`);
+      
+      // Use the progressAPI service to check course completion
+      const progressData = await progressAPI.getStudentProgress(id, studentId);
+      console.log('Course completion check - progress data:', progressData);
+      
+      // Update course progress state with latest data
+      setCourseProgress({
+        progressPercentage: progressData.progressPercentage || 0,
+        completedModules: progressData.completedModules || 0,
+        totalModules: progressData.totalModules || 0
+      });
+      
+      if (progressData.progressPercentage >= 100) {
+        console.log('Course completed! Showing certificate notification');
+        alert('Congratulations! You have completed this course. A certificate has been issued to you!');
+        
+        // Force refresh the page to show the certificate link
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Error checking course completion:', error);
     }
   }
 
@@ -130,12 +335,59 @@ export default function CoursePlayer() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa' }}>
+      {/* Course Progress Bar */}
+      <div className="course-progress-bar" style={{ 
+        position: 'sticky', 
+        top: 0, 
+        left: 0, 
+        width: '100%', 
+        zIndex: 1000, 
+        background: '#fff',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+        padding: '10px 20px'
+      }}>
+        <div className="container-fluid">
+          <div className="row align-items-center">
+            <div className="col-md-6">
+              <div className="d-flex align-items-center">
+                <div>
+                  <h6 className="mb-0">{course?.title || 'Course'}</h6>
+                  <div className="text-muted small">
+                    {courseProgress.completedModules} of {courseProgress.totalModules} modules completed
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="d-flex align-items-center justify-content-end">
+                <div className="text-end me-2" style={{ minWidth: '60px' }}>
+                  <span className="fw-bold">{courseProgress.progressPercentage.toFixed(0)}%</span>
+                </div>
+                <div className="progress flex-grow-1" style={{ height: '10px', borderRadius: '5px' }}>
+                  <div 
+                    className="progress-bar" 
+                    role="progressbar" 
+                    style={{ 
+                      width: `${courseProgress.progressPercentage}%`,
+                      backgroundColor: courseProgress.progressPercentage >= 100 ? '#10b981' : '#3b82f6'
+                    }}
+                    aria-valuenow={courseProgress.progressPercentage} 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div className="container-fluid" style={{ paddingTop: 16, paddingBottom: 16 }}>
         <div className="row">
           {/* Sidebar */}
           <aside className="col-12 col-lg-3" style={{ background: '#ffffff', borderRight: '1px solid #e5e7eb', minHeight: '100vh', position: 'sticky', top: 0, padding: 0 }}>
             <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb' }}>
-              <Link to={`/enroll/${id}?enrolled=1`} className="btn btn-outline-secondary btn-sm" style={{ borderRadius: 8 }}>Back</Link>
+              <Link to="/my-courses" className="btn btn-outline-secondary btn-sm" style={{ borderRadius: 8 }}>Back to My Courses</Link>
               <div style={{ marginTop: 12 }}>
                 <div style={{ color: '#3b82f6', fontWeight: 700, fontSize: 14 }}>{course.category?.name || 'General'}</div>
                 <h5 style={{ color: '#111827', marginTop: 8, marginBottom: 0 }}>{course.title}</h5>
@@ -282,5 +534,3 @@ export default function CoursePlayer() {
     </div>
   )
 }
-
-

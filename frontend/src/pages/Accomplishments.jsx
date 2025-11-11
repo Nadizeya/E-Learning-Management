@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { courseAPI, enrollmentAPI } from '../services/api.js'
+import { courseAPI, enrollmentAPI, certificateAPI, badgeAPI } from '../services/api.js'
 
 export default function Accomplishments() {
   const navigate = useNavigate()
@@ -10,72 +10,132 @@ export default function Accomplishments() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const loadAccomplishments = async () => {
-      try {
-        setLoading(true)
-        setError('')
+  // Function to fetch student badges
+  const fetchStudentBadges = async (studentId) => {
+    try {
+      console.log('Fetching badges for student:', studentId);
+      const badges = await badgeAPI.getStudentBadges(studentId);
+      console.log('Badges data received:', badges);
+      return badges;
+    } catch (error) {
+      console.error('Error fetching student badges:', error);
+      return [];
+    }
+  };
+
+  // Function to fetch student certificates
+  const fetchStudentCertificates = async (studentId) => {
+    try {
+      console.log('Fetching certificates for student:', studentId);
+      const certificates = await certificateAPI.getStudentCertificates(studentId);
+      console.log('Certificates data received:', certificates);
+      return certificates;
+    } catch (error) {
+      console.error('Error fetching student certificates:', error);
+      return [];
+    }
+  };
+
+  const loadAccomplishments = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Load user profile from localStorage
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
         
-        // Load user profile from localStorage
-        const userData = localStorage.getItem('user')
-        if (userData) {
-          const parsedUser = JSON.parse(userData)
-          
-          // Load enrolled courses if we have a studentId
-          if (parsedUser.studentId) {
-            try {
-              // Try to get enrollments from API
-              const enrollments = await enrollmentAPI.getEnrollmentsByStudentId(parsedUser.studentId)
-              
-              if (enrollments && enrollments.length > 0) {
-                // Fetch full course details for each enrollment
-                const coursesPromises = enrollments.map(enrollment => 
-                  courseAPI.getCourseById(enrollment.courseId)
-                )
-                
-                const enrolledCoursesData = await Promise.all(coursesPromises)
-                
-                // Generate certificates for completed courses (mock data)
-                // In a real app, this would come from the backend
-                const completedCourses = enrolledCoursesData.filter((_, index) => index % 2 === 0) // Mock: every other course is completed
-                setCertificates(completedCourses.map(course => ({
-                  id: `cert-${course.courseId}`,
-                  courseId: course.courseId,
-                  courseTitle: course.title,
-                  issueDate: new Date().toLocaleDateString(),
-                  certId: `LH-${Math.random().toString(36).slice(2, 10).toUpperCase()}`
-                })))
-                
-                // Set mock badges
-                setBadges([
-                  { id: 'badge1', name: 'Starter', color: '#1d4ed8' },
-                  { id: 'badge2', name: 'Streak 7d', color: '#0ea5a6' },
-                  { id: 'badge3', name: 'Top Learner', color: '#fbbf24', textDark: true }
-                ])
-              }
-            } catch (err) {
-              console.error('Failed to fetch enrollments:', err)
-              // Fall back to localStorage if API fails
-              const storedCertificates = localStorage.getItem('certificates')
-              if (storedCertificates) {
-                setCertificates(JSON.parse(storedCertificates))
-              }
+        // Load accomplishments if we have a studentId
+        if (parsedUser.studentId) {
+          try {
+            console.log('Loading accomplishments for student:', parsedUser.studentId);
+            
+            // Fetch badges and certificates from the backend
+            const [badgesData, certificatesData] = await Promise.all([
+              fetchStudentBadges(parsedUser.studentId),
+              fetchStudentCertificates(parsedUser.studentId)
+            ]);
+            
+            console.log('Fetched data - Badges:', badgesData, 'Certificates:', certificatesData);
+            
+            // Process badges data
+            if (badgesData && badgesData.length > 0) {
+              // Transform badge data to match our UI needs
+              const processedBadges = badgesData.map(badge => ({
+                id: badge.userBadgeId || badge.badgeId,
+                name: badge.badgeName,
+                description: badge.badgeDescription,
+                iconUrl: badge.badgeIconUrl,
+                earnedAt: badge.earnedAt,
+                color: getBadgeColor(badge.badgeName) // Helper function to assign colors
+              }));
+              console.log('Processed badges:', processedBadges);
+              setBadges(processedBadges);
+            } else {
+              console.log('No badges found');
+              setBadges([]);
             }
+            
+            // Process certificates data
+            if (certificatesData && certificatesData.length > 0) {
+              // Transform certificate data to match our UI needs
+              const processedCertificates = certificatesData.map(cert => ({
+                id: cert.certificateId,
+                courseId: cert.courseId,
+                courseTitle: cert.courseTitle,
+                issueDate: new Date(cert.issueDate).toLocaleDateString(),
+                certId: cert.uniqueCode
+              }));
+              console.log('Processed certificates:', processedCertificates);
+              setCertificates(processedCertificates);
+            } else {
+              console.log('No certificates found');
+              setCertificates([]);
+            }
+          } catch (err) {
+            console.error('Failed to fetch accomplishments:', err);
+            // Fall back to localStorage if API fails
+            const storedCertificates = localStorage.getItem('certificates');
+            if (storedCertificates) {
+              setCertificates(JSON.parse(storedCertificates));
+            }
+            throw new Error('Failed to fetch accomplishments from server. Please try again.');
           }
         } else {
-          // No user data found, redirect to login
-          navigate('/student/signin')
+          throw new Error('Student information not found. Please log in again.');
         }
-      } catch (err) {
-        console.error('Error loading accomplishments:', err)
-        setError('Failed to load your accomplishments. Please try again.')
-      } finally {
-        setLoading(false)
+      } else {
+        // No user data found, redirect to login
+        navigate('/student/signin');
       }
+    } catch (err) {
+      console.error('Error loading accomplishments:', err);
+      setError(err.message || 'Failed to load your accomplishments. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
+  
+  useEffect(() => {
+    loadAccomplishments();
+  }, [navigate]);
+  
+  // Helper function to assign colors to badges based on name
+  const getBadgeColor = (badgeName) => {
+    if (!badgeName) return '#1d4ed8'; // Default blue
     
-    loadAccomplishments()
-  }, [navigate])
+    const name = badgeName.toLowerCase();
+    if (name.includes('complete') || name.includes('finish')) return '#10b981'; // Green
+    if (name.includes('master') || name.includes('expert')) return '#f59e0b'; // Orange
+    if (name.includes('first') || name.includes('start')) return '#3b82f6'; // Blue
+    if (name.includes('quiz') || name.includes('test')) return '#8b5cf6'; // Purple
+    
+    // Generate a consistent color based on the badge name
+    const hash = badgeName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const colors = ['#1d4ed8', '#0ea5a6', '#f59e0b', '#8b5cf6', '#10b981', '#ef4444'];
+    return colors[hash % colors.length];
+  };
 
   const generateCertificateSvg = (courseTitle, studentName, issuedOn, certId) => {
     const safeCourse = (courseTitle || '').replace(/&/g, '&amp;')
@@ -140,11 +200,23 @@ export default function Accomplishments() {
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
             {/* Page Title */}
-            <div className="d-flex align-items-center mb-4">
-              <div style={{ width: 48, height: 48, display: 'grid', placeItems: 'center', borderRadius: 12, background: '#eef2ff', color: '#3b82f6', fontSize: 24 }}>🏆</div>
-              <div className="ms-3">
-                <h2 className="mb-0" style={{ lineHeight: 1.2 }}>Accomplishments</h2>
-                <div style={{ color: '#6b7280', fontSize: 14 }}>Your certificates and badges</div>
+            <div className="d-flex align-items-center justify-content-between mb-4">
+              <div className="d-flex align-items-center">
+                <div style={{ width: 48, height: 48, display: 'grid', placeItems: 'center', borderRadius: 12, background: '#eef2ff', color: '#3b82f6', fontSize: 24 }}>🏆</div>
+                <div className="ms-3">
+                  <h2 className="mb-0" style={{ lineHeight: 1.2 }}>Accomplishments</h2>
+                  <div style={{ color: '#6b7280', fontSize: 14 }}>Your certificates and badges</div>
+                </div>
+              </div>
+              <div className="d-flex gap-2">
+                <Link to="/" className="btn btn-outline-secondary" style={{ borderRadius: 8 }}>
+                  <span className="me-2">🏠</span>
+                  Back to Home
+                </Link>
+                <Link to="/my-courses" className="btn btn-outline-primary" style={{ borderRadius: 8 }}>
+                  <span className="me-2">📚</span>
+                  My Courses
+                </Link>
               </div>
             </div>
 
@@ -160,7 +232,19 @@ export default function Accomplishments() {
             {/* Error state */}
             {!loading && error && (
               <div className="alert alert-danger" role="alert">
-                {error}
+                <h4 className="alert-heading">Error!</h4>
+                <p>{error}</p>
+                <hr />
+                <button 
+                  className="btn btn-warning" 
+                  onClick={() => {
+                    setError('');
+                    setLoading(true);
+                    loadAccomplishments();
+                  }}
+                >
+                  Try Again
+                </button>
               </div>
             )}
             
@@ -249,12 +333,25 @@ export default function Accomplishments() {
                                 justifyContent: 'center',
                                 margin: '0 auto 16px auto'
                               }}>
-                                🏅
+                                {badge.iconUrl ? (
+                                  <img 
+                                    src={badge.iconUrl} 
+                                    alt={badge.name} 
+                                    style={{ width: '60%', height: '60%', objectFit: 'contain' }}
+                                  />
+                                ) : (
+                                  <span>🏅</span>
+                                )}
                               </div>
                               <h5 className="fw-bold">{badge.name}</h5>
                               <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-                                Earned for your achievements
+                                {badge.description || 'Earned for your achievements'}
                               </p>
+                              {badge.earnedAt && (
+                                <div className="mt-2 small text-muted">
+                                  Earned on {new Date(badge.earnedAt).toLocaleDateString()}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

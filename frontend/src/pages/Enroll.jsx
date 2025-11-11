@@ -397,7 +397,7 @@ export default function Enroll() {
                   color: 'white',
                   border: 'none'
                 }}
-                onClick={() => navigate(`/course/${course.courseId}`)}
+                onClick={() => navigate(`/course-player/${course.courseId}`)}
               >
                 Start Learning
               </button>
@@ -462,7 +462,7 @@ export default function Enroll() {
                             onClick={() => {
                               if (enrolled) {
                                 // If already enrolled, navigate to the course player
-                                navigate(`/course/${course.courseId}`);
+                                navigate(`/course-player/${course.courseId}`);
                               } else {
                                 // If not enrolled, show enrollment prompt
                                 alert('Please enroll to view content details');
