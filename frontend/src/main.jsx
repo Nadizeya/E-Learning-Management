@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import SignIn from './pages/SignIn.jsx'
+import AdminLogin from './pages/AdminLogin.jsx'
 import StudentSignIn from './pages/StudentSignIn.jsx'
 import StudentSignUp from './pages/StudentSignUp.jsx'
 import InstructorSignIn from './pages/InstructorSignIn.jsx'
@@ -20,6 +21,7 @@ import { AuthProvider } from './state/AuthContext.jsx'
 const router = createBrowserRouter([
   { path: '/', element: <StudentHome /> },
   { path: '/signin', element: <SignIn /> },
+  { path: '/admin/login', element: <AdminLogin /> },
   { path: '/student/signin', element: <StudentSignIn /> },
   { path: '/student/signup', element: <StudentSignUp /> },
   { path: '/instructor/signin', element: <InstructorSignIn /> },
