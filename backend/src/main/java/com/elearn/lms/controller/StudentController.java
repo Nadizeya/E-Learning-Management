@@ -1,6 +1,7 @@
 package com.elearn.lms.controller;
 
 import com.elearn.lms.dto.StudentSignupRequest;
+import com.elearn.lms.dto.StudentUpdateRequest;
 import com.elearn.lms.entity.Student;
 import com.elearn.lms.service.StudentService;
 import jakarta.validation.Valid;
@@ -38,7 +39,15 @@ public class StudentController {
         }
     }
 
-    // Update endpoint removed
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody StudentUpdateRequest request) {
+        try {
+            Student updated = studentService.update(id, request);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", ex.getMessage()));
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {

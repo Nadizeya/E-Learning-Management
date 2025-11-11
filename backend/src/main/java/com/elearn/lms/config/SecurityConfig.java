@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/health").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admins").permitAll()
                         .requestMatchers("/api/admins/auth/login").permitAll()
@@ -51,6 +52,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/quizzes/**").permitAll()
                         // Allow enrollment endpoints (students need to enroll)
                         .requestMatchers("/api/enrollments/**").permitAll()
+                        // Temporarily allow student profile updates without auth
+                        .requestMatchers(HttpMethod.PUT, "/api/students/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
