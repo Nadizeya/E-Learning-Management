@@ -1,55 +1,58 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
-import './Auth.css'
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import "./Auth.css";
 
 export default function InstructorSignIn() {
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/instructor/login', {
-        email,
-        password
-      })
-      
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/instructor/login",
+        {
+          email,
+          password,
+        }
+      );
+
       // Store token and user data
-      const { token, instructor } = response.data
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(instructor))
-      localStorage.setItem('userRole', 'INSTRUCTOR')
-      
+      const { token, instructor } = response.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(instructor));
+      localStorage.setItem("userRole", "INSTRUCTOR");
+
       // Navigate to instructor dashboard
-      navigate('/instructor/dashboard')
+      navigate("/instructor/dashboard");
     } catch (err) {
-      const errorMsg = err?.response?.data?.message || 'Invalid email or password'
-      setError(errorMsg)
+      const errorMsg =
+        err?.response?.data?.message || "Invalid email or password";
+      setError(errorMsg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <Link to="/" className="back-link">
-            ← Back to Home
-          </Link>
           <div className="auth-logo">
             <span className="logo-icon">🎓</span>
             <span className="logo-text">LearnHub</span>
           </div>
           <h1 className="auth-title">Instructor Sign In</h1>
-          <p className="auth-subtitle">Welcome back! Continue inspiring students</p>
+          <p className="auth-subtitle">
+            Welcome back! Continue inspiring students
+          </p>
         </div>
 
         {error && (
@@ -89,11 +92,16 @@ export default function InstructorSignIn() {
               <input type="checkbox" />
               <span>Remember me</span>
             </label>
-            <a href="#" className="forgot-password">Forgot password?</a>
+            <Link
+              to="/forgot-password?role=INSTRUCTOR"
+              className="forgot-password"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
@@ -102,5 +110,5 @@ export default function InstructorSignIn() {
         </div>
       </div>
     </div>
-  )
+  );
 }

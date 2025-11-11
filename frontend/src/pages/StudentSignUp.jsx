@@ -1,68 +1,70 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
-import './Auth.css'
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import "./Auth.css";
 
 export default function StudentSignUp() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
+      setError("Passwords do not match");
+      return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
-      return
+      setError("Password must be at least 6 characters");
+      return;
     }
 
-    setLoading(true)
-    
+    setLoading(true);
+
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/student/signup', {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password
-      })
-      
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/student/signup",
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+        }
+      );
+
       // Navigate to sign in page after successful registration
-      navigate('/student/signin')
+      navigate("/student/signin");
     } catch (err) {
-      const errorMsg = err?.response?.data?.message || 'Registration failed. Please try again.'
-      setError(errorMsg)
+      const errorMsg =
+        err?.response?.data?.message ||
+        "Registration failed. Please try again.";
+      setError(errorMsg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <Link to="/" className="back-link">
-            ← Back to Home
-          </Link>
           <div className="auth-logo">
             <span className="logo-icon">🎓</span>
             <span className="logo-text">LearnHub</span>
@@ -147,7 +149,7 @@ export default function StudentSignUp() {
           </div>
 
           <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
@@ -156,5 +158,5 @@ export default function StudentSignUp() {
         </div>
       </div>
     </div>
-  )
+  );
 }

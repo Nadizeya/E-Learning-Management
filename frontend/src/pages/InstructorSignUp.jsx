@@ -1,72 +1,74 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
-import './Auth.css'
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import "./Auth.css";
 
 export default function InstructorSignUp() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    bio: '',
-    expertise: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+    firstName: "",
+    lastName: "",
+    email: "",
+    bio: "",
+    expertise: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
+      setError("Passwords do not match");
+      return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
-      return
+      setError("Password must be at least 6 characters");
+      return;
     }
 
-    setLoading(true)
-    
+    setLoading(true);
+
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/instructor/signup', {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        bio: formData.bio,
-        expertise: formData.expertise,
-        password: formData.password
-      })
-      
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/instructor/signup",
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          bio: formData.bio,
+          expertise: formData.expertise,
+          password: formData.password,
+        }
+      );
+
       // Navigate to sign in page after successful registration
-      navigate('/instructor/signin')
+      navigate("/instructor/signin");
     } catch (err) {
-      const errorMsg = err?.response?.data?.message || 'Registration failed. Please try again.'
-      setError(errorMsg)
+      const errorMsg =
+        err?.response?.data?.message ||
+        "Registration failed. Please try again.";
+      setError(errorMsg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <Link to="/" className="back-link">
-            ← Back to Home
-          </Link>
           <div className="auth-logo">
             <span className="logo-icon">🎓</span>
             <span className="logo-text">LearnHub</span>
@@ -134,14 +136,14 @@ export default function InstructorSignUp() {
               placeholder="Tell us about yourself and your teaching experience"
               rows="3"
               required
-              style={{ 
-                width: '100%', 
-                padding: '0.875rem 1rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                fontFamily: 'inherit',
-                resize: 'vertical'
+              style={{
+                width: "100%",
+                padding: "0.875rem 1rem",
+                border: "2px solid #e5e7eb",
+                borderRadius: "12px",
+                fontSize: "1rem",
+                fontFamily: "inherit",
+                resize: "vertical",
               }}
             />
           </div>
@@ -186,7 +188,7 @@ export default function InstructorSignUp() {
           </div>
 
           <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
@@ -195,5 +197,5 @@ export default function InstructorSignUp() {
         </div>
       </div>
     </div>
-  )
+  );
 }
