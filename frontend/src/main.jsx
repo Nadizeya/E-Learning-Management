@@ -22,6 +22,7 @@ import { AuthProvider } from './state/AuthContext.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import StudentSettings from './pages/StudentSettings.jsx'
+import InstructorSettings from './pages/InstructorSettings.jsx'
 
 const router = createBrowserRouter([
   { path: '/', element: <StudentHome /> },
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
   { path: '/my-courses', element: <MyCourses /> },
   { path: '/accomplishments', element: <Accomplishments /> },
   { path: '/student/settings', element: <StudentSettings /> },
+  { path: '/instructor/settings', element: <InstructorSettings /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
   { path: '/reset-password', element: <ResetPassword /> },
   { path: '/certificate/:id', element: <CertificateViewPage /> },

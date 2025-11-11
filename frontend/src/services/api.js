@@ -258,6 +258,86 @@ export const instructorAPI = {
     const data = await response.json();
     return data.data;
   },
+  
+  // Delete instructor account
+  deleteInstructor: async (id) => {
+    try {
+      console.log(`Deleting instructor account with ID: ${id}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/instructors/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include' // Include cookies if any
+      });
+      
+      console.log('Delete instructor response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to delete instructor account (${response.status}):`, errorText);
+        throw new Error(`Failed to delete account: ${errorText || response.statusText}`);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting instructor account:', error);
+      throw error;
+    }
+  },
+};
+
+// Student API
+export const studentAPI = {
+  // Get student by ID
+  getStudentById: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/students/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch student');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching student:', error);
+      throw error;
+    }
+  },
+  
+  // Delete student account
+  deleteStudent: async (id) => {
+    try {
+      console.log(`Deleting student account with ID: ${id}`);
+      
+      // Get token from localStorage if available
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/students/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Accept': 'application/json'
+        },
+        credentials: 'include' // Include cookies if any
+      });
+      
+      console.log('Delete student response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to delete student account (${response.status}):`, errorText);
+        throw new Error(`Failed to delete account: ${errorText || response.statusText}`);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting student account:', error);
+      throw error;
+    }
+  },
 };
 
 // Quiz API
@@ -740,6 +820,7 @@ export default {
   enrollmentAPI,
   categoryAPI,
   instructorAPI,
+  studentAPI,
   quizAPI,
   progressAPI,
   certificateAPI,
