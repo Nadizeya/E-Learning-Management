@@ -6,6 +6,9 @@ import com.elearn.lms.dto.InstructorResponse;
 import com.elearn.lms.dto.InstructorSignupRequest;
 import com.elearn.lms.entity.Instructor;
 import com.elearn.lms.security.JwtService;
+import com.elearn.lms.dto.ForgotPasswordRequest;
+import com.elearn.lms.dto.ResetPasswordRequest;
+import com.elearn.lms.service.PasswordResetService;
 import com.elearn.lms.service.InstructorAuthService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -20,16 +23,17 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth/instructor")
-@CrossOrigin(origins = "*")
 public class InstructorAuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(InstructorAuthController.class);
     private final InstructorAuthService instructorAuthService;
     private final JwtService jwtService;
+    private final PasswordResetService passwordResetService;
 
-    public InstructorAuthController(InstructorAuthService instructorAuthService, JwtService jwtService) {
+    public InstructorAuthController(InstructorAuthService instructorAuthService, JwtService jwtService, PasswordResetService passwordResetService) {
         this.instructorAuthService = instructorAuthService;
         this.jwtService = jwtService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/signup")
@@ -71,6 +75,21 @@ public class InstructorAuthController {
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("success", false, "message", "Invalid credentials")));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestReset(request.getEmail(), "INSTRUCTOR");
+        return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        boolean ok = passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+        if (!ok) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Invalid or expired token"));
+        }
+        return ResponseEntity.ok(Map.of("message", "Password has been reset successfully"));
     }
 }
 
