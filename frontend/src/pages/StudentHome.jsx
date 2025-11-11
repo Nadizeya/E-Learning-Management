@@ -41,11 +41,11 @@ export default function StudentHome() {
           const categoriesData = await categoryAPI.getAllCategories();
           if (categoriesData && categoriesData.length > 0) {
             // Extract category names and add 'All' option
-            const categoryNames = [
-              "All",
-              ...categoriesData.map((cat) => cat.name),
-            ];
-            setCategories(categoryNames);
+            const categoryNames = ['All', ...categoriesData.map(cat => cat.name)]
+            console.log('Available categories:', categoryNames)
+            setCategories(categoryNames)
+          } else {
+            console.warn('No categories data available from API')
           }
         } catch (err) {
           console.error("Failed to fetch categories:", err);
@@ -69,8 +69,11 @@ export default function StudentHome() {
               : "Instructor";
 
             // Get category name
-            const categoryName = course.category?.name || "General";
-
+            const categoryName = course.category?.name || 'General'
+            
+            // Log raw course data to debug category issues
+            console.log(`Processing course: ${course.title}, categoryId: ${course.categoryId}, category object:`, course.category)
+            
             return {
               id: course.courseId,
               title: course.title,
@@ -82,12 +85,15 @@ export default function StudentHome() {
               duration: course.duration || "6 weeks",
               category: categoryName,
               thumbnail: course.thumbnail,
-              summary: course.description || "",
-            };
-          });
-
-          setCourses(mappedCourses);
-
+              summary: course.description || ''
+            }
+          })
+          
+          // Log the mapped courses to see what we're working with
+          console.log('Mapped courses with categories:', mappedCourses.map(c => ({ title: c.title, category: c.category })))
+          
+          setCourses(mappedCourses)
+          
           if (mappedCourses.length === 0) {
             setError(
               "No published courses found. Check back later for new courses."
@@ -117,22 +123,26 @@ export default function StudentHome() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole");
-    setIsLoggedIn(false);
-    setStudent(null);
-    navigate("/");
-  };
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('userRole')
+    setIsLoggedIn(false)
+    setStudent(null)
+    navigate('/')
+  }
 
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" || course.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
+    // Fix category filtering - compare with the category name
+    const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory
+    
+    // Debug info to help troubleshoot category filtering
+    if (selectedCategory !== 'All' && course.category !== selectedCategory) {
+      console.log(`Course '${course.title}' with category '${course.category}' doesn't match selected category '${selectedCategory}'`)
+    }
+    
+    return matchesSearch && matchesCategory
+  })
 
   return (
     <div className="student-home">
@@ -157,21 +167,7 @@ export default function StudentHome() {
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              <li className="nav-item">
-                <a className="nav-link active" href="#">
-                  Explore
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
-                  My Learning
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
-                  Career Goals
-                </a>
-              </li>
+              {/* Navigation items removed for branch merging */}
             </ul>
             <div className="d-flex align-items-center gap-3">
               {isLoggedIn ? (
@@ -275,12 +271,7 @@ export default function StudentHome() {
                   )}
                 </div>
               )}
-              <Link to="/signin" className="btn btn-outline-light">
-                Admin Sign In
-              </Link>
-              <Link to="/admin" className="btn btn-primary">
-                Admin Dashboard
-              </Link>
+              {/* Admin buttons removed for branch merging */}
             </div>
           </div>
         </div>

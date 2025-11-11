@@ -16,6 +16,9 @@ public class CourseResponse {
 	private String duration;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
+	
+	// Added category object to include name
+	private CategoryNameDTO category;
 
 	public CourseResponse() {
 	}
@@ -122,6 +125,14 @@ public class CourseResponse {
 
 	public void setDuration(String duration) {
 		this.duration = duration;
+	}
+	
+	public CategoryNameDTO getCategory() {
+		return category;
+	}
+	
+	public void setCategory(CategoryNameDTO category) {
+		this.category = category;
 	}
 }
 

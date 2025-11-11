@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { categoryAPI } from '../services/api.js'
 
 export default function CourseModal({ course, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -16,6 +17,44 @@ export default function CourseModal({ course, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [imageError, setImageError] = useState('')
+  const [categories, setCategories] = useState([])
+  const [loadingCategories, setLoadingCategories] = useState(false)
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true)
+        setError('')
+        
+        const categoriesData = await categoryAPI.getAllCategories()
+        console.log('Categories data:', categoriesData)
+        
+        if (categoriesData && categoriesData.length > 0) {
+          setCategories(categoriesData)
+          
+          // If editing a course and it has a categoryId, keep it
+          // Otherwise, set the first category as default
+          if (!formData.categoryId && categoriesData.length > 0) {
+            setFormData(prev => ({
+              ...prev,
+              categoryId: categoriesData[0].categoryId
+            }))
+          }
+        } else {
+          console.warn('No categories returned from API')
+          setError('No categories available. Please add categories first.')
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err)
+        setError('Failed to load categories. The server might be down or the categories API is not implemented.')
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+    
+    fetchCategories()
+  }, [])
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -195,15 +234,28 @@ export default function CourseModal({ course, onClose, onSuccess }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Category ID *</label>
-              <input
-                type="number"
-                value={formData.categoryId || ''}
-                onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value) || null})}
-                placeholder="Enter category ID"
-                required
-              />
-              <small>Enter the category ID (e.g., 1 for Programming)</small>
+              <label>Category *</label>
+              {loadingCategories ? (
+                <div>Loading categories...</div>
+              ) : categories.length === 0 ? (
+                <div className="error-message">No categories available</div>
+              ) : (
+                <>
+                  <select
+                    value={formData.categoryId || ''}
+                    onChange={(e) => setFormData({...formData, categoryId: parseInt(e.target.value) || null})}
+                    required
+                  >
+                    <option value="" disabled>Select a category</option>
+                    {categories.map(category => (
+                      <option key={category.categoryId} value={category.categoryId}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small>Select the category that best fits your course</small>
+                </>
+              )}
             </div>
 
             <div className="form-group">
