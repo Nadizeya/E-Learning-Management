@@ -5,12 +5,13 @@ import { useAuth } from '../state/AuthContext.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import Topbar from '../components/Topbar.jsx'
 import Modal from '../components/admin/Modal.jsx'
-import DetailModal from '../components/admin/DetailModal.jsx'
 import DataTable from '../components/admin/DataTable.jsx'
-import ActionButtons from '../components/admin/ActionButtons.jsx'
 import DetailSection from '../components/admin/DetailSection.jsx'
 import ListGroupItem from '../components/admin/ListGroupItem.jsx'
 import { useDataFetch } from '../hooks/useDataFetch.js'
+import DetailModal from '../components/admin/DetailModal.jsx'
+import RowActionMenu from '../components/admin/RowActionMenu.jsx'
+import { formatDate } from '../utils/format.js'
 import './AdminDashboard.css'
 
 export default function AdminDashboard() {
@@ -19,11 +20,11 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState('admins')
 
   useEffect(() => {
-    if (!admin) navigate('/')
+    if (!admin) navigate('/admin/login')
   }, [admin, navigate])
 
   useEffect(() => {
-    const onLogout = () => { logout(); navigate('/') }
+    const onLogout = () => { logout(); navigate('/admin/login') }
     document.addEventListener('topbar:logout', onLogout)
     return () => {
       document.removeEventListener('topbar:logout', onLogout)
@@ -64,6 +65,8 @@ function AdminsTab() {
   const [deleteState, setDeleteState] = useState({ id: null, reason: '', open: false })
   const [editState, setEditState] = useState({ open: false, id: null, firstName: '', lastName: '', email: '', permissions: '' })
   const [errorMsg, setErrorMsg] = useState('')
+  const [selectedAdmin, setSelectedAdmin] = useState(null)
+  const [createOpen, setCreateOpen] = useState(false)
 
   const createAdmin = async (e) => {
     e.preventDefault()
@@ -113,14 +116,16 @@ function AdminsTab() {
   const columns = [
     { key: 'name', label: 'Name', render: (a) => `${a.firstName} ${a.lastName}` },
     { key: 'email', label: 'Email' },
-    { 
-      key: 'actions', 
-      label: 'Actions', 
+    { key: 'createdAt', label: 'Created at', render: (a) => formatDate(a.createdAt) },
+    {
+      key: 'actions',
+      label: 'Actions',
       align: 'end',
       render: (a) => (
-        <ActionButtons
-          onEdit={() => setEditState({ open: true, id: a.adminId, firstName: a.firstName || '', lastName: a.lastName || '', email: a.email || '', permissions: a.permissions || '' })}
-          onDelete={() => setDeleteState({ id: a.adminId, reason: '', open: true })}
+        <RowActionMenu
+          placement="right"
+          onEdit={() => setEditState({ open: true, id: a.adminId || a.id, firstName: a.firstName || '', lastName: a.lastName || '', email: a.email || '', permissions: a.permissions || '' })}
+          onDelete={() => setDeleteState({ id: a.adminId || a.id, reason: '', open: true })}
         />
       )
     }
@@ -129,20 +134,27 @@ function AdminsTab() {
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Admins</h5>
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <h5 className="card-title m-0 text-info">Admins List</h5>
+          <button className="btn btn-info text-white" onClick={() => setCreateOpen(true)}>Create</button>
+        </div>
         {(error || errorMsg) && <div className="alert alert-danger" role="alert">{error || errorMsg}</div>}
         {loading ? <p>Loading...</p> : <DataTable columns={columns} data={list} emptyMessage="No admins found" />}
-        
-        <div className="mt-3 pt-3 border-top">
-          <h6 className="text-info">Create Admin</h6>
-          <form onSubmit={createAdmin} className="row g-2">
-            <div className="col-md-6"><input className="form-control" placeholder="First name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required /></div>
-            <div className="col-md-6"><input className="form-control" placeholder="Last name" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required /></div>
-            <div className="col-md-6"><input className="form-control" placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></div>
-            <div className="col-md-6"><input className="form-control" placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></div>
-            <div className="col-12"><button type="submit" className="btn btn-info text-white">Create</button></div>
-          </form>
-        </div>
+
+        <Modal show={createOpen} onClose={() => setCreateOpen(false)} title="Create Admin">
+          <div className="modal-body">
+            <form className="row g-2" onSubmit={createAdmin}>
+              <div className="col-md-6"><input className="form-control" placeholder="First name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required /></div>
+              <div className="col-md-6"><input className="form-control" placeholder="Last name" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required /></div>
+              <div className="col-md-6"><input className="form-control" placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></div>
+              <div className="col-md-6"><input className="form-control" placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></div>
+            </form>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={() => setCreateOpen(false)}>Cancel</button>
+            <button className="btn btn-info text-white" onClick={createAdmin}>Create</button>
+          </div>
+        </Modal>
 
         <Modal show={deleteState.open} onClose={() => setDeleteState({ id: null, reason: '', open: false })} title="Delete Admin">
           <div className="modal-body">
@@ -169,15 +181,18 @@ function AdminsTab() {
             <button className="btn btn-info text-white" onClick={handleUpdate}>Save</button>
           </div>
         </Modal>
+
+        {/* No full admin details modal for now */}
       </div>
     </div>
   )
 }
 
 function StudentsTab() {
-  const { data: list, loading, error } = useDataFetch('http://localhost:8080/api/students')
+  const { data: list, loading, error, refetch } = useDataFetch('http://localhost:8080/api/students')
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [details, setDetails] = useState({ certificates: [], badges: [], enrollments: [], courses: [], loading: false })
+  const [deleteState, setDeleteState] = useState({ id: null, open: false, reason: '' })
 
   const fetchStudentDetails = async (studentId) => {
     setDetails({ certificates: [], badges: [], enrollments: [], courses: [], loading: true })
@@ -215,29 +230,32 @@ function StudentsTab() {
   }
 
   const columns = [
-    { key: 'name', label: 'Full Name', render: (s) => `${s.firstName} ${s.lastName}` }
+    { key: 'name', label: 'Full name', render: (s) => `${s.firstName} ${s.lastName}` },
+    { key: 'email', label: 'Email' },
+    { key: 'studentId', label: 'Student Id', render: (s) => s.id || s.studentId || 'N/A' },
+    { key: 'createdAt', label: 'Created at', render: (s) => formatDate(s.createdAt || s.created_at) },
+    { key: 'updatedAt', label: 'Updated at', render: (s) => formatDate(s.updatedAt || s.updated_at) },
+    {
+      key: 'actions',
+      label: 'Actions',
+      align: 'end',
+      render: (s) => (
+        <RowActionMenu placement="right" onDelete={() => setDeleteState({ id: s.id, open: true, reason: '' })} />
+      )
+    }
   ]
 
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Student Detail</h5>
+        <h5 className="card-title m-0 text-info mb-3">Students List</h5>
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
         {loading ? <p>Loading...</p> : <DataTable columns={columns} data={list} onRowClick={(s) => fetchStudentDetails(s.id)} emptyMessage="No students found" />}
 
-        <DetailModal show={!!selectedStudent} onClose={() => setSelectedStudent(null)} title="Student Details" loading={details.loading}>
-          <DetailSection label="1. Student Full Name">
-            <p className="form-control-plaintext fs-5">{selectedStudent?.firstName} {selectedStudent?.lastName}</p>
-          </DetailSection>
-          <DetailSection label="2. Student ID">
-            <p className="form-control-plaintext fs-5">{selectedStudent?.id}</p>
-          </DetailSection>
-          <DetailSection label="Email">
-            <p className="form-control-plaintext fs-5">{selectedStudent?.email || 'N/A'}</p>
-          </DetailSection>
-          <DetailSection label="3. Achievements">
+        <DetailModal show={!!selectedStudent} onClose={() => setSelectedStudent(null)} title={`${selectedStudent?.firstName ?? ''} ${selectedStudent?.lastName ?? ''}`.trim() || 'Student'} loading={details.loading}>
+          <DetailSection label="1. Achievements">
             <div className="mt-3">
-              <h6 className="fw-semibold">3.1 Certificates</h6>
+              <h6 className="fw-semibold">1.1 Certificates</h6>
               {details.certificates.length > 0 ? (
                 <div className="list-group">
                   {details.certificates.map((cert, idx) => (
@@ -253,7 +271,7 @@ function StudentsTab() {
               ) : <p className="empty-state">No certificates earned yet.</p>}
             </div>
             <div className="mt-3">
-              <h6 className="fw-semibold">3.2 Badges</h6>
+              <h6 className="fw-semibold">1.2 Badges</h6>
               {details.badges.length > 0 ? (
                 <div className="list-group">
                   {details.badges.map((badge, idx) => (
@@ -272,7 +290,7 @@ function StudentsTab() {
               ) : <p className="empty-state">No badges earned yet.</p>}
             </div>
           </DetailSection>
-          <DetailSection label="4. Enrolled Courses">
+          <DetailSection label="2. Enrolled Courses">
             {details.enrollments.length > 0 ? (
               <div className="list-group mt-2">
                 {details.enrollments.map((enrollment, idx) => {
@@ -290,15 +308,41 @@ function StudentsTab() {
             ) : <p className="empty-state">No enrolled courses.</p>}
           </DetailSection>
         </DetailModal>
+
+        <Modal show={deleteState.open} onClose={() => setDeleteState({ id: null, open: false, reason: '' })} title="Delete Student">
+          <div className="modal-body">
+            <p>Please provide a reason for deletion.</p>
+            <textarea className="form-control" rows={3} value={deleteState.reason} onChange={(e) => setDeleteState({ ...deleteState, reason: e.target.value })} />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={() => setDeleteState({ id: null, open: false, reason: '' })}>Cancel</button>
+            <button
+              className="btn btn-danger"
+              onClick={async () => {
+                try {
+                  await axios.delete(`http://localhost:8080/api/students/${deleteState.id}`, { data: { reason: deleteState.reason } })
+                  setDeleteState({ id: null, open: false, reason: '' })
+                  refetch()
+                } catch (e) {
+                  alert('Failed to delete')
+                }
+              }}
+              disabled={!deleteState.reason.trim()}
+            >
+              Delete
+            </button>
+          </div>
+        </Modal>
       </div>
     </div>
   )
 }
 
 function InstructorsTab() {
-  const { data: list, loading, error } = useDataFetch('http://localhost:8080/api/instructors')
+  const { data: list, loading, error, refetch } = useDataFetch('http://localhost:8080/api/instructors')
   const [selectedInstructor, setSelectedInstructor] = useState(null)
   const [details, setDetails] = useState({ courses: [], loading: false })
+  const [deleteState, setDeleteState] = useState({ id: null, open: false, reason: '' })
 
   const fetchInstructorDetails = async (instructorId) => {
     setDetails({ courses: [], loading: true })
@@ -318,29 +362,37 @@ function InstructorsTab() {
     }
   }
 
-  const columns = [{ key: 'name', label: 'Full Name', render: (i) => `${i.firstName} ${i.lastName}` }]
+  const columns = [
+    { key: 'name', label: 'Full name', render: (i) => `${i.firstName} ${i.lastName}` },
+    { key: 'email', label: 'Email' },
+    { key: 'instructorId', label: 'Instructor Id', render: (i) => i.id || i.instructorId || 'N/A' },
+    { key: 'createdAt', label: 'Created at', render: (i) => formatDate(i.createdAt || i.created_at) },
+    { key: 'updatedAt', label: 'Updated at', render: (i) => formatDate(i.updatedAt || i.updated_at) },
+    {
+      key: 'actions',
+      label: 'Actions',
+      align: 'end',
+      render: (i) => (
+        <RowActionMenu placement="right" onDelete={() => setDeleteState({ id: i.id, open: true, reason: '' })} />
+      )
+    }
+  ]
 
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Instructor Detail</h5>
+        <h5 className="card-title m-0 text-info mb-3">Instructors List</h5>
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
         {loading ? <p>Loading...</p> : <DataTable columns={columns} data={list} onRowClick={(i) => fetchInstructorDetails(i.id)} emptyMessage="No instructors found" />}
 
-        <DetailModal show={!!selectedInstructor} onClose={() => setSelectedInstructor(null)} title="Instructor Details" loading={details.loading}>
-          <DetailSection label="1. Full Name">
-            <p className="form-control-plaintext fs-5">{selectedInstructor?.firstName} {selectedInstructor?.lastName}</p>
-          </DetailSection>
-          <DetailSection label="2. Bio">
+        <DetailModal show={!!selectedInstructor} onClose={() => setSelectedInstructor(null)} title={`${selectedInstructor?.firstName ?? ''} ${selectedInstructor?.lastName ?? ''}`.trim() || 'Instructor'} loading={details.loading}>
+          <DetailSection label="1. Bio">
             <p className="form-control-plaintext">{selectedInstructor?.bio || 'N/A'}</p>
           </DetailSection>
-          <DetailSection label="3. Email">
-            <p className="form-control-plaintext fs-5">{selectedInstructor?.email || 'N/A'}</p>
-          </DetailSection>
-          <DetailSection label="4. Expertise">
+          <DetailSection label="2. Expertise">
             <p className="form-control-plaintext">{selectedInstructor?.expertise || 'N/A'}</p>
           </DetailSection>
-          <DetailSection label="5. Created Courses">
+          <DetailSection label="3. Created Courses">
             {details.courses.length > 0 ? (
               <div className="list-group mt-2">
                 {details.courses.map((course) => (
@@ -351,15 +403,43 @@ function InstructorsTab() {
             ) : <p className="empty-state">No courses created yet.</p>}
           </DetailSection>
         </DetailModal>
+
+        <Modal show={deleteState.open} onClose={() => setDeleteState({ id: null, open: false, reason: '' })} title="Delete Instructor">
+          <div className="modal-body">
+            <p>Please provide a reason for deletion.</p>
+            <textarea className="form-control" rows={3} value={deleteState.reason} onChange={(e) => setDeleteState({ ...deleteState, reason: e.target.value })} />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={() => setDeleteState({ id: null, open: false, reason: '' })}>Cancel</button>
+            <button
+              className="btn btn-danger"
+              onClick={async () => {
+                try {
+                  await axios.delete(`http://localhost:8080/api/instructors/${deleteState.id}`, { data: { reason: deleteState.reason } })
+                  setDeleteState({ id: null, open: false, reason: '' })
+                  refetch()
+                } catch (e) {
+                  alert('Failed to delete')
+                }
+              }}
+              disabled={!deleteState.reason.trim()}
+            >
+              Delete
+            </button>
+          </div>
+        </Modal>
       </div>
     </div>
   )
 }
 
 function CoursesTab() {
-  const { data: list, loading, error } = useDataFetch('http://localhost:8080/api/courses')
+  const { data: list, loading, error, refetch } = useDataFetch('http://localhost:8080/api/courses')
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [details, setDetails] = useState({ instructor: null, enrollments: [], loading: false })
+  const [editCourse, setEditCourse] = useState({ open: false, id: null, title: '' }) // will be removed
+  const [deleteCourse, setDeleteCourse] = useState({ id: null, open: false, reason: '' })
+  const [modules, setModules] = useState({ open: false, list: [], loading: false })
 
   const fetchCourseDetails = async (courseId) => {
     setDetails({ instructor: null, enrollments: [], loading: true })
@@ -389,27 +469,51 @@ function CoursesTab() {
     }
   }
 
-  const columns = [{ key: 'title', label: 'Course Name' }]
+  const columns = [
+    { key: 'title', label: 'Course name' },
+    { key: 'courseId', label: 'Course Id', render: (c) => c.courseId || c.id || 'N/A' },
+    { key: 'categoryType', label: 'Category Type', render: (c) => c.categoryType || 'N/A' },
+    { key: 'createdBy', label: 'Created By', render: (c) => c.instructorId ? `Instructor #${c.instructorId}` : 'N/A' },
+    { key: 'status', label: 'Status', render: (c) => c.status || 'N/A' },
+    { key: 'duration', label: 'Duration', render: (c) => c.duration || 'N/A' },
+    { key: 'createdAt', label: 'Created at', render: (c) => formatDate(c.createdAt) },
+    { key: 'updatedAt', label: 'Updated at', render: (c) => formatDate(c.updatedAt) },
+    {
+      key: 'actions',
+      label: 'Actions',
+      align: 'end',
+      render: (c) => <RowActionMenu placement="right" onDelete={() => setDeleteCourse({ id: c.courseId || c.id, open: true, reason: '' })} />
+    }
+  ]
   const completedCount = details.enrollments.filter(e => e.completionStatus === 'Completed').length
   const enrolledCount = details.enrollments.length
 
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Course Detail</h5>
+        <h5 className="card-title m-0 text-info mb-3">Courses List</h5>
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
         {loading ? <p>Loading...</p> : <DataTable columns={columns} data={list} onRowClick={(c) => fetchCourseDetails(c.courseId)} emptyMessage="No courses found" />}
 
-        <DetailModal show={!!selectedCourse} onClose={() => setSelectedCourse(null)} title="Course Details" loading={details.loading}>
-          <DetailSection label="1. Course Name">
-            <p className="form-control-plaintext fs-5">{selectedCourse?.title}</p>
-          </DetailSection>
-          <DetailSection label="Course ID">
-            <p className="form-control-plaintext fs-5">{selectedCourse?.courseId || selectedCourse?.id || 'N/A'}</p>
-          </DetailSection>
-          <DetailSection label="Description">
-            <p className="form-control-plaintext">{selectedCourse?.description || 'N/A'}</p>
-          </DetailSection>
+        <DetailModal show={!!selectedCourse} onClose={() => setSelectedCourse(null)} title={selectedCourse?.title || 'Course'} loading={details.loading}>
+          <div className="mb-3">
+            <button
+              className="btn btn-sm btn-outline-info"
+              onClick={async () => {
+                if (!selectedCourse) return
+                setModules({ open: true, list: [], loading: true })
+                try {
+                  const res = await axios.get(`http://localhost:8080/api/course-modules/course/${selectedCourse.courseId || selectedCourse.id}`)
+                  const data = res.data?.data || []
+                  setModules({ open: true, list: data, loading: false })
+                } catch (e) {
+                  setModules({ open: true, list: [], loading: false })
+                }
+              }}
+            >
+              View Modules
+            </button>
+          </div>
           <DetailSection label="2. Created By">
             <p className="form-control-plaintext fs-5">
               {details.instructor ? `${details.instructor.firstName} ${details.instructor.lastName}` : 'N/A'}
@@ -422,6 +526,48 @@ function CoursesTab() {
             <p className="form-control-plaintext fs-5">{completedCount} {completedCount === 1 ? 'person' : 'people'} completed</p>
           </DetailSection>
         </DetailModal>
+
+        <Modal show={deleteCourse.open} onClose={() => setDeleteCourse({ id: null, open: false, reason: '' })} title="Delete Course">
+          <div className="modal-body">
+            <p>Please provide a reason for deletion.</p>
+            <textarea className="form-control" rows={3} value={deleteCourse.reason} onChange={(e) => setDeleteCourse({ ...deleteCourse, reason: e.target.value })} />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={() => setDeleteCourse({ id: null, open: false, reason: '' })}>Cancel</button>
+            <button className="btn btn-danger" disabled={!deleteCourse.reason.trim()} onClick={async () => {
+              try {
+                await axios.delete(`http://localhost:8080/api/courses/${deleteCourse.id}`, { data: { reason: deleteCourse.reason } })
+                setDeleteCourse({ id: null, open: false, reason: '' })
+                refetch()
+              } catch (e) {
+                alert('Failed to delete course')
+              }
+            }}>Delete</button>
+          </div>
+        </Modal>
+
+        <Modal show={modules.open} onClose={() => setModules({ open: false, list: [], loading: false })} title="Modules">
+          <div className="modal-body">
+            {modules.loading ? <p>Loading modules...</p> : (
+              <div className="table-responsive">
+                <table className="table align-middle w-100">
+                  <thead>
+                    <tr><th scope="col">Module Title</th></tr>
+                  </thead>
+                  <tbody>
+                    {modules.list.map((m, idx) => (
+                      <tr key={m.moduleId || idx}><td>{m.title}</td></tr>
+                    ))}
+                    {modules.list.length === 0 && <tr><td className="text-center text-secondary">No modules</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={() => setModules({ open: false, list: [], loading: false })}>Close</button>
+          </div>
+        </Modal>
       </div>
     </div>
   )
@@ -504,14 +650,15 @@ function EnrollmentTab() {
 
   const columns = [
     { key: 'studentName', label: 'Student' },
-    { key: 'courseName', label: 'Enroll In' },
-    { key: 'enrollmentDate', label: 'Enroll Date', render: (e) => formatDate(e.enrollmentDate) }
+    { key: 'courseName', label: 'Course Name' },
+    { key: 'enrollmentDate', label: 'Enrolled Date', render: (e) => formatDate(e.enrollmentDate) },
+    { key: 'completionStatus', label: 'Completion status', render: (e) => e.completionStatus || 'N/A' }
   ]
 
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Enrollment</h5>
+        <h5 className="card-title m-0 text-info mb-3">Enrollment List</h5>
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
         {loading ? (
           <div className="loading-container">
