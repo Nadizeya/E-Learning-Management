@@ -1,195 +1,238 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import './StudentHome.css'
-import { courseAPI, categoryAPI } from '../services/api.js'
-
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./StudentHome.css";
+import { courseAPI, categoryAPI } from "../services/api.js";
 
 // Categories will be fetched from the backend
 
 export default function StudentHome() {
-  const navigate = useNavigate()
-  const [student, setStudent] = useState(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [showSignInDropdown, setShowSignInDropdown] = useState(false)
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [categories, setCategories] = useState(['All'])
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const [student, setStudent] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showSignInDropdown, setShowSignInDropdown] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(["All"]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem('token')
-    const userRole = localStorage.getItem('userRole')
-    const userData = localStorage.getItem('user')
-    
-    if (token && userRole === 'STUDENT' && userData) {
-      setIsLoggedIn(true)
-      setStudent(JSON.parse(userData))
+    const token = localStorage.getItem("token");
+    const userRole = localStorage.getItem("userRole");
+    const userData = localStorage.getItem("user");
+
+    if (token && userRole === "STUDENT" && userData) {
+      setIsLoggedIn(true);
+      setStudent(JSON.parse(userData));
     }
 
     // Fetch courses and categories from API
     const fetchData = async () => {
       try {
-        setLoading(true)
-        setError('')
-        
+        setLoading(true);
+        setError("");
+
         // Fetch categories first
         try {
-          const categoriesData = await categoryAPI.getAllCategories()
+          const categoriesData = await categoryAPI.getAllCategories();
           if (categoriesData && categoriesData.length > 0) {
             // Extract category names and add 'All' option
-            const categoryNames = ['All', ...categoriesData.map(cat => cat.name)]
-            setCategories(categoryNames)
+            const categoryNames = [
+              "All",
+              ...categoriesData.map((cat) => cat.name),
+            ];
+            setCategories(categoryNames);
           }
         } catch (err) {
-          console.error('Failed to fetch categories:', err)
+          console.error("Failed to fetch categories:", err);
           // Keep default 'All' category if fetch fails
         }
-        
+
         // Fetch courses
-        const allCourses = await courseAPI.getAllCourses()
-        
+        const allCourses = await courseAPI.getAllCourses();
+
         if (allCourses && allCourses.length > 0) {
           // Filter published courses
-          const publishedCourses = allCourses.filter(c => c.status === 'Published')
-          
+          const publishedCourses = allCourses.filter(
+            (c) => c.status === "Published"
+          );
+
           // Map backend courses to frontend format with real data
-          const mappedCourses = publishedCourses.map(course => {
+          const mappedCourses = publishedCourses.map((course) => {
             // Get instructor name
-            const instructorName = course.instructor 
-              ? `${course.instructor.firstName} ${course.instructor.lastName}` 
-              : 'Instructor'
-            
+            const instructorName = course.instructor
+              ? `${course.instructor.firstName} ${course.instructor.lastName}`
+              : "Instructor";
+
             // Get category name
-            const categoryName = course.category?.name || 'General'
-            
+            const categoryName = course.category?.name || "General";
+
             return {
               id: course.courseId,
               title: course.title,
               instructor: instructorName,
               rating: course.rating || 4.5, // Use default rating if not available
               students: course.enrollmentCount || 0, // Use real enrollment count if available
-              price: 'Free', // Assuming all courses are free for now
-              level: course.level || 'Beginner',
-              duration: course.duration || '6 weeks',
+              price: "Free", // Assuming all courses are free for now
+              level: course.level || "Beginner",
+              duration: course.duration || "6 weeks",
               category: categoryName,
               thumbnail: course.thumbnail,
-              summary: course.description || ''
-            }
-          })
-          
-          setCourses(mappedCourses)
-          
+              summary: course.description || "",
+            };
+          });
+
+          setCourses(mappedCourses);
+
           if (mappedCourses.length === 0) {
-            setError('No published courses found. Check back later for new courses.')
+            setError(
+              "No published courses found. Check back later for new courses."
+            );
           }
         } else {
-          setError('No courses available at the moment. Please check back later.')
+          setError(
+            "No courses available at the moment. Please check back later."
+          );
         }
       } catch (error) {
-        console.error('Failed to fetch data:', error)
-        setError('Failed to load courses. Please try again later.')
+        console.error("Failed to fetch data:", error);
+        setError("Failed to load courses. Please try again later.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
+    fetchData();
 
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
-    
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('userRole')
-    setIsLoggedIn(false)
-    setStudent(null)
-    navigate('/')
-  }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    setIsLoggedIn(false);
+    setStudent(null);
+    navigate("/");
+  };
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+  const filteredCourses = courses.filter((course) => {
+    const matchesSearch = course.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" || course.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="student-home">
       {/* Navigation */}
-      <nav className={`navbar navbar-expand-lg navbar-dark fixed-top ${isScrolled ? 'navbar-scrolled' : ''}`}>
+      <nav
+        className={`navbar navbar-expand-lg navbar-dark fixed-top ${
+          isScrolled ? "navbar-scrolled" : ""
+        }`}
+      >
         <div className="container-fluid px-4">
-          <a className="navbar-brand" href="#">
+          <a className="navbar-brand" href="/">
             <span className="brand-icon">🎓</span>
             LearnHub
           </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" href="#">Explore</a>
+                <a className="nav-link active" href="#">
+                  Explore
+                </a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">My Learning</a>
+                <a className="nav-link" href="#">
+                  My Learning
+                </a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">Career Goals</a>
+                <a className="nav-link" href="#">
+                  Career Goals
+                </a>
               </li>
             </ul>
             <div className="d-flex align-items-center gap-3">
               {isLoggedIn ? (
                 <div className="user-dropdown-wrapper">
-                  <div 
+                  <div
                     className="user-profile-button"
                     onClick={() => setShowSignInDropdown(!showSignInDropdown)}
                   >
                     <div className="user-avatar">
-                      <span>{student?.firstName?.charAt(0) || 'H'}</span>
+                      <span>{student?.firstName?.charAt(0) || "H"}</span>
                     </div>
-                    <span className="user-name d-none d-md-inline">Hi, {student?.firstName || 'Hello'}!</span>
+                    <span className="user-name d-none d-md-inline">
+                      Hi, {student?.firstName || "Hello"}!
+                    </span>
                   </div>
-                  
+
                   {showSignInDropdown && (
                     <div className="user-dropdown">
                       <div className="user-dropdown-header">
-                        <div className="user-dropdown-name">{student?.firstName} {student?.lastName}</div>
-                        <div className="user-dropdown-email">{student?.email}</div>
+                        <div className="user-dropdown-name">
+                          {student?.firstName} {student?.lastName}
+                        </div>
+                        <div className="user-dropdown-email">
+                          {student?.email}
+                        </div>
                       </div>
-                      
+
                       <div className="user-dropdown-menu">
                         {/* Profile link removed */}
-                        
-                        <Link 
-                          to="/my-courses" 
-                          className="dropdown-item" 
+
+                        <Link
+                          to="/student/settings"
+                          className="dropdown-item"
                           onClick={() => setShowSignInDropdown(false)}
                         >
-                          <span className="dropdown-item-icon">📚</span> My Courses
+                          <span className="dropdown-item-icon">⚙️</span>{" "}
+                          Settings
                         </Link>
-                        
-                        <Link 
-                          to="/accomplishments" 
-                          className="dropdown-item" 
+
+                        <Link
+                          to="/my-courses"
+                          className="dropdown-item"
                           onClick={() => setShowSignInDropdown(false)}
                         >
-                          <span className="dropdown-item-icon">🏆</span> Accomplishments
+                          <span className="dropdown-item-icon">📚</span> My
+                          Courses
                         </Link>
-                        
+
+                        <Link
+                          to="/accomplishments"
+                          className="dropdown-item"
+                          onClick={() => setShowSignInDropdown(false)}
+                        >
+                          <span className="dropdown-item-icon">🏆</span>{" "}
+                          Accomplishments
+                        </Link>
+
                         <div className="dropdown-divider"></div>
-                        
-                        <button 
-                          className="dropdown-item dropdown-item-logout" 
+
+                        <button
+                          className="dropdown-item dropdown-item-logout"
                           onClick={() => {
                             handleLogout();
                             setShowSignInDropdown(false);
@@ -203,25 +246,27 @@ export default function StudentHome() {
                 </div>
               ) : (
                 <div className="signin-dropdown-wrapper">
-                  <button 
+                  <button
                     className="btn btn-signin-nav"
                     onClick={() => setShowSignInDropdown(!showSignInDropdown)}
                   >
                     Sign In
-                    <span className="dropdown-arrow">{showSignInDropdown ? '▲' : '▼'}</span>
+                    <span className="dropdown-arrow">
+                      {showSignInDropdown ? "▲" : "▼"}
+                    </span>
                   </button>
                   {showSignInDropdown && (
                     <div className="signin-dropdown">
-                      <button 
+                      <button
                         className="dropdown-item"
-                        onClick={() => navigate('/student/signin')}
+                        onClick={() => navigate("/student/signin")}
                       >
                         <span className="item-icon">👨‍🎓</span>
                         Sign in as Student
                       </button>
-                      <button 
+                      <button
                         className="dropdown-item"
-                        onClick={() => navigate('/instructor/signin')}
+                        onClick={() => navigate("/instructor/signin")}
                       >
                         <span className="item-icon">👨‍🏫</span>
                         Sign in as Instructor
@@ -230,8 +275,12 @@ export default function StudentHome() {
                   )}
                 </div>
               )}
-              <Link to="/signin" className="btn btn-outline-light">Admin Sign In</Link>
-              <Link to="/admin" className="btn btn-primary">Admin Dashboard</Link>
+              <Link to="/signin" className="btn btn-outline-light">
+                Admin Sign In
+              </Link>
+              <Link to="/admin" className="btn btn-primary">
+                Admin Dashboard
+              </Link>
             </div>
           </div>
         </div>
@@ -240,63 +289,92 @@ export default function StudentHome() {
       {/* Hero Section */}
       <section className="hero-section">
         {/* Animated shapes */}
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'hidden', zIndex: 1 }}>
-          <div style={{ 
-            position: 'absolute', 
-            width: '300px', 
-            height: '300px', 
-            borderRadius: '50%', 
-            background: 'rgba(255,255,255,0.1)', 
-            top: '-100px', 
-            right: '-50px',
-            animation: 'float 8s infinite ease-in-out'
-          }}></div>
-          <div style={{ 
-            position: 'absolute', 
-            width: '200px', 
-            height: '200px', 
-            borderRadius: '50%', 
-            background: 'rgba(255,255,255,0.1)', 
-            bottom: '-50px', 
-            left: '10%',
-            animation: 'float 10s infinite ease-in-out'
-          }}></div>
-          <div style={{ 
-            position: 'absolute', 
-            width: '150px', 
-            height: '150px', 
-            borderRadius: '50%', 
-            background: 'rgba(255,255,255,0.1)', 
-            top: '20%', 
-            left: '5%',
-            animation: 'float 7s infinite ease-in-out'
-          }}></div>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+            zIndex: 1,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              width: "300px",
+              height: "300px",
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.1)",
+              top: "-100px",
+              right: "-50px",
+              animation: "float 8s infinite ease-in-out",
+            }}
+          ></div>
+          <div
+            style={{
+              position: "absolute",
+              width: "200px",
+              height: "200px",
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.1)",
+              bottom: "-50px",
+              left: "10%",
+              animation: "float 10s infinite ease-in-out",
+            }}
+          ></div>
+          <div
+            style={{
+              position: "absolute",
+              width: "150px",
+              height: "150px",
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.1)",
+              top: "20%",
+              left: "5%",
+              animation: "float 7s infinite ease-in-out",
+            }}
+          ></div>
         </div>
-        
-        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+
+        <div className="container" style={{ position: "relative", zIndex: 2 }}>
           <div className="row align-items-center">
             <div className="col-lg-6 mb-5 mb-lg-0">
               <div className="hero-content">
-                <div style={{ marginBottom: '20px', display: 'inline-block', background: 'rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: '20px' }}>
-                  <span style={{ marginRight: '8px' }}>✨</span>
+                <div
+                  style={{
+                    marginBottom: "20px",
+                    display: "inline-block",
+                    background: "rgba(255,255,255,0.2)",
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <span style={{ marginRight: "8px" }}>✨</span>
                   <span style={{ fontWeight: 500 }}>Welcome to LearnHub</span>
                 </div>
-                <h1 style={{ 
-                  fontSize: '3.5rem', 
-                  fontWeight: 800, 
-                  marginBottom: '20px',
-                  lineHeight: 1.2
-                }}>
-                  Learn <span style={{ color: '#4CC9F0' }}>Without Limits</span>
+                <h1
+                  style={{
+                    fontSize: "3.5rem",
+                    fontWeight: 800,
+                    marginBottom: "20px",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  Learn <span style={{ color: "#4CC9F0" }}>Without Limits</span>
                 </h1>
-                <p style={{ 
-                  fontSize: '1.2rem', 
-                  marginBottom: '30px',
-                  opacity: 0.9,
-                  fontWeight: 300,
-                  lineHeight: 1.6
-                }}>
-                  Discover top-quality courses taught by industry experts. Start your learning journey today and unlock your potential.
+                <p
+                  style={{
+                    fontSize: "1.2rem",
+                    marginBottom: "30px",
+                    opacity: 0.9,
+                    fontWeight: 300,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Discover top-quality courses taught by industry experts. Start
+                  your learning journey today and unlock your potential.
                 </p>
                 <div className="search-container">
                   <div className="search-input-wrapper">
@@ -316,26 +394,28 @@ export default function StudentHome() {
               </div>
             </div>
             <div className="col-lg-6 d-none d-lg-block">
-              <div style={{ position: 'relative', textAlign: 'center' }}>
-                <div style={{ 
-                  position: 'absolute',
-                  width: '300px',
-                  height: '300px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.1)',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: -1
-                }}></div>
-                <img 
-                  src="https://img.freepik.com/free-vector/online-learning-concept-illustration_114360-4735.jpg" 
-                  alt="Learning illustration" 
-                  style={{ 
-                    maxWidth: '100%',
-                    height: 'auto',
-                    borderRadius: '16px',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+              <div style={{ position: "relative", textAlign: "center" }}>
+                <div
+                  style={{
+                    position: "absolute",
+                    width: "300px",
+                    height: "300px",
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.1)",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    zIndex: -1,
+                  }}
+                ></div>
+                <img
+                  src="https://img.freepik.com/free-vector/online-learning-concept-illustration_114360-4735.jpg"
+                  alt="Learning illustration"
+                  style={{
+                    maxWidth: "100%",
+                    height: "auto",
+                    borderRadius: "16px",
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
                   }}
                 />
               </div>
@@ -343,30 +423,33 @@ export default function StudentHome() {
           </div>
         </div>
       </section>
-      
+
       {/* Course Catalog */}
       <section className="section course-catalog">
         <div className="container">
           {/* Quick Links */}
-          <div className="row g-3 mb-3">
-          </div>
+          <div className="row g-3 mb-3"></div>
           <div className="section-header">
             <h2 className="section-title">
               <span className="section-icon">📚</span>
-              {selectedCategory === 'All' ? 'All Courses' : selectedCategory}
+              {selectedCategory === "All" ? "All Courses" : selectedCategory}
             </h2>
           </div>
 
           {/* Categories */}
           <div className="categories-filter">
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <button
                 key={cat}
-                className={`category-filter-btn ${selectedCategory === cat ? 'active' : ''}`}
+                className={`category-filter-btn ${
+                  selectedCategory === cat ? "active" : ""
+                }`}
                 onClick={() => setSelectedCategory(cat)}
               >
                 {cat}
-                {selectedCategory === cat && <span className="active-indicator"></span>}
+                {selectedCategory === cat && (
+                  <span className="active-indicator"></span>
+                )}
               </button>
             ))}
           </div>
@@ -380,19 +463,21 @@ export default function StudentHome() {
             </div>
           ) : error ? (
             <div className="text-center py-5">
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📚</div>
               <h3>Oops!</h3>
               <p className="text-muted">{error}</p>
             </div>
           ) : filteredCourses.length === 0 ? (
             <div className="text-center py-5">
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔍</div>
               <h3>No courses found</h3>
-              <p className="text-muted">Try adjusting your search or browse different categories</p>
+              <p className="text-muted">
+                Try adjusting your search or browse different categories
+              </p>
             </div>
           ) : (
             <div className="row g-4">
-              {filteredCourses.map(course => (
+              {filteredCourses.map((course) => (
                 <div key={course.id} className="col-12 col-sm-6 col-lg-4">
                   <CourseCard course={course} />
                 </div>
@@ -417,176 +502,208 @@ export default function StudentHome() {
               <a href="#">Help</a>
               <a href="#">Privacy</a>
             </div>
-            <p className="footer-copyright">© 2025 LearnHub. All rights reserved.</p>
+            <p className="footer-copyright">
+              © 2025 LearnHub. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
 // Course Card Component
 function CourseCard({ course }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const navigate = useNavigate()
+  const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
   return (
-    <div 
+    <div
       className="card course-card"
       style={{
-        borderRadius: '8px',
-        overflow: 'hidden',
-        boxShadow: isHovered ? '0 5px 15px rgba(0,0,0,0.08)' : '0 2px 6px rgba(0,0,0,0.04)',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        transform: isHovered ? 'translateY(-3px)' : 'none',
-        border: '1px solid #e5e7eb',
-        height: '100%'
+        borderRadius: "8px",
+        overflow: "hidden",
+        boxShadow: isHovered
+          ? "0 5px 15px rgba(0,0,0,0.08)"
+          : "0 2px 6px rgba(0,0,0,0.04)",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        transform: isHovered ? "translateY(-3px)" : "none",
+        border: "1px solid #e5e7eb",
+        height: "100%",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
         {/* Course Thumbnail */}
-        <div style={{ 
-          position: 'relative',
-          height: '160px',
-          overflow: 'hidden',
-          background: course.thumbnail && course.thumbnail.startsWith('data:image') 
-            ? 'none' 
-            : `linear-gradient(135deg, #667eea 0%, #764ba2 100%)` 
-        }}>
-          {course.thumbnail && course.thumbnail.startsWith('data:image') ? (
-            <img 
-              src={course.thumbnail} 
+        <div
+          style={{
+            position: "relative",
+            height: "160px",
+            overflow: "hidden",
+            background:
+              course.thumbnail && course.thumbnail.startsWith("data:image")
+                ? "none"
+                : `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
+          }}
+        >
+          {course.thumbnail && course.thumbnail.startsWith("data:image") ? (
+            <img
+              src={course.thumbnail}
               alt={course.title}
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'cover',
-                transition: 'transform 0.2s ease',
-                transform: isHovered ? 'scale(1.01)' : 'scale(1)'
-              }} 
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transition: "transform 0.2s ease",
+                transform: isHovered ? "scale(1.01)" : "scale(1)",
+              }}
             />
           ) : (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              height: '100%',
-              fontSize: '3.5rem',
-              background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
-              color: 'white'
-            }}>
-              <span>{course.thumbnail || '🎓'}</span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                fontSize: "3.5rem",
+                background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
+                color: "white",
+              }}
+            >
+              <span>{course.thumbnail || "🎓"}</span>
             </div>
           )}
-          
+
           {/* Level Badge */}
-          <div style={{ 
-            position: 'absolute', 
-            bottom: '12px', 
-            left: '12px', 
-            zIndex: 2,
-            background: 'rgba(255,255,255,0.9)',
-            color: '#333',
-            padding: '5px 12px',
-            borderRadius: '20px',
-            fontWeight: 600,
-            fontSize: '0.75rem',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-            textTransform: 'capitalize'
-          }}>
+          <div
+            style={{
+              position: "absolute",
+              bottom: "12px",
+              left: "12px",
+              zIndex: 2,
+              background: "rgba(255,255,255,0.9)",
+              color: "#333",
+              padding: "5px 12px",
+              borderRadius: "20px",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+              textTransform: "capitalize",
+            }}
+          >
             {course.level}
           </div>
         </div>
-        
+
         {/* Card Content */}
-        <div style={{ 
-          padding: '20px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          flexGrow: 1
-        }}>
+        <div
+          style={{
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+          }}
+        >
           {/* Category */}
-          <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ 
-              width: '24px', 
-              height: '24px', 
-              borderRadius: '4px', 
-              background: '#4361ee', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              fontSize: '0.7rem',
-              fontWeight: 'bold',
-              color: 'white'
-            }}>
-              {course.category?.charAt(0) || 'L'}
+          <div
+            style={{
+              marginBottom: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <div
+              style={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "4px",
+                background: "#4361ee",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.7rem",
+                fontWeight: "bold",
+                color: "white",
+              }}
+            >
+              {course.category?.charAt(0) || "L"}
             </div>
-            <span style={{ fontSize: '0.85rem', color: '#4361ee', fontWeight: 600 }}>
-              {course.category || 'General'}
+            <span
+              style={{ fontSize: "0.85rem", color: "#4361ee", fontWeight: 600 }}
+            >
+              {course.category || "General"}
             </span>
           </div>
-          
+
           {/* Title */}
-          <h5 style={{ 
-            fontSize: '1.2rem', 
-            fontWeight: 700, 
-            marginBottom: '10px',
-            lineHeight: 1.3,
-            color: '#111827'
-          }}>
+          <h5
+            style={{
+              fontSize: "1.2rem",
+              fontWeight: 700,
+              marginBottom: "10px",
+              lineHeight: 1.3,
+              color: "#111827",
+            }}
+          >
             {course.title}
           </h5>
-          
+
           {/* Specialization Tag */}
-          <div style={{ marginBottom: '15px' }}>
-            <span style={{ 
-              fontSize: '0.85rem', 
-              color: '#6b7280'
-            }}>
+          <div style={{ marginBottom: "15px" }}>
+            <span
+              style={{
+                fontSize: "0.85rem",
+                color: "#6b7280",
+              }}
+            >
               Specialization
             </span>
           </div>
-          
+
           {/* Course Duration */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            marginTop: 'auto',
-            paddingTop: '15px',
-            borderTop: '1px solid #f3f4f6'
-          }}>
-            <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-              <span style={{ marginRight: '5px' }}>⏱️</span>
-              {course.duration || '6 weeks'}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginTop: "auto",
+              paddingTop: "15px",
+              borderTop: "1px solid #f3f4f6",
+            }}
+          >
+            <span style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+              <span style={{ marginRight: "5px" }}>⏱️</span>
+              {course.duration || "6 weeks"}
             </span>
           </div>
-          
+
           {/* Enroll Button */}
-          <div style={{ 
-            marginTop: '20px'
-          }}>
-            <button 
+          <div
+            style={{
+              marginTop: "20px",
+            }}
+          >
+            <button
               onClick={() => navigate(`/enroll/${course.id}`)}
               style={{
-                width: '100%',
-                background: '#4361ee',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '10px 0',
-                fontSize: '0.9rem',
+                width: "100%",
+                background: "#4361ee",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                padding: "10px 0",
+                fontSize: "0.9rem",
                 fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s ease'
+                cursor: "pointer",
+                transition: "background-color 0.2s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#3a56d4'
+                e.currentTarget.style.backgroundColor = "#3a56d4";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#4361ee'
+                e.currentTarget.style.backgroundColor = "#4361ee";
               }}
             >
               Enroll Now
@@ -595,5 +712,5 @@ function CourseCard({ course }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
