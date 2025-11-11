@@ -1,22 +1,28 @@
 package com.elearn.lms.service;
 
+import com.elearn.lms.dto.CategoryNameDTO;
 import com.elearn.lms.dto.CourseRequest;
 import com.elearn.lms.dto.CourseResponse;
+import com.elearn.lms.entity.Category;
 import com.elearn.lms.entity.Course;
+import com.elearn.lms.repository.CategoryRepository;
 import com.elearn.lms.repository.CourseRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
 
 	private final CourseRepository courseRepository;
+	private final CategoryRepository categoryRepository;
 
-	public CourseService(CourseRepository courseRepository) {
+	public CourseService(CourseRepository courseRepository, CategoryRepository categoryRepository) {
 		this.courseRepository = courseRepository;
+		this.categoryRepository = categoryRepository;
 	}
 
 	public CourseResponse createCourse(@NonNull CourseRequest request) {
@@ -31,33 +37,64 @@ public class CourseService {
 		course.setDuration(request.getDuration() != null ? request.getDuration() : "6 weeks");
 
 		Course saved = courseRepository.save(course);
-		return new CourseResponse(saved);
+		CourseResponse response = new CourseResponse(saved);
+		addCategoryInfo(response);
+		return response;
 	}
 
 	public List<CourseResponse> getAllCourses() {
 		return courseRepository.findAll()
 			.stream()
-			.map(CourseResponse::new)
+			.map(course -> {
+				CourseResponse response = new CourseResponse(course);
+				// Add category information
+				addCategoryInfo(response);
+				return response;
+			})
 			.collect(Collectors.toList());
+	}
+	
+	/**
+	 * Helper method to add category information to a CourseResponse
+	 * @param response CourseResponse to update
+	 */
+	private void addCategoryInfo(CourseResponse response) {
+		if (response.getCategoryId() != null) {
+			Optional<Category> categoryOpt = categoryRepository.findById(response.getCategoryId());
+			if (categoryOpt.isPresent()) {
+				Category category = categoryOpt.get();
+				response.setCategory(new CategoryNameDTO(category.getName()));
+			}
+		}
 	}
 
 	public CourseResponse getCourseById(@NonNull Long id) {
 		Course course = courseRepository.findById(id)
 			.orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
-		return new CourseResponse(course);
+		CourseResponse response = new CourseResponse(course);
+		addCategoryInfo(response);
+		return response;
 	}
 
 	public List<CourseResponse> getCoursesByInstructor(@NonNull Long instructorId) {
 		return courseRepository.findByInstructorId(instructorId)
 			.stream()
-			.map(CourseResponse::new)
+			.map(course -> {
+				CourseResponse response = new CourseResponse(course);
+				addCategoryInfo(response);
+				return response;
+			})
 			.collect(Collectors.toList());
 	}
 
 	public List<CourseResponse> getCoursesByStatus(@NonNull String status) {
 		return courseRepository.findByStatus(status)
 			.stream()
-			.map(CourseResponse::new)
+			.map(course -> {
+				CourseResponse response = new CourseResponse(course);
+				addCategoryInfo(response);
+				return response;
+			})
 			.collect(Collectors.toList());
 	}
 
@@ -83,7 +120,9 @@ public class CourseService {
 		}
 
 		Course updated = courseRepository.save(course);
-		return new CourseResponse(updated);
+		CourseResponse response = new CourseResponse(updated);
+		addCategoryInfo(response);
+		return response;
 	}
 
 	public void deleteCourse(@NonNull Long id) {

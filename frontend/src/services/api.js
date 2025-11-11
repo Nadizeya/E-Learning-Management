@@ -198,10 +198,54 @@ export const enrollmentAPI = {
 export const categoryAPI = {
   // Get all categories
   getAllCategories: async () => {
-    const response = await fetch(`${API_BASE_URL}/categories`);
-    if (!response.ok) throw new Error('Failed to fetch categories');
-    const data = await response.json();
-    return data.data;
+    try {
+      console.log('Fetching categories from:', `${API_BASE_URL}/categories`);
+      const response = await fetch(`${API_BASE_URL}/categories`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('Categories API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to fetch categories (${response.status}):`, errorText);
+        throw new Error(`Failed to fetch categories: ${response.statusText}`);
+      }
+      
+      // Try to parse the response as JSON
+      let data;
+      const responseText = await response.text();
+      console.log('Categories API raw response:', responseText);
+      
+      if (!responseText || responseText.trim() === '') {
+        console.warn('Empty response received from categories API');
+        return [];
+      }
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing categories response:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+      
+      // Extract the categories data
+      const categoriesData = data.data || data;
+      console.log('Parsed categories data:', categoriesData);
+      
+      // Ensure we have an array
+      if (!Array.isArray(categoriesData)) {
+        console.warn('Categories data is not an array, converting to array');
+        return categoriesData ? [categoriesData] : [];
+      }
+      
+      return categoriesData;
+    } catch (error) {
+      console.error('Error in getAllCategories:', error);
+      throw error;
+    }
   },
 };
 
