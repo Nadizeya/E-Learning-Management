@@ -205,6 +205,17 @@ export const categoryAPI = {
   },
 };
 
+// Instructor API
+export const instructorAPI = {
+  // Get instructor by ID
+  getInstructorById: async (id) => {
+    const response = await fetch(`${API_BASE_URL}/instructors/${id}`);
+    if (!response.ok) throw new Error('Failed to fetch instructor');
+    const data = await response.json();
+    return data.data;
+  },
+};
+
 // Quiz API
 export const quizAPI = {
   // Get quiz for student (without correct answers)
@@ -309,5 +320,6 @@ export default {
   courseContentAPI,
   enrollmentAPI,
   categoryAPI,
+  instructorAPI,
   quizAPI
 };
