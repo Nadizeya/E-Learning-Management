@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./StudentHome.css";
 import { courseAPI, categoryAPI } from "../services/api.js";
+import AuthModal from "../components/auth/AuthModal";
 
 // Categories will be fetched from the backend
 
@@ -18,6 +19,11 @@ export default function StudentHome() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState(["All"]);
   const [error, setError] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalConfig, setAuthModalConfig] = useState({
+    userType: 'student',
+    mode: 'signin'
+  });
 
   useEffect(() => {
     // Check if user is logged in
@@ -255,14 +261,22 @@ export default function StudentHome() {
                     <div className="signin-dropdown">
                       <button
                         className="dropdown-item"
-                        onClick={() => navigate("/student/signin")}
+                        onClick={() => {
+                          setShowSignInDropdown(false);
+                          setAuthModalConfig({ userType: 'student', mode: 'signin' });
+                          setShowAuthModal(true);
+                        }}
                       >
                         <span className="item-icon">👨‍🎓</span>
                         Sign in as Student
                       </button>
                       <button
                         className="dropdown-item"
-                        onClick={() => navigate("/instructor/signin")}
+                        onClick={() => {
+                          setShowSignInDropdown(false);
+                          setAuthModalConfig({ userType: 'instructor', mode: 'signin' });
+                          setShowAuthModal(true);
+                        }}
                       >
                         <span className="item-icon">👨‍🏫</span>
                         Sign in as Instructor
@@ -499,6 +513,26 @@ export default function StudentHome() {
           </div>
         </div>
       </footer>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        show={showAuthModal}
+        onClose={() => {
+          setShowAuthModal(false);
+          // Check if user is logged in after modal closes
+          const token = localStorage.getItem("token");
+          const userRole = localStorage.getItem("userRole");
+          const userData = localStorage.getItem("user");
+          
+          if (token && userRole === "STUDENT" && userData) {
+            setIsLoggedIn(true);
+            setStudent(JSON.parse(userData));
+          }
+        }}
+        userType={authModalConfig.userType}
+        mode={authModalConfig.mode}
+        onModeChange={(newConfig) => setAuthModalConfig({ ...authModalConfig, ...newConfig })}
+      />
     </div>
   );
 }

@@ -1,10 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import AuthModal from '../components/auth/AuthModal'
 import './Landing.css'
 
 export default function Landing() {
   const navigate = useNavigate()
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [authModalConfig, setAuthModalConfig] = useState({
+    userType: 'student',
+    mode: 'signin'
+  })
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState(null)
+  const [userRole, setUserRole] = useState(null)
+  
+  // Check login status on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUserRole = localStorage.getItem("userRole");
+    const userData = localStorage.getItem("user");
+    
+    if (token && storedUserRole && userData) {
+      setIsLoggedIn(true);
+      setUser(JSON.parse(userData));
+      setUserRole(storedUserRole);
+    }
+  }, []);
 
   return (
     <div className="landing-page">
@@ -18,25 +40,42 @@ export default function Landing() {
             </a>
             <div className="nav-actions">
               <div className="signin-dropdown-wrapper">
-                <button 
-                  className="btn btn-signin"
-                  onClick={() => setShowDropdown(!showDropdown)}
-                >
-                  Sign In
-                  <span className="dropdown-arrow">{showDropdown ? '▲' : '▼'}</span>
-                </button>
+                {isLoggedIn ? (
+                  <button 
+                    className="btn btn-signin"
+                    onClick={() => navigate(userRole === 'STUDENT' ? '/' : '/instructor/dashboard')}
+                  >
+                    {userRole === 'STUDENT' ? 'Go to Dashboard' : 'Instructor Dashboard'}
+                  </button>
+                ) : (
+                  <button 
+                    className="btn btn-signin"
+                    onClick={() => setShowDropdown(!showDropdown)}
+                  >
+                    Sign In
+                    <span className="dropdown-arrow">{showDropdown ? '▲' : '▼'}</span>
+                  </button>
+                )}
                 {showDropdown && (
                   <div className="signin-dropdown">
                     <button 
                       className="dropdown-item"
-                      onClick={() => navigate('/student/signin')}
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setAuthModalConfig({ userType: 'student', mode: 'signin' });
+                        setShowAuthModal(true);
+                      }}
                     >
                       <span className="item-icon">👨‍🎓</span>
                       Sign in as Student
                     </button>
                     <button 
                       className="dropdown-item"
-                      onClick={() => navigate('/instructor/signin')}
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setAuthModalConfig({ userType: 'instructor', mode: 'signin' });
+                        setShowAuthModal(true);
+                      }}
                     >
                       <span className="item-icon">👨‍🏫</span>
                       Sign in as Instructor
@@ -65,18 +104,51 @@ export default function Landing() {
               Your gateway to unlimited learning opportunities. Join thousands of students and instructors worldwide.
             </p>
             <div className="hero-buttons">
-              <button 
-                className="btn btn-primary-large"
-                onClick={() => navigate('/student/signup')}
-              >
-                Get Started as Student
-              </button>
-              <button 
-                className="btn btn-secondary-large"
-                onClick={() => navigate('/instructor/signup')}
-              >
-                Teach on LearnHub
-              </button>
+              isLoggedIn ? (
+                <>
+                  <button 
+                    className="btn btn-primary-large"
+                    onClick={() => navigate(userRole === 'STUDENT' ? '/' : '/instructor/dashboard')}
+                  >
+                    {userRole === 'STUDENT' ? 'Go to Dashboard' : 'Instructor Dashboard'}
+                  </button>
+                  <button 
+                    className="btn btn-secondary-large"
+                    onClick={() => {
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('user');
+                      localStorage.removeItem('userRole');
+                      setIsLoggedIn(false);
+                      setUser(null);
+                      setUserRole(null);
+                      navigate('/');
+                    }}
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-primary-large"
+                    onClick={() => {
+                      setAuthModalConfig({ userType: 'student', mode: 'signup' });
+                      setShowAuthModal(true);
+                    }}
+                  >
+                    Get Started as Student
+                  </button>
+                  <button 
+                    className="btn btn-secondary-large"
+                    onClick={() => {
+                      setAuthModalConfig({ userType: 'instructor', mode: 'signup' });
+                      setShowAuthModal(true);
+                    }}
+                  >
+                    Teach on LearnHub
+                  </button>
+                </>
+              )
             </div>
             <div className="hero-stats">
               <div className="stat-item">
@@ -144,6 +216,27 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        show={showAuthModal}
+        onClose={() => {
+          setShowAuthModal(false);
+          // Check if user is logged in after modal closes
+          const token = localStorage.getItem("token");
+          const storedUserRole = localStorage.getItem("userRole");
+          const userData = localStorage.getItem("user");
+          
+          if (token && storedUserRole && userData) {
+            setIsLoggedIn(true);
+            setUser(JSON.parse(userData));
+            setUserRole(storedUserRole);
+          }
+        }}
+        userType={authModalConfig.userType}
+        mode={authModalConfig.mode}
+        onModeChange={(newConfig) => setAuthModalConfig({ ...authModalConfig, ...newConfig })}
+      />
     </div>
   )
 }

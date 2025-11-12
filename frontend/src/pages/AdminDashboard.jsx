@@ -533,24 +533,6 @@ function CoursesTab() {
         {loading ? <p>Loading...</p> : <DataTable columns={columns} data={list} onRowClick={(c) => fetchCourseDetails(c.courseId)} emptyMessage="No courses found" />}
 
         <DetailModal show={!!selectedCourse} onClose={() => setSelectedCourse(null)} title={selectedCourse?.title || 'Course'} loading={details.loading}>
-          <div className="mb-3">
-            <button
-              className="btn btn-sm btn-outline-info"
-              onClick={async () => {
-                if (!selectedCourse) return
-                setModules({ open: true, list: [], loading: true })
-                try {
-                  const res = await axios.get(`http://localhost:8080/api/course-modules/course/${selectedCourse.courseId || selectedCourse.id}`)
-                  const data = res.data?.data || []
-                  setModules({ open: true, list: data, loading: false })
-                } catch (e) {
-                  setModules({ open: true, list: [], loading: false })
-                }
-              }}
-            >
-              View Modules
-            </button>
-          </div>
           <DetailSection label="1. Category">
             <p className="form-control-plaintext fs-5">
               {details.category ? details.category.name : (selectedCourse?.categoryType || 'N/A')}
@@ -569,7 +551,27 @@ function CoursesTab() {
           <DetailSection label="3. Enroll">
             <p className="form-control-plaintext fs-5">{enrolledCount} {enrolledCount === 1 ? 'person' : 'people'} enrolled</p>
           </DetailSection>
-          <DetailSection label="4. Completion">
+          <DetailSection label="4. Modules">
+            <div className="mt-2">
+              <button
+                className="btn btn-outline-info view-modules-btn"
+                onClick={async () => {
+                  if (!selectedCourse) return
+                  setModules({ open: true, list: [], loading: true })
+                  try {
+                    const res = await axios.get(`http://localhost:8080/api/course-modules/course/${selectedCourse.courseId || selectedCourse.id}`)
+                    const data = res.data?.data || []
+                    setModules({ open: true, list: data, loading: false })
+                  } catch (e) {
+                    setModules({ open: true, list: [], loading: false })
+                  }
+                }}
+              >
+                View Modules
+              </button>
+            </div>
+          </DetailSection>
+          <DetailSection label="5. Completion">
             <p className="form-control-plaintext fs-5">{completedCount} {completedCount === 1 ? 'person' : 'people'} completed</p>
           </DetailSection>
         </DetailModal>
@@ -596,23 +598,31 @@ function CoursesTab() {
         <Modal show={modules.open} onClose={() => setModules({ open: false, list: [], loading: false })} title="Modules">
           <div className="modal-body">
             {modules.loading ? <p>Loading modules...</p> : (
-              <div className="table-responsive">
-                <table className="table align-middle w-100">
-                  <thead>
-                    <tr><th scope="col">Module Title</th></tr>
-                  </thead>
-                  <tbody>
-                    {modules.list.map((m, idx) => (
-                      <tr key={m.moduleId || idx}><td>{m.title}</td></tr>
-                    ))}
-                    {modules.list.length === 0 && <tr><td className="text-center text-secondary">No modules</td></tr>}
-                  </tbody>
-                </table>
+              <div>
+                <h5 className="mb-3">Module Title</h5>
+                <div className="module-list">
+                  {modules.list.map((m, idx) => (
+                    <div 
+                      key={m.moduleId || idx} 
+                      className="module-item"
+                    >
+                      {m.title}
+                    </div>
+                  ))}
+                  {modules.list.length === 0 && (
+                    <div className="text-center text-secondary py-3">No modules available</div>
+                  )}
+                </div>
               </div>
             )}
           </div>
           <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={() => setModules({ open: false, list: [], loading: false })}>Close</button>
+            <button 
+              className="btn btn-secondary"
+              onClick={() => setModules({ open: false, list: [], loading: false })}
+            >
+              Close
+            </button>
           </div>
         </Modal>
       </div>

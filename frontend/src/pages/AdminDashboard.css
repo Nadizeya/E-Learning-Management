@@ -106,6 +106,41 @@
 }
 
 /* ============================================
+   Module List Styles
+   ============================================ */
+.module-list {
+  border-top: 1px solid #e5e7eb;
+}
+
+.module-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 1rem;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
+
+.module-item:hover {
+  background-color: #f8f9fa;
+}
+
+.view-modules-btn {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+  background-color: transparent;
+  color: #17a2b8;
+  border-color: #17a2b8;
+  transition: all 0.2s ease;
+}
+
+.view-modules-btn:hover {
+  background-color: #17a2b8;
+  color: white;
+}
+
+/* ============================================
    Responsive Design
    ============================================ */
 @media (max-width: 768px) {
