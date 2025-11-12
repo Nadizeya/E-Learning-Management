@@ -119,8 +119,8 @@ export default function CourseModal({ course, onClose, onSuccess }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+      <div className="modal-content bg-white" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header ">
           <h2>{course ? 'Edit Course' : 'Create New Course'}</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
