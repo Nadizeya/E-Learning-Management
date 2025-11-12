@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './InstructorDashboard.css'
-import CourseManagement from '../components/CourseManagement'
+import '../styles/InstructorDashboard.css'
+import CourseManagement from '../../components/CourseManagement'
 
 export default function InstructorDashboard() {
   const navigate = useNavigate()

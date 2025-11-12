@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./StudentHome.css";
-import { courseAPI, categoryAPI } from "../services/api.js";
-import AuthModal from "../components/auth/AuthModal";
+import "../styles/StudentHome.css";
+import { courseAPI, categoryAPI } from "../../services/api.js";
+import AuthModal from "../../components/auth/AuthModal";
 
 // Categories will be fetched from the backend
 

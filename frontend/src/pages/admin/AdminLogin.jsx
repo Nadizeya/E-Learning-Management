@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import apiClient from '../api/apiClient'
-import { useAuth } from '../state/AuthContext.jsx'
-import './AdminLogin.css'
+import apiClient from '../../api/apiClient'
+import { useAuth } from '../../state/AuthContext.jsx'
+import '../styles/AdminLogin.css'
 
 export default function AdminLogin() {
   const navigate = useNavigate()

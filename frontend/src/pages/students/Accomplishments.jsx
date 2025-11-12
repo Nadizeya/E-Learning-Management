@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { courseAPI, enrollmentAPI, certificateAPI, badgeAPI } from '../services/api.js'
+import { courseAPI, enrollmentAPI, certificateAPI, badgeAPI } from '../../services/api.js'
 
 export default function Accomplishments() {
   const navigate = useNavigate()

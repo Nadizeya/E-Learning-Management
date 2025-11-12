@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../api/apiClient";
-import { useAuth } from "../state/AuthContext.jsx";
-import Sidebar from "../components/Sidebar.jsx";
-import Topbar from "../components/Topbar.jsx";
-import Modal from "../components/admin/Modal.jsx";
-import DataTable from "../components/admin/DataTable.jsx";
-import DetailSection from "../components/admin/DetailSection.jsx";
-import ListGroupItem from "../components/admin/ListGroupItem.jsx";
-import { useDataFetch } from "../hooks/useDataFetch.js";
-import DetailModal from "../components/admin/DetailModal.jsx";
-import RowActionMenu from "../components/admin/RowActionMenu.jsx";
-import { formatDate } from "../utils/format.js";
-import "./AdminDashboard.css";
+import apiClient from "../../api/apiClient";
+import { useAuth } from "../../state/AuthContext.jsx";
+import Sidebar from "../../components/Sidebar.jsx";
+import Topbar from "../../components/Topbar.jsx";
+import Modal from "../../components/admin/Modal.jsx";
+import DataTable from "../../components/admin/DataTable.jsx";
+import DetailSection from "../../components/admin/DetailSection.jsx";
+import ListGroupItem from "../../components/admin/ListGroupItem.jsx";
+import { useDataFetch } from "../../hooks/useDataFetch.js";
+import DetailModal from "../../components/admin/DetailModal.jsx";
+import RowActionMenu from "../../components/admin/RowActionMenu.jsx";
+import { formatDate } from "../../utils/format.js";
+import "../styles/AdminDashboard.css";
 
 export default function AdminDashboard() {
   const { admin, logout } = useAuth();

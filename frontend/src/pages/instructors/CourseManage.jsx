@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import apiClient from '../api/apiClient'
-import ModuleModal from '../components/ModuleModal'
-import ContentModal from '../components/ContentModal'
-import { categoryAPI } from '../services/api.js'
+import apiClient from '../../api/apiClient'
+import ModuleModal from '../../components/ModuleModal'
+import ContentModal from '../../components/ContentModal'
+import { categoryAPI } from '../../services/api.js'
 
 export default function CourseManage() {
   const { courseId } = useParams()

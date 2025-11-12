@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import apiClient from "../api/apiClient";
+import apiClient from "../../api/apiClient";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./StudentHome.css";
-import { instructorAPI } from "../services/api.js";
+import "../styles/StudentHome.css";
+import { studentAPI } from "../../services/api.js";
 
-export default function InstructorSettings() {
+export default function StudentSettings() {
   const navigate = useNavigate();
-  const [instructor, setInstructor] = useState(null);
+  const [student, setStudent] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [bio, setBio] = useState("");
-  const [expertise, setExpertise] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showSignInDropdown, setShowSignInDropdown] = useState(false);
@@ -28,22 +26,20 @@ export default function InstructorSettings() {
     const token = localStorage.getItem("token");
     const userRole = localStorage.getItem("userRole");
     if (!userRaw) {
-      navigate("/instructor/signin");
+      navigate("/student/signin");
       return;
     }
     try {
       const u = JSON.parse(userRaw);
-      setInstructor(u);
+      setStudent(u);
       setFirstName(u.firstName || "");
       setLastName(u.lastName || "");
       setEmail(u.email || "");
-      setBio(u.bio || "");
-      setExpertise(u.expertise || "");
-      if (token && userRole === "INSTRUCTOR" && userRaw) {
+      if (token && userRole === "STUDENT" && userRaw) {
         setIsLoggedIn(true);
       }
     } catch {
-      navigate("/instructor/signin");
+      navigate("/student/signin");
     }
 
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -53,25 +49,23 @@ export default function InstructorSettings() {
 
   const saveProfile = async (e) => {
     e.preventDefault();
-    if (!instructor?.id && !instructor?.instructorId) {
-      setError("Missing instructor id in local storage");
+    if (!student?.id && !student?.studentId) {
+      setError("Missing student id in local storage");
       return;
     }
     setLoading(true);
     setError("");
     setMessage("");
     try {
-      const id = instructor.id || instructor.instructorId;
-      const res = await apiClient.put(`/instructors/${id}`, {
+      const id = student.id || student.studentId;
+      const res = await apiClient.put(`/students/${id}`, {
         firstName,
         lastName,
         email,
-        bio,
-        expertise
       });
       const updated = res.data;
       localStorage.setItem("user", JSON.stringify(updated));
-      setInstructor(updated);
+      setStudent(updated);
       setMessage("Profile updated");
     } catch (err) {
       setError(err?.response?.data?.message || "Update failed");
@@ -87,8 +81,8 @@ export default function InstructorSettings() {
       return;
     }
     
-    if (!instructor?.id && !instructor?.instructorId) {
-      setError("Missing instructor id in local storage");
+    if (!student?.id && !student?.studentId) {
+      setError("Missing student id in local storage");
       return;
     }
     
@@ -96,8 +90,8 @@ export default function InstructorSettings() {
     setError("");
     
     try {
-      const id = instructor.id || instructor.instructorId;
-      await instructorAPI.deleteInstructor(id);
+      const id = student.id || student.studentId;
+      await studentAPI.deleteStudent(id);
       
       // Clear all local storage data
       localStorage.removeItem("token");
@@ -107,7 +101,7 @@ export default function InstructorSettings() {
       // Redirect to home page with a message
       navigate("/", { 
         state: { 
-          message: "Your instructor account has been successfully deleted. We're sorry to see you go!" 
+          message: "Your account has been successfully deleted. We're sorry to see you go!" 
         } 
       });
     } catch (err) {
@@ -124,9 +118,9 @@ export default function InstructorSettings() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f7f8fa" }}>
-      {/* Instructor navbar */}
+      {/* Match StudentHome header/navbar */}
       <nav
-        className={`navbar navbar-expand-lg navbar-dark fixed-top ${
+        className={`navbar navbar-expand-lg navbar-dark fixed-top  ${
           isScrolled ? "navbar-scrolled" : ""
         }`}
         style={{ background: "#4041D2" }}
@@ -148,18 +142,18 @@ export default function InstructorSettings() {
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
                 <Link className="nav-link" to="/">
-                  Home
+                  Explore
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/instructor/dashboard">
-                  Dashboard
-                </Link>
+                <a className="nav-link" href="#">
+                  My Learning
+                </a>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/instructor/courses">
-                  My Courses
-                </Link>
+                <a className="nav-link" href="#">
+                  Career Goals
+                </a>
               </li>
             </ul>
             <div className="d-flex align-items-center gap-3">
@@ -170,10 +164,10 @@ export default function InstructorSettings() {
                     onClick={() => setShowSignInDropdown(!showSignInDropdown)}
                   >
                     <div className="user-avatar">
-                      <span>{instructor?.firstName?.charAt(0) || "I"}</span>
+                      <span>{student?.firstName?.charAt(0) || "H"}</span>
                     </div>
                     <span className="user-name d-none d-md-inline">
-                      Hi, {instructor?.firstName || "Instructor"}!
+                      Hi, {student?.firstName || "Hello"}!
                     </span>
                   </div>
 
@@ -181,16 +175,16 @@ export default function InstructorSettings() {
                     <div className="user-dropdown">
                       <div className="user-dropdown-header">
                         <div className="user-dropdown-name">
-                          {instructor?.firstName} {instructor?.lastName}
+                          {student?.firstName} {student?.lastName}
                         </div>
                         <div className="user-dropdown-email">
-                          {instructor?.email}
+                          {student?.email}
                         </div>
                       </div>
 
                       <div className="user-dropdown-menu">
                         <Link
-                          to="/instructor/settings"
+                          to="/student/settings"
                           className="dropdown-item"
                           onClick={() => setShowSignInDropdown(false)}
                         >
@@ -198,7 +192,7 @@ export default function InstructorSettings() {
                           Settings
                         </Link>
                         <Link
-                          to="/instructor/courses"
+                          to="/my-courses"
                           className="dropdown-item"
                           onClick={() => setShowSignInDropdown(false)}
                         >
@@ -206,7 +200,15 @@ export default function InstructorSettings() {
                           Courses
                         </Link>
                         <Link
-                          to="/forgot-password?role=INSTRUCTOR"
+                          to="/accomplishments"
+                          className="dropdown-item"
+                          onClick={() => setShowSignInDropdown(false)}
+                        >
+                          <span className="dropdown-item-icon">🏆</span>{" "}
+                          Accomplishments
+                        </Link>
+                        <Link
+                          to="/forgot-password?role=STUDENT"
                           className="dropdown-item"
                           onClick={() => setShowSignInDropdown(false)}
                         >
@@ -221,7 +223,7 @@ export default function InstructorSettings() {
                             localStorage.removeItem("user");
                             localStorage.removeItem("userRole");
                             setIsLoggedIn(false);
-                            setInstructor(null);
+                            setStudent(null);
                             setShowSignInDropdown(false);
                             navigate("/");
                           }}
@@ -233,31 +235,63 @@ export default function InstructorSettings() {
                   )}
                 </div>
               ) : (
-                <Link to="/instructor/signin" className="btn btn-light">
-                  Sign In
-                </Link>
+                <div className="signin-dropdown-wrapper">
+                  <button
+                    className="btn btn-signin-nav"
+                    onClick={() => setShowSignInDropdown(!showSignInDropdown)}
+                  >
+                    Sign In
+                    <span className="dropdown-arrow">
+                      {showSignInDropdown ? "▲" : "▼"}
+                    </span>
+                  </button>
+                  {showSignInDropdown && (
+                    <div className="signin-dropdown">
+                      <button
+                        className="dropdown-item"
+                        onClick={() => navigate("/student/signin")}
+                      >
+                        <span className="item-icon">👨‍🎓</span>
+                        Sign in as Student
+                      </button>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => navigate("/instructor/signin")}
+                      >
+                        <span className="item-icon">👨‍🏫</span>
+                        Sign in as Instructor
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
+              <Link to="/signin" className="btn btn-outline-light">
+                Admin Sign In
+              </Link>
+              <Link to="/admin" className="btn btn-primary">
+                Admin Dashboard
+              </Link>
             </div>
           </div>
         </div>
       </nav>
 
       <main
-        className="container"
+        className="container "
         style={{ paddingTop: 96, paddingBottom: 32 }}
       >
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
             <div className="d-flex align-items-center justify-content-between mb-4">
               <div>
-                <h2 className="mt-5">Instructor Settings</h2>
+                <h2 className="mt-5">Settings</h2>
                 <small className="text-muted">
-                  Manage your profile and account settings
+                  Manage your profile, security and achievements
                 </small>
               </div>
               <div className="d-none d-md-flex align-items-center gap-2 text-muted">
                 <span className="badge bg-light text-dark">
-                  {instructor?.email || ""}
+                  {student?.email || ""}
                 </span>
               </div>
             </div>
@@ -286,7 +320,8 @@ export default function InstructorSettings() {
                   <div className="card-body">
                     <h5 className="card-title mb-3">Profile</h5>
                     <p className="text-muted mb-4" style={{ fontSize: 14 }}>
-                      Update your profile information. Your profile is visible to students enrolled in your courses.
+                      Update your name and email. Your email is used for login
+                      and notifications.
                     </p>
                     <form onSubmit={saveProfile}>
                       <div className="row g-3">
@@ -327,31 +362,6 @@ export default function InstructorSettings() {
                             required
                           />
                         </div>
-                        <div className="col-12">
-                          <label htmlFor="bio" className="form-label">
-                            Bio
-                          </label>
-                          <textarea
-                            id="bio"
-                            className="form-control"
-                            value={bio}
-                            onChange={(e) => setBio(e.target.value)}
-                            rows={3}
-                            placeholder="Tell students about yourself"
-                          />
-                        </div>
-                        <div className="col-12">
-                          <label htmlFor="expertise" className="form-label">
-                            Expertise
-                          </label>
-                          <input
-                            id="expertise"
-                            className="form-control"
-                            value={expertise}
-                            onChange={(e) => setExpertise(e.target.value)}
-                            placeholder="e.g. Web Development, Data Science, etc."
-                          />
-                        </div>
                       </div>
                       <div className="mt-4 d-flex gap-2">
                         <button
@@ -365,11 +375,9 @@ export default function InstructorSettings() {
                           type="button"
                           className="btn btn-outline-secondary"
                           onClick={() => {
-                            setFirstName(instructor?.firstName || "");
-                            setLastName(instructor?.lastName || "");
-                            setEmail(instructor?.email || "");
-                            setBio(instructor?.bio || "");
-                            setExpertise(instructor?.expertise || "");
+                            setFirstName(student?.firstName || "");
+                            setLastName(student?.lastName || "");
+                            setEmail(student?.email || "");
                           }}
                           disabled={loading}
                         >
@@ -389,7 +397,7 @@ export default function InstructorSettings() {
                       Change your password using the recovery flow.
                     </p>
                     <Link
-                      to="/forgot-password?role=INSTRUCTOR"
+                      to="/forgot-password?role=STUDENT"
                       className="btn btn-outline-primary w-100"
                     >
                       Change password
@@ -397,14 +405,14 @@ export default function InstructorSettings() {
                   </div>
                 </div>
 
-                <div className="card mb-4" style={{ borderRadius: 16 }}>
+                <div className="card" style={{ borderRadius: 16 }}>
                   <div className="card-body">
-                    <h6 className="card-title">My Courses</h6>
+                    <h6 className="card-title">Achievements</h6>
                     <p className="text-muted" style={{ fontSize: 14 }}>
-                      Manage your courses and create new content.
+                      View and download your certificates and badges.
                     </p>
-                    <Link to="/instructor/courses" className="btn btn-light w-100">
-                      View courses
+                    <Link to="/accomplishments" className="btn btn-light w-100">
+                      View achievements
                     </Link>
                   </div>
                 </div>
@@ -432,9 +440,9 @@ export default function InstructorSettings() {
                             Deleting your account will permanently remove all your data, including:
                           </p>
                           <ul className="mt-2 mb-0" style={{ fontSize: 14 }}>
-                            <li>All your courses</li>
-                            <li>Course content and materials</li>
-                            <li>Student enrollments in your courses</li>
+                            <li>Course enrollments</li>
+                            <li>Progress tracking</li>
+                            <li>Certificates and badges</li>
                             <li>Personal information</li>
                           </ul>
                         </div>

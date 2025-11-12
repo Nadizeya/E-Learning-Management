@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import "../pages/Auth.css";
+import "../pages/styles/Auth.css";
 
 export default function AuthForm({ 
   userType, // 'student' or 'instructor'
