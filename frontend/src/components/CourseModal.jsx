@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import apiClient from '../api/apiClient'
 import { categoryAPI } from '../services/api.js'
 
 export default function CourseModal({ course, onClose, onSuccess }) {
@@ -101,11 +101,11 @@ export default function CourseModal({ course, onClose, onSuccess }) {
       }
 
       if (course) {
-        await axios.put(`http://localhost:8080/api/courses/${course.courseId}`, payload, {
+        await apiClient.put(`/courses/${course.courseId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         })
       } else {
-        await axios.post('http://localhost:8080/api/courses', payload, {
+        await apiClient.post('/courses', payload, {
           headers: { Authorization: `Bearer ${token}` }
         })
       }

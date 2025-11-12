@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import apiClient from '../api/apiClient'
 
 export default function QuizModal({ content, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -21,8 +21,8 @@ export default function QuizModal({ content, onClose, onSuccess }) {
   const checkExistingQuiz = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(
-        `http://localhost:8080/api/quizzes/content/${content.contentId}?includeCorrectAnswers=true`,
+      const response = await apiClient.get(
+        `/quizzes/content/${content.contentId}?includeCorrectAnswers=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       if (response.data.success && response.data.data) {
@@ -287,7 +287,7 @@ export default function QuizModal({ content, onClose, onSuccess }) {
       if (existingQuiz) {
         // Update existing quiz
         console.log('Updating existing quiz ID:', existingQuiz.quizId)
-        response = await axios.put(`http://localhost:8080/api/quizzes/${existingQuiz.quizId}`, payload, {
+        response = await apiClient.put(`/quizzes/${existingQuiz.quizId}`, payload, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -297,7 +297,7 @@ export default function QuizModal({ content, onClose, onSuccess }) {
       } else {
         // Create new quiz
         console.log('Creating new quiz...')
-        response = await axios.post('http://localhost:8080/api/quizzes', payload, {
+        response = await apiClient.post('/quizzes', payload, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../api/apiClient";
 import { useAuth } from "../state/AuthContext.jsx";
 
 export default function SignIn() {
@@ -16,8 +16,8 @@ export default function SignIn() {
     setError("");
     setLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/admins/auth/login",
+      const res = await apiClient.post(
+        "/admins/auth/login",
         { email, password }
       );
       // New backend returns { token, admin }

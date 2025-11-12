@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import apiClient from '../api/apiClient'
 import { useAuth } from '../state/AuthContext.jsx'
 import './AdminLogin.css'
 
@@ -17,7 +17,7 @@ export default function AdminLogin() {
     setError('')
     setLoading(true)
     try {
-      const res = await axios.post('http://localhost:8080/api/admins/auth/login', { email, password })
+      const res = await apiClient.post('/admins/auth/login', { email, password })
       const token = res.data?.token
       const admin = res.data?.admin
       if (!token || !admin) throw new Error('Invalid response')

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../api/apiClient';
 import './AuthModal.css';
 
 export default function AuthModal({ show, onClose, userType = 'student', mode = 'signin', onModeChange }) {
@@ -96,8 +96,8 @@ export default function AuthModal({ show, onClose, userType = 'student', mode = 
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/student/login",
+      const response = await apiClient.post(
+        "/auth/student/login",
         {
           email: studentSignInForm.email,
           password: studentSignInForm.password,
@@ -139,8 +139,8 @@ export default function AuthModal({ show, onClose, userType = 'student', mode = 
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/student/signup",
+      const response = await apiClient.post(
+        "/auth/student/signup",
         {
           firstName: studentSignUpForm.firstName,
           lastName: studentSignUpForm.lastName,
@@ -151,8 +151,8 @@ export default function AuthModal({ show, onClose, userType = 'student', mode = 
 
       // After successful signup, automatically log the user in
       try {
-        const loginResponse = await axios.post(
-          "http://localhost:8080/api/auth/student/login",
+        const loginResponse = await apiClient.post(
+          "/auth/student/login",
           {
             email: studentSignUpForm.email,
             password: studentSignUpForm.password,
@@ -194,8 +194,8 @@ export default function AuthModal({ show, onClose, userType = 'student', mode = 
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/instructor/login",
+      const response = await apiClient.post(
+        "/auth/instructor/login",
         {
           email: instructorSignInForm.email,
           password: instructorSignInForm.password,
@@ -237,8 +237,8 @@ export default function AuthModal({ show, onClose, userType = 'student', mode = 
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/instructor/signup",
+      const response = await apiClient.post(
+        "/auth/instructor/signup",
         {
           firstName: instructorSignUpForm.firstName,
           lastName: instructorSignUpForm.lastName,
@@ -251,8 +251,8 @@ export default function AuthModal({ show, onClose, userType = 'student', mode = 
 
       // After successful signup, automatically log the user in
       try {
-        const loginResponse = await axios.post(
-          "http://localhost:8080/api/auth/instructor/login",
+        const loginResponse = await apiClient.post(
+          "/auth/instructor/login",
           {
             email: instructorSignUpForm.email,
             password: instructorSignUpForm.password,

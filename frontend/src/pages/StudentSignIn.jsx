@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../api/apiClient";
 import "./Auth.css";
 
 export default function StudentSignIn() {
@@ -16,8 +16,8 @@ export default function StudentSignIn() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/auth/student/login",
+      const response = await apiClient.post(
+        "/auth/student/login",
         {
           email,
           password,

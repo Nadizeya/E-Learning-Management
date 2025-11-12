@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../api/apiClient";
 import "./Auth.css";
 
 export default function ResetPassword() {
@@ -29,19 +29,21 @@ export default function ResetPassword() {
     setLoading(true);
     try {
       // Token itself knows the role on backend
-      const http = axios.create();
-      delete http.defaults.headers.common["Authorization"];
       const endpoints = [
-        "http://localhost:8080/api/auth/student/reset-password",
-        "http://localhost:8080/api/auth/instructor/reset-password",
+        "/auth/student/reset-password",
+        "/auth/instructor/reset-password",
       ];
       // Try both to avoid revealing role; backend will accept based on token
       const body = { token, newPassword: password };
       // Attempt student first, then instructor if needed
       try {
-        await http.post(endpoints[0], body);
+        await apiClient.post(endpoints[0], body, {
+          headers: { Authorization: undefined },
+        });
       } catch {
-        await http.post(endpoints[1], body);
+        await apiClient.post(endpoints[1], body, {
+          headers: { Authorization: undefined },
+        });
       }
       setMessage("Password has been reset. You can now sign in.");
       navigate("/student/signin");

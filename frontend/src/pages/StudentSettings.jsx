@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../api/apiClient";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./StudentHome.css";
 import { studentAPI } from "../services/api.js";
@@ -58,7 +58,7 @@ export default function StudentSettings() {
     setMessage("");
     try {
       const id = student.id || student.studentId;
-      const res = await axios.put(`http://localhost:8080/api/students/${id}`, {
+      const res = await apiClient.put(`/students/${id}`, {
         firstName,
         lastName,
         email,

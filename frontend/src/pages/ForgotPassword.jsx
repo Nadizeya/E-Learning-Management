@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../api/apiClient";
 import "./Auth.css";
 
 export default function ForgotPassword() {
@@ -21,13 +21,11 @@ export default function ForgotPassword() {
     setLoading(true);
     setMessage("");
     try {
-      const http = axios.create();
-      delete http.defaults.headers.common["Authorization"];
       const path =
         role === "INSTRUCTOR"
-          ? "/api/auth/instructor/forgot-password"
-          : "/api/auth/student/forgot-password";
-      await http.post(`http://localhost:8080${path}`, { email });
+          ? "/auth/instructor/forgot-password"
+          : "/auth/student/forgot-password";
+      await apiClient.post(path, { email }, { headers: { Authorization: undefined } });
       setMessage("If the email exists, a reset link has been sent.");
     } catch (_) {
       setMessage("If the email exists, a reset link has been sent.");

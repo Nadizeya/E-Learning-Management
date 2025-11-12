@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import apiClient from '../api/apiClient'
 import CourseModal from './CourseModal'
 import ModuleModal from './ModuleModal'
 import ContentModal from './ContentModal'
@@ -26,7 +26,7 @@ export default function CourseManagement() {
       const instructorId = userData.instructorId
       
       // Fetch courses
-      const response = await axios.get(`http://localhost:8080/api/courses/instructor/${instructorId}`, {
+      const response = await apiClient.get(`/courses/instructor/${instructorId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const coursesData = response.data.data || response.data
@@ -64,7 +64,7 @@ export default function CourseManagement() {
     
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:8080/api/courses/${courseId}`, {
+      await apiClient.delete(`/courses/${courseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       fetchCourses()
@@ -194,7 +194,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
   const fetchModules = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`http://localhost:8080/api/course-modules/course/${course.courseId}`, {
+      const response = await apiClient.get(`/course-modules/course/${course.courseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setModules(response.data.data || response.data)
@@ -233,7 +233,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
         instructorId: userData.instructorId
       }
       
-      await axios.put(`http://localhost:8080/api/courses/${course.courseId}`, payload, {
+      await apiClient.put(`/courses/${course.courseId}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       })
       alert('Course updated!')
@@ -248,7 +248,7 @@ function CourseDetailsView({ course, onClose, onRefresh, onOpenModule }) {
     if (!confirm('Delete this module?')) return
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:8080/api/course-modules/${moduleId}`, {
+      await apiClient.delete(`/course-modules/${moduleId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       fetchModules()

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios'
+import apiClient from '../api/apiClient'
 
 export default function ModuleModal({ courseId, module, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -17,11 +17,11 @@ export default function ModuleModal({ courseId, module, onClose, onSuccess }) {
     try {
       const token = localStorage.getItem('token')
       if (module) {
-        await axios.put(`http://localhost:8080/api/course-modules/${module.moduleId}`, formData, {
+        await apiClient.put(`/course-modules/${module.moduleId}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
       } else {
-        await axios.post(`http://localhost:8080/api/course-modules`, formData, {
+        await apiClient.post(`/course-modules`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
       }

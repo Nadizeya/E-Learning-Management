@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios'
+import apiClient from '../api/apiClient'
 
 export default function StudentLogin() {
   const [form, setForm] = useState({ email: '', password: '' })
@@ -11,7 +11,7 @@ export default function StudentLogin() {
     e.preventDefault()
     setMessage('')
     try {
-      const res = await axios.post('/api/auth/student/login', form)
+      const res = await apiClient.post('/auth/student/login', form)
       setMessage(res.data.message || 'Login successful')
     } catch (err) {
       const msg = err?.response?.data?.message || 'Invalid credentials'

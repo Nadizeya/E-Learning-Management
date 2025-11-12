@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import apiClient, { setAuthToken } from "../api/apiClient";
 
 const AuthContext = createContext(null);
 
@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
 
     if (rawToken) {
       setToken(rawToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${rawToken}`;
+      setAuthToken(rawToken);
     }
 
     const studentRaw = localStorage.getItem("auth.student");
@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
+    const interceptor = apiClient.interceptors.response.use(
       (res) => res,
       (err) => {
         if (err?.response?.status === 401) {
@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
         return Promise.reject(err);
       }
     );
-    return () => axios.interceptors.response.eject(interceptor);
+    return () => apiClient.interceptors.response.eject(interceptor);
   }, []);
 
   const login = (adminResponse, jwtToken) => {
@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
     setToken(jwtToken);
     localStorage.setItem("auth.admin", JSON.stringify(adminResponse));
     localStorage.setItem("auth.token", jwtToken);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${jwtToken}`;
+    setAuthToken(jwtToken);
   };
 
   const loginStudent = (studentResponse) => {
@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("auth.admin");
     localStorage.removeItem("auth.student");
     localStorage.removeItem("auth.token");
-    delete axios.defaults.headers.common["Authorization"];
+    setAuthToken(null);
   };
 
   const value = useMemo(
