@@ -1,0 +1,46 @@
+steps:
+  # ================================
+  # 1. Build Docker image
+  # ================================
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/secret-fountain-478116-u1/lms-backend-repo/learnhub-backend",
+        ".",
+      ]
+
+  # ================================
+  # 2. Push image to Artifact Registry
+  # ================================
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "us-central1-docker.pkg.dev/secret-fountain-478116-u1/lms-backend-repo/learnhub-backend",
+      ]
+
+  # ================================
+  # 3. Deploy to Cloud Run (us-central1)
+  # ================================
+  - name: "gcr.io/cloud-builders/gcloud"
+    args: [
+        "run",
+        "deploy",
+        "learnhub-backend",
+        "--image=us-central1-docker.pkg.dev/secret-fountain-478116-u1/lms-backend-repo/learnhub-backend",
+        "--region=us-central1",
+        "--platform=managed",
+        "--allow-unauthenticated",
+        # These pull values from Cloud Build variables
+        "--set-env-vars",
+        "SPRING_DATASOURCE_URL=$(SPRING_DATASOURCE_URL)",
+        "SPRING_DATASOURCE_USERNAME=$(SPRING_DATASOURCE_USERNAME)",
+        "SPRING_DATASOURCE_PASSWORD=$(SPRING_DATASOURCE_PASSWORD)",
+        "APP_JWT_SECRET=$(APP_JWT_SECRET)",
+        "APP_FRONTEND_BASE_URL=$(APP_FRONTEND_BASE_URL)",
+      ]
+
+images:
+  - "us-central1-docker.pkg.dev/secret-fountain-478116-u1/lms-backend-repo/learnhub-backend"
