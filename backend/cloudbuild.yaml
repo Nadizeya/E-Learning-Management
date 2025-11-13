@@ -39,7 +39,6 @@ steps:
         "--region=us-central1",
         "--platform=managed",
         "--allow-unauthenticated",
-        "--set-env-vars=SPRING_DATASOURCE_URL=$(SPRING_DATASOURCE_URL),SPRING_DATASOURCE_USERNAME=$(SPRING_DATASOURCE_USERNAME),SPRING_DATASOURCE_PASSWORD=$(SPRING_DATASOURCE_PASSWORD),APP_JWT_SECRET=$(APP_JWT_SECRET),APP_FRONTEND_BASE_URL=$(APP_FRONTEND_BASE_URL)",
       ]
 
 images:
