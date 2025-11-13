@@ -1,14 +1,16 @@
 steps:
   # ================================
-  # 1. Build Docker image
+  # 1. Build Docker image (Dockerfile in /backend)
   # ================================
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
+        "-f",
+        "backend/Dockerfile",
         "-t",
         "us-central1-docker.pkg.dev/secret-fountain-478116-u1/lms-backend-repo/learnhub-backend",
-        ".",
+        "backend",
       ]
 
   # ================================
@@ -33,13 +35,12 @@ steps:
         "--region=us-central1",
         "--platform=managed",
         "--allow-unauthenticated",
-        # These pull values from Cloud Build variables
         "--set-env-vars",
         "SPRING_DATASOURCE_URL=$(SPRING_DATASOURCE_URL)",
         "SPRING_DATASOURCE_USERNAME=$(SPRING_DATASOURCE_USERNAME)",
         "SPRING_DATASOURCE_PASSWORD=$(SPRING_DATASOURCE_PASSWORD)",
         "APP_JWT_SECRET=$(APP_JWT_SECRET)",
-        "APP_FRONTEND_BASE_URL=$(APP_FRONTEND_BASE_URL)",
+        # "APP_FRONTEND_BASE_URL=$(APP_FRONTEND_BASE_URL)"
       ]
 
 images:
