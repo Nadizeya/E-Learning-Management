@@ -18,7 +18,7 @@ steps:
       - "push"
       - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
 
-  # 3. Deploy to Cloud Run
+    # 3. Deploy to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "deploy-cloud-run"
     entrypoint: "bash"
@@ -29,8 +29,10 @@ steps:
           --image "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA" \
           --region "${_REGION}" \
           --platform managed \
+          --port=8080 \
+          --timeout=600 \
           --allow-unauthenticated \
-          --set-env-vars "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME},SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD},JWT_SECRET=${_JWT_SECRET},APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}"
+          --set-env-vars "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME},SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD},APP_JWT_SECRET=${_JWT_SECRET},APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}"
 
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
