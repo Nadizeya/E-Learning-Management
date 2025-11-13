@@ -45,9 +45,9 @@ substitutions:
   _REPO_NAME: "lms-backend-repo"
   _SERVICE_NAME: "learnhub-backend"
 
-  # <-- Set these explicitly. Use "Dockerfile" and "." for typical repo-root setup.
-  _DOCKERFILE_PATH: "Dockerfile"   # path to your Dockerfile relative to repo root
-  _BUILD_CONTEXT: "backend/"              # build context directory, e.g. "." or "backend/"
+  # <-- Set these explicitly. Use "backend/Dockerfile" and "backend" for backend builds.
+  _DOCKERFILE_PATH: "backend/Dockerfile"   # path to your Dockerfile relative to repo root
+  _BUILD_CONTEXT: "backend"                # build context directory, e.g. "." or "backend"
 
   # App env values (override in trigger if needed)
   _SPRING_DATASOURCE_URL: "jdbc:mysql://YOUR_DB:3306/lms_elearn_db?useSSL=true&serverTimezone=UTC"
