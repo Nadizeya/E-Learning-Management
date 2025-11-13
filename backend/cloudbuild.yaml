@@ -36,6 +36,7 @@ steps:
 
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:latest"       # ← ADD THIS
 
 # Required when using a custom service account for builds
 options:
