@@ -26,8 +26,12 @@ steps:
   # ================================
   # 3. Deploy to Cloud Run (us-central1)
   # ================================
+  # ================================
+  # 3. Deploy to Cloud Run (us-central1)
+  # ================================
   - name: "gcr.io/cloud-builders/gcloud"
-    args: [
+    args:
+      [
         "run",
         "deploy",
         "learnhub-backend",
@@ -35,12 +39,7 @@ steps:
         "--region=us-central1",
         "--platform=managed",
         "--allow-unauthenticated",
-        "--set-env-vars",
-        "SPRING_DATASOURCE_URL=$(SPRING_DATASOURCE_URL)",
-        "SPRING_DATASOURCE_USERNAME=$(SPRING_DATASOURCE_USERNAME)",
-        "SPRING_DATASOURCE_PASSWORD=$(SPRING_DATASOURCE_PASSWORD)",
-        "APP_JWT_SECRET=$(APP_JWT_SECRET)",
-        # "APP_FRONTEND_BASE_URL=$(APP_FRONTEND_BASE_URL)"
+        "--set-env-vars=SPRING_DATASOURCE_URL=$(SPRING_DATASOURCE_URL),SPRING_DATASOURCE_USERNAME=$(SPRING_DATASOURCE_USERNAME),SPRING_DATASOURCE_PASSWORD=$(SPRING_DATASOURCE_PASSWORD),APP_JWT_SECRET=$(APP_JWT_SECRET),APP_FRONTEND_BASE_URL=$(APP_FRONTEND_BASE_URL)",
       ]
 
 images:
