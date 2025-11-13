@@ -53,7 +53,7 @@ substitutions:
 
   # App env values (override in trigger if needed)
   _SPRING_DATASOURCE_URL: "jdbc:mysql://34.59.54.125:3306/lms_elearn_db?useSSL=true&requireSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-  _SPRING_DATASOURCE_USERNAME: "lmsdb"
+  _SPRING_DATASOURCE_USERNAME: "lms_user"
   _SPRING_DATASOURCE_PASSWORD: 'c64V/)d",S~h<}*t'
-  _JWT_SECRET: "your-secret"
+  _JWT_SECRET: "ZmFrZV9qb3Nlc19zZWNyZXRfMzJieXRlc19iYXNlNjQ="
   _APP_FRONTEND_BASE_URL: "your-frontend-url"
