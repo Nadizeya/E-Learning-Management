@@ -49,7 +49,7 @@ images:
 
 substitutions:
   _REGION: "us-central1"
-  _REPO_NAME: "99-project-e_learning_management-system"
+  _REPO_NAME: "lms-backend-repo"
   _SERVICE_NAME: "learnhub-backend"
   _PROJECT_ID: "learnhub-478103"
   _SPRING_DATASOURCE_URL: "jdbc:mysql://YOUR_DB:3306/lms_elearn_db?useSSL=true&serverTimezone=UTC"
