@@ -11,6 +11,21 @@ const apiClient = axios.create({
   baseURL,
 })
 
+// Request interceptor to automatically add Authorization header
+apiClient.interceptors.request.use(
+  (config) => {
+    // Try to get token from both possible locations
+    const token = localStorage.getItem('auth.token') || localStorage.getItem('token')
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
 export function setAuthToken(token) {
   if (token) {
     apiClient.defaults.headers.common.Authorization = `Bearer ${token}`

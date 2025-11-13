@@ -12,12 +12,13 @@ import { useDataFetch } from "../../hooks/useDataFetch.js";
 import DetailModal from "../../components/admin/DetailModal.jsx";
 import RowActionMenu from "../../components/admin/RowActionMenu.jsx";
 import { formatDate } from "../../utils/format.js";
+import AdminAnalytics from "../../components/AdminAnalytics.jsx";
 import "../styles/AdminDashboard.css";
 
 export default function AdminDashboard() {
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState("admins");
+  const [tab, setTab] = useState("dashboard");
 
   useEffect(() => {
     if (!admin) navigate("/admin/login");
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
       <div className="flex-grow-1 d-flex flex-column admin-dashboard-content">
         <Topbar title="E‑Learning Management System" admin={admin} />
         <div className="detail-container container-fluid p-5">
+          {tab === "dashboard" && <AdminAnalytics />}
           {tab === "admins" && <AdminsTab />}
           {tab === "courses" && <CoursesTab />}
           {tab === "students" && <StudentsTab />}

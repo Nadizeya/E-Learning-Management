@@ -54,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/enrollments/**").permitAll()
                         // Temporarily allow student profile updates without auth
                         .requestMatchers(HttpMethod.PUT, "/api/students/**").permitAll()
+                        // Analytics endpoints require authentication
+                        .requestMatchers("/api/analytics/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

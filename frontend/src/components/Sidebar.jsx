@@ -1,5 +1,6 @@
 export default function Sidebar({ active, onSelect }) {
     const items = [
+      { id: 'dashboard', label: 'Dashboard', icon: 'bi-speedometer2' },
       { id: 'admins', label: 'Admin', icon: 'bi-shield-lock' },
       { id: 'students', label: 'Students', icon: 'bi-mortarboard' },
       { id: 'instructors', label: 'Instructors', icon: 'bi-person-workspace' },
