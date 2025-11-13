@@ -30,7 +30,7 @@ steps:
           --region "${_REGION}" \
           --platform managed \
           --port=8080 \
-          --timeout=600 \
+          --timeout=3600 \
           --allow-unauthenticated \
           --set-env-vars "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME},SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD},APP_JWT_SECRET=${_JWT_SECRET},APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}"
 
@@ -52,8 +52,8 @@ substitutions:
   _BUILD_CONTEXT: "backend"                # build context directory, e.g. "." or "backend"
 
   # App env values (override in trigger if needed)
-  _SPRING_DATASOURCE_URL: "jdbc:mysql://YOUR_DB:3306/lms_elearn_db?useSSL=true&serverTimezone=UTC"
-  _SPRING_DATASOURCE_USERNAME: "lms_user"
-  _SPRING_DATASOURCE_PASSWORD: "lms_password"
+  _SPRING_DATASOURCE_URL: "jdbc:mysql://34.59.54.125:3306/lms_elearn_db?useSSL=true&requireSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  _SPRING_DATASOURCE_USERNAME: "lmsdb"
+  _SPRING_DATASOURCE_PASSWORD: 'c64V/)d",S~h<}*t'
   _JWT_SECRET: "your-secret"
   _APP_FRONTEND_BASE_URL: "your-frontend-url"
