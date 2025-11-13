@@ -253,7 +253,7 @@ CREATE TABLE USER_BADGES (
 
 -- Insert sample admins
 INSERT INTO ADMINS (first_name, last_name, email, password_hash, permissions) VALUES
-('Admin', 'User', 'admin@lms.com', '$2a$10$u1YVQv1lX8r0mT3k1mQxpu7wG3c1d8bWb6x8h1Hq3yJbq0nG8l9J6', 'all,manage_users,manage_courses,manage_content,view_reports');
+('Admin', 'User', 'admin@lms.com', 'password', 'all,manage_users,manage_courses,manage_content,view_reports');
 
 -- Insert sample instructors
 INSERT INTO INSTRUCTORS (first_name, last_name, email, password_hash, bio, expertise) VALUES
