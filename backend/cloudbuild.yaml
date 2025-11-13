@@ -1,72 +1,143 @@
-# cloudbuild.yaml - fixed logging option to satisfy builds that run with a custom service account
+# # cloudbuild.yaml - fixed logging option to satisfy builds that run with a custom service account
+# steps:
+#   # 1. Build the container image
+#   - name: "gcr.io/cloud-builders/docker"
+#     args:
+#       [
+#         "build",
+#         "-t",
+#         "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA",
+#         ".",
+#       ]
+
+#   # 2. Push the image to Artifact Registry
+#   - name: "gcr.io/cloud-builders/docker"
+#     args:
+#       [
+#         "push",
+#         "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA",
+#       ]
+
+#   # 3. Deploy to Cloud Run
+#   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+#     entrypoint: "gcloud"
+#     args:
+#       [
+#         "run",
+#         "deploy",
+#         "${_SERVICE_NAME}",
+#         "--image",
+#         "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA",
+#         "--region",
+#         "${_REGION}",
+#         "--platform",
+#         "managed",
+#         "--allow-unauthenticated",
+#         "--set-env-vars",
+#         "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL}",
+#         "--set-env-vars",
+#         "SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME}",
+#         "--set-env-vars",
+#         "SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD}",
+#         "--set-env-vars",
+#         "JWT_SECRET=${_JWT_SECRET}",
+#         "--set-env-vars",
+#         "APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}",
+#       ]
+
+# images:
+#   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
+
+# # === FIX for the service-account / logging requirement ===
+# # Option A (used here): send logs to Cloud Logging only (CLOUD_LOGGING_ONLY).
+# # This is the simplest fix and satisfies the requirement when a build.service_account is used.
+# options:
+#   logging: "CLOUD_LOGGING_ONLY"
+
+# # --- Alternative fixes (pick one instead of the above options.logging) ---
+# # Option B: Use regional user-owned bucket behavior:
+# # options:
+# #   default_logs_bucket_behavior: "REGIONAL_USER_OWNED_BUCKET"
+# #
+# # Option C: Explicitly set a logs bucket (you must create the bucket first and give Cloud Build access)
+# # logsBucket: "projects/PROJECT_ID/locations/REGION/buckets/BUCKET_ID"
+
+# substitutions:
+#   _REGION: "us-central1"
+#   _REPO_NAME: "lms-backend-repo"
+#   _SERVICE_NAME: "learnhub-backend"
+#   _PROJECT_ID: "learnhub-478103"
+#   _SPRING_DATASOURCE_URL: "jdbc:mysql://YOUR_DB:3306/lms_elearn_db?useSSL=true&serverTimezone=UTC"
+#   _SPRING_DATASOURCE_USERNAME: "lms_user"
+#   _SPRING_DATASOURCE_PASSWORD: "lms_password"
+#   _JWT_SECRET: "your-secret"
+#   _APP_FRONTEND_BASE_URL: "your-frontend-url"
+
+
+# cloudbuild.yaml - Build multi-stage Spring Boot image, push to Artifact Registry, deploy to Cloud Run
 steps:
-  # 1. Build the container image
-  - name: "gcr.io/cloud-builders/docker"
+  # 0. Debug (optional) - lists files to help debug missing Dockerfile (can be removed once OK)
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "diagnose-workspace"
+    entrypoint: "bash"
     args:
-      [
-        "build",
-        "-t",
-        "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA",
-        ".",
-      ]
+      - "-c"
+      - |
+        echo "Workspace: $(pwd)"
+        ls -la
+        echo "Checking Dockerfile presence..."
+        if [ -f "${_DOCKERFILE_PATH:-Dockerfile}" ]; then echo "Found ${_DOCKERFILE_PATH:-Dockerfile}"; else echo "Dockerfile not found at ${_DOCKERFILE_PATH:-Dockerfile}"; fi
+
+  # 1. Build the container image using Dockerfile (multi-stage build handles Maven)
+  - name: "gcr.io/cloud-builders/docker"
+    id: "docker-build"
+    args:
+      - "build"
+      - "-f"
+      - "${_DOCKERFILE_PATH:-Dockerfile}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
+      - "${_BUILD_CONTEXT:-.}"
 
   # 2. Push the image to Artifact Registry
   - name: "gcr.io/cloud-builders/docker"
+    id: "docker-push"
     args:
-      [
-        "push",
-        "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA",
-      ]
+      - "push"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
 
-  # 3. Deploy to Cloud Run
+  # 3. Deploy to Cloud Run (managed)
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: "gcloud"
+    id: "deploy-cloud-run"
+    entrypoint: "bash"
     args:
-      [
-        "run",
-        "deploy",
-        "${_SERVICE_NAME}",
-        "--image",
-        "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA",
-        "--region",
-        "${_REGION}",
-        "--platform",
-        "managed",
-        "--allow-unauthenticated",
-        "--set-env-vars",
-        "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL}",
-        "--set-env-vars",
-        "SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME}",
-        "--set-env-vars",
-        "SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD}",
-        "--set-env-vars",
-        "JWT_SECRET=${_JWT_SECRET}",
-        "--set-env-vars",
-        "APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}",
-      ]
+      - "-c"
+      - |
+        IMAGE="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
+        gcloud run deploy "${_SERVICE_NAME}" \
+          --image "${IMAGE}" \
+          --region "${_REGION}" \
+          --platform managed \
+          --allow-unauthenticated \
+          --set-env-vars "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME},SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD},JWT_SECRET=${_JWT_SECRET},APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}"
 
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
 
-# === FIX for the service-account / logging requirement ===
-# Option A (used here): send logs to Cloud Logging only (CLOUD_LOGGING_ONLY).
-# This is the simplest fix and satisfies the requirement when a build.service_account is used.
+# Ensure Cloud Build logging requirement when a custom service account is used
 options:
   logging: "CLOUD_LOGGING_ONLY"
-
-# --- Alternative fixes (pick one instead of the above options.logging) ---
-# Option B: Use regional user-owned bucket behavior:
-# options:
-#   default_logs_bucket_behavior: "REGIONAL_USER_OWNED_BUCKET"
-#
-# Option C: Explicitly set a logs bucket (you must create the bucket first and give Cloud Build access)
-# logsBucket: "projects/PROJECT_ID/locations/REGION/buckets/BUCKET_ID"
 
 substitutions:
   _REGION: "us-central1"
   _REPO_NAME: "lms-backend-repo"
   _SERVICE_NAME: "learnhub-backend"
   _PROJECT_ID: "learnhub-478103"
+  # If your Dockerfile is at repo root leave as "Dockerfile". If it's under a folder, set e.g. "backend/Dockerfile"
+  _DOCKERFILE_PATH: "Dockerfile"
+  # Build context (usually "." or "backend/")
+  _BUILD_CONTEXT: "."
+  # App environment values (override in trigger or keep safe defaults)
   _SPRING_DATASOURCE_URL: "jdbc:mysql://YOUR_DB:3306/lms_elearn_db?useSSL=true&serverTimezone=UTC"
   _SPRING_DATASOURCE_USERNAME: "lms_user"
   _SPRING_DATASOURCE_PASSWORD: "lms_password"
