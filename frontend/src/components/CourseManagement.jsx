@@ -64,7 +64,6 @@ export default function CourseManagement() {
         headers: { Authorization: `Bearer ${token}` }
       })
       fetchCourses()
-      if (selectedCourse?.id === courseId) setSelectedCourse(null)
     } catch (error) {
       alert('Error: ' + (error.response?.data?.message || error.message))
     }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/InstructorDashboard.css'
 import CourseManagement from '../../components/CourseManagement'
+import InstructorAnalytics from '../../components/InstructorAnalytics'
 
 export default function InstructorDashboard() {
   const navigate = useNavigate()
@@ -73,12 +74,7 @@ export default function InstructorDashboard() {
 
         <main className="dashboard-main">
           {activeTab === 'courses' && <CourseManagement />}
-          {activeTab === 'analytics' && (
-            <div className="analytics-tab">
-              <h1>Analytics</h1>
-              <p>Coming soon...</p>
-            </div>
-          )}
+          {activeTab === 'analytics' && <InstructorAnalytics />}
         </main>
       </div>
     </div>
