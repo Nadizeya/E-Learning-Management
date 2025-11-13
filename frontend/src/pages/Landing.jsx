@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AuthModal from '../components/auth/AuthModal'
-import './Landing.css'
+import './styles/Landing.css'
 
 export default function Landing() {
   const navigate = useNavigate()

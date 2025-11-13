@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import apiClient from "../api/apiClient";
-import "./Auth.css";
+import "./styles/Auth.css";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();

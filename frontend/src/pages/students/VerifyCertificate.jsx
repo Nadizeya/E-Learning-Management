@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import CertificateView from '../components/CertificateView';
+import CertificateView from '../../components/CertificateView';
 
 const VerifyCertificate = () => {
   const { code } = useParams();

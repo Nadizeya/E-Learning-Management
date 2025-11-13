@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import CourseProgressCard from '../components/CourseProgressCard';
-import BadgeDisplay from '../components/BadgeDisplay';
-import CertificatesList from '../components/CertificatesList';
+import CourseProgressCard from '../../components/CourseProgressCard';
+import BadgeDisplay from '../../components/BadgeDisplay';
+import CertificatesList from '../../components/CertificatesList';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();

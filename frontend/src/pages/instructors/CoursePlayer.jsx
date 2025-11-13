@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { courseAPI, courseModuleAPI, courseContentAPI, progressAPI } from '../services/api.js'
-import QuizPlayer from '../components/QuizPlayer.jsx'
+import { courseAPI, courseModuleAPI, courseContentAPI, progressAPI } from '../../services/api.js'
+import QuizPlayer from '../../components/QuizPlayer.jsx'
 
 export default function CoursePlayer() {
   const { id } = useParams()

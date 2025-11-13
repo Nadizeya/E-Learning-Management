@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link, useSearchParams } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { courseAPI, enrollmentAPI, courseModuleAPI, courseContentAPI, instructorAPI } from '../services/api.js'
+import { courseAPI, enrollmentAPI, courseModuleAPI, courseContentAPI, instructorAPI } from '../../services/api.js'
 
 export default function Enroll() {
   const { id } = useParams()

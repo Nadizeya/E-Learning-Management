@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import apiClient from "../api/apiClient";
-import "./Auth.css";
+import apiClient from "../../api/apiClient";
+import "../styles/Auth.css";
 
-export default function InstructorSignUp() {
+export default function StudentSignUp() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    bio: "",
-    expertise: "",
     password: "",
     confirmPassword: "",
   });
@@ -42,19 +40,17 @@ export default function InstructorSignUp() {
 
     try {
       const response = await apiClient.post(
-        "/auth/instructor/signup",
+        "/auth/student/signup",
         {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
-          bio: formData.bio,
-          expertise: formData.expertise,
           password: formData.password,
         }
       );
 
       // Navigate to sign in page after successful registration
-      navigate("/instructor/signin");
+      navigate("/student/signin");
     } catch (err) {
       const errorMsg =
         err?.response?.data?.message ||
@@ -73,8 +69,8 @@ export default function InstructorSignUp() {
             <span className="logo-icon">🎓</span>
             <span className="logo-text">LearnHub</span>
           </div>
-          <h1 className="auth-title">Become an Instructor</h1>
-          <p className="auth-subtitle">Share your knowledge with the world</p>
+          <h1 className="auth-title">Create Student Account</h1>
+          <p className="auth-subtitle">Start your learning journey today</p>
         </div>
 
         {error && (
@@ -121,42 +117,7 @@ export default function InstructorSignUp() {
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="instructor@example.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="bio">Bio</label>
-            <textarea
-              id="bio"
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-              placeholder="Tell us about yourself and your teaching experience"
-              rows="3"
-              required
-              style={{
-                width: "100%",
-                padding: "0.875rem 1rem",
-                border: "2px solid #e5e7eb",
-                borderRadius: "12px",
-                fontSize: "1rem",
-                fontFamily: "inherit",
-                resize: "vertical",
-              }}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="expertise">Area of Expertise</label>
-            <input
-              id="expertise"
-              name="expertise"
-              type="text"
-              value={formData.expertise}
-              onChange={handleChange}
-              placeholder="e.g., Web Development, Data Science"
+              placeholder="student@example.com"
               required
             />
           </div>
@@ -193,7 +154,7 @@ export default function InstructorSignUp() {
         </form>
 
         <div className="auth-switch">
-          Already have an account? <Link to="/instructor/signin">Sign in</Link>
+          Already have an account? <Link to="/student/signin">Sign in</Link>
         </div>
       </div>
     </div>

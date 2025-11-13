@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import apiClient from "../api/apiClient";
-import "./Auth.css";
+import apiClient from "../../api/apiClient";
+import "../styles/Auth.css";
 
-export default function InstructorSignIn() {
+export default function StudentSignIn() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +17,7 @@ export default function InstructorSignIn() {
 
     try {
       const response = await apiClient.post(
-        "/auth/instructor/login",
+        "/auth/student/login",
         {
           email,
           password,
@@ -25,13 +25,13 @@ export default function InstructorSignIn() {
       );
 
       // Store token and user data
-      const { token, instructor } = response.data;
+      const { token, student } = response.data;
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(instructor));
-      localStorage.setItem("userRole", "INSTRUCTOR");
+      localStorage.setItem("user", JSON.stringify(student));
+      localStorage.setItem("userRole", "STUDENT");
 
-      // Navigate to instructor dashboard
-      navigate("/instructor/dashboard");
+      // Navigate to home page
+      navigate("/");
     } catch (err) {
       const errorMsg =
         err?.response?.data?.message || "Invalid email or password";
@@ -49,9 +49,9 @@ export default function InstructorSignIn() {
             <span className="logo-icon">🎓</span>
             <span className="logo-text">LearnHub</span>
           </div>
-          <h1 className="auth-title">Instructor Sign In</h1>
+          <h1 className="auth-title">Student Sign In</h1>
           <p className="auth-subtitle">
-            Welcome back! Continue inspiring students
+            Welcome back! Continue your learning journey
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export default function InstructorSignIn() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="instructor@example.com"
+              placeholder="student@example.com"
               required
             />
           </div>
@@ -93,7 +93,7 @@ export default function InstructorSignIn() {
               <span>Remember me</span>
             </label>
             <Link
-              to="/forgot-password?role=INSTRUCTOR"
+              to="/forgot-password?role=STUDENT"
               className="forgot-password"
             >
               Forgot password?
@@ -106,7 +106,7 @@ export default function InstructorSignIn() {
         </form>
 
         <div className="auth-switch">
-          Don't have an account? <Link to="/instructor/signup">Sign up</Link>
+          Don't have an account? <Link to="/student/signup">Sign up</Link>
         </div>
       </div>
     </div>
