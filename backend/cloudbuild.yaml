@@ -1,0 +1,80 @@
+# Cloud Build configuration for LMS Backend
+# Usage: gcloud builds submit --config=cloudbuild.yaml
+
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:$COMMIT_SHA'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:latest'
+      - '.'
+    dir: 'backend'
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:$COMMIT_SHA'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:latest'
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'lms-backend'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--allow-unauthenticated'
+      - '--platform'
+      - 'managed'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL}'
+      - '--set-env-vars'
+      - 'SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME}'
+      - '--set-env-vars'
+      - 'SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD}'
+      - '--set-env-vars'
+      - 'APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}'
+      - '--set-env-vars'
+      - 'JWT_SECRET=${_JWT_SECRET}'
+      - '--set-env-vars'
+      - 'FILE_UPLOAD_DIR=/tmp/uploads'
+
+images:
+  - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:latest'
+
+substitutions:
+  _PROJECT_ID: 'webdev-397623'
+  _REGION: 'us-central1'
+  _SPRING_DATASOURCE_URL: 'jdbc:mysql://YOUR_CLOUD_SQL_IP:3306/lms_elearn_db?useSSL=true&serverTimezone=UTC'
+  _SPRING_DATASOURCE_USERNAME: 'lms_user'
+  _SPRING_DATASOURCE_PASSWORD: 'CHANGE_ME'
+  _APP_FRONTEND_BASE_URL: 'https://lms-frontend-xxx.run.app'
+  _JWT_SECRET: 'CHANGE_ME_TO_STRONG_SECRET'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
