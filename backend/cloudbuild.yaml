@@ -30,7 +30,7 @@ steps:
           --region "${_REGION}" \
           --platform managed \
           --port=8080 \
-          --timeout=36000 \
+          --timeout=3600 \
           --allow-unauthenticated \
           --set-env-vars "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME},SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD},APP_JWT_SECRET=${_JWT_SECRET},APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}"
 
