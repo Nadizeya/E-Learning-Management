@@ -66,11 +66,11 @@ images:
   - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/webdev-dockers/lms-backend:latest'
 
 substitutions:
-  _PROJECT_ID: 'webdev-397623'
+  _PROJECT_ID: 'learnhub-478103'
   _REGION: 'us-central1'
   _SPRING_DATASOURCE_URL: 'jdbc:mysql://YOUR_CLOUD_SQL_IP:3306/lms_elearn_db?useSSL=true&serverTimezone=UTC'
   _SPRING_DATASOURCE_USERNAME: 'lms_user'
-  _SPRING_DATASOURCE_PASSWORD: 'CHANGE_ME'
+  _SPRING_DATASOURCE_PASSWORD: 'lms_password'
   _APP_FRONTEND_BASE_URL: 'https://lms-frontend-xxx.run.app'
   _JWT_SECRET: 'CHANGE_ME_TO_STRONG_SECRET'
 
