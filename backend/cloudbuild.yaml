@@ -1,3 +1,4 @@
+# cloudbuild.yaml - fixed logging option to satisfy builds that run with a custom service account
 steps:
   # 1. Build the container image
   - name: "gcr.io/cloud-builders/docker"
@@ -46,6 +47,20 @@ steps:
 
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
+
+# === FIX for the service-account / logging requirement ===
+# Option A (used here): send logs to Cloud Logging only (CLOUD_LOGGING_ONLY).
+# This is the simplest fix and satisfies the requirement when a build.service_account is used.
+options:
+  logging: "CLOUD_LOGGING_ONLY"
+
+# --- Alternative fixes (pick one instead of the above options.logging) ---
+# Option B: Use regional user-owned bucket behavior:
+# options:
+#   default_logs_bucket_behavior: "REGIONAL_USER_OWNED_BUCKET"
+#
+# Option C: Explicitly set a logs bucket (you must create the bucket first and give Cloud Build access)
+# logsBucket: "projects/PROJECT_ID/locations/REGION/buckets/BUCKET_ID"
 
 substitutions:
   _REGION: "us-central1"
