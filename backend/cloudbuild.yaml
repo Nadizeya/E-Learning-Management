@@ -44,3 +44,6 @@ steps:
 
 images:
   - "us-central1-docker.pkg.dev/secret-fountain-478116-u1/lms-backend-repo/learnhub-backend"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
