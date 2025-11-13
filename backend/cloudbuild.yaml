@@ -1,6 +1,5 @@
-# cloudbuild.yaml - corrected: do NOT use shell-style ${VAR:-default} in substitution templates
 steps:
-  # 1. Build the container image using your Dockerfile (explicit substitution variables)
+  # ── 1. Build the image with BOTH tags ─────────────────────────────────────
   - name: "gcr.io/cloud-builders/docker"
     id: "docker-build"
     args:
@@ -10,16 +9,17 @@ steps:
       - "-t"
       - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
       - "-t"
-      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:latest"   # ← NEW
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:latest"
       - "${_BUILD_CONTEXT}"
 
-  # 2. Push the image to Artifact Registry
+  # ── 2. Push the SHA tag (the :latest tag is pushed automatically by Docker) ─────
   - name: "gcr.io/cloud-builders/docker"
-    id: "docker-push"
+    id: "docker-push-sha"
     args:
       - "push"
       - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
 
+  # ── 3. Deploy to Cloud Run (unchanged) ─────────────────────────────────────
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "deploy-cloud-run"
     entrypoint: "bash"
@@ -33,30 +33,30 @@ steps:
           --port=8080 \
           --timeout=3600 \
           --allow-unauthenticated \
-          --set-env-vars "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME},SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD},APP_JWT_SECRET=${_JWT_SECRET},APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}"
+          --set-env-vars \
+            "SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},\
+             SPRING_DATASOURCE_USERNAME=${_SPRING_DATASOURCE_USERNAME},\
+             SPRING_DATASOURCE_PASSWORD=${_SPRING_DATASOURCE_PASSWORD},\
+             APP_JWT_SECRET=${_JWT_SECRET},\
+             APP_FRONTEND_BASE_URL=${_APP_FRONTEND_BASE_URL}"
 
-
+# ── List BOTH tags so Cloud Build knows to push them ───────────────────────
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA"
-  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:latest"       # ← ADD THIS
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:latest"
 
-# Required when using a custom service account for builds
 options:
   logging: "CLOUD_LOGGING_ONLY"
 
-# IMPORTANT: define explicit substitutions (no bash defaults in step args)
 substitutions:
   _REGION: "us-central1"
   _REPO_NAME: "learnhub"
   _SERVICE_NAME: "learnhub-backend"
-  _PROJECT_ID: "learnhub-478103"
+  _DOCKERFILE_PATH: "backend/Dockerfile"
+  _BUILD_CONTEXT: "backend"
 
-  # <-- Set these explicitly. Use "backend/Dockerfile" and "backend" for backend builds.
-  _DOCKERFILE_PATH: "backend/Dockerfile"   # path to your Dockerfile relative to repo root
-  _BUILD_CONTEXT: "backend"                # build context directory, e.g. "." or "backend"
-
-  # App env values (override in trigger if needed)
-  _SPRING_DATASOURCE_URL: "jdbc:mysql://136.113.129.78:3306/lms_elearn_db?useSSL=true&requireSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  # DB – SSL disabled for quick testing
+  _SPRING_DATASOURCE_URL: "jdbc:mysql://136.113.129.78:3306/lms_elearn_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
   _SPRING_DATASOURCE_USERNAME: "lms_user"
   _SPRING_DATASOURCE_PASSWORD: "Nadizeya@123"
   _JWT_SECRET: "ZmFrZV9qb3Nlc19zZWNyZXRfMzJieXRlc19iYXNlNjQ="
