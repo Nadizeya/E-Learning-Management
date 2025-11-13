@@ -42,7 +42,7 @@ options:
 # IMPORTANT: define explicit substitutions (no bash defaults in step args)
 substitutions:
   _REGION: "us-central1"
-  _REPO_NAME: "webdev-dockers"
+  _REPO_NAME: "learnhub"
   _SERVICE_NAME: "learnhub-backend"
 
   # <-- Set these explicitly. Use "backend/Dockerfile" and "backend" for backend builds.
