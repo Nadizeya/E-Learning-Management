@@ -11,6 +11,7 @@ import InstructorSignIn from './pages/instructors/InstructorSignIn.jsx'
 import InstructorSignUp from './pages/instructors/InstructorSignUp.jsx'
 import InstructorDashboard from './pages/instructors/InstructorDashboard.jsx'
 import CourseManage from './pages/instructors/CourseManage.jsx'
+import ModuleContentManage from './pages/instructors/ModuleContentManage.jsx'
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import StudentHome from './pages/students/StudentHome.jsx'
 import Enroll from './pages/students/Enroll.jsx'
@@ -24,6 +25,7 @@ import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import StudentSettings from './pages/students/StudentSettings.jsx'
 import InstructorSettings from './pages/instructors/InstructorSettings.jsx'
+import { ToastProvider } from './state/ToastContext.jsx'
 
 const router = createBrowserRouter([
   { path: '/', element: <StudentHome /> },
@@ -35,6 +37,7 @@ const router = createBrowserRouter([
   { path: '/instructor/signup', element: <InstructorSignUp /> },
   { path: '/instructor/dashboard', element: <InstructorDashboard /> },
   { path: '/instructor/course/:courseId', element: <CourseManage /> },
+  { path: '/instructor/course/:courseId/module/:moduleId', element: <ModuleContentManage /> },
   { path: '/admin', element: <AdminDashboard /> },
   { path: '/enroll/:id', element: <Enroll /> },
   { path: '/course-player/:id', element: <CoursePlayer /> },
@@ -53,7 +56,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router} />
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
     </AuthProvider>
   </StrictMode>,
 )

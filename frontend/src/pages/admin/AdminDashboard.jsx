@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useToast } from "../../state/ToastContext.jsx";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../api/apiClient";
 import { useAuth } from "../../state/AuthContext.jsx";
@@ -16,6 +17,7 @@ import AdminAnalytics from "../../components/AdminAnalytics.jsx";
 import "../styles/AdminDashboard.css";
 
 export default function AdminDashboard() {
+  const toast = useToast();
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("dashboard");
@@ -67,6 +69,7 @@ function Placeholder({ title }) {
 }
 
 function AdminsTab() {
+  const toast = useToast();
   const { data: list, loading, error, refetch } = useDataFetch("/admins");
   const [form, setForm] = useState({
     firstName: "",
@@ -104,6 +107,7 @@ function AdminsTab() {
       });
       setForm({ firstName: "", lastName: "", email: "", password: "" });
       refetch();
+      toast.add("Admin created successfully");
     } catch (e) {
       setErrorMsg(e?.response?.data?.message || "Failed to create admin");
     }
@@ -117,6 +121,7 @@ function AdminsTab() {
       });
       setDeleteState({ id: null, reason: "", open: false });
       refetch();
+      toast.add("Admin deleted successfully");
     } catch (e) {
       setErrorMsg(e?.response?.data?.message || "Failed to delete admin");
     }
@@ -140,6 +145,7 @@ function AdminsTab() {
         permissions: "",
       });
       refetch();
+      toast.add("Admin updated successfully");
     } catch (e) {
       setErrorMsg(e?.response?.data?.message || "Failed to update admin");
     }
@@ -398,6 +404,7 @@ function AdminsTab() {
 }
 
 function StudentsTab() {
+  const toast = useToast();
   const { data: list, loading, error, refetch } = useDataFetch("/students");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [details, setDetails] = useState({
@@ -689,6 +696,7 @@ function StudentsTab() {
                   });
                   setDeleteState({ id: null, open: false, reason: "" });
                   refetch();
+                  toast.add("Student deleted successfully");
                 } catch (e) {
                   alert("Failed to delete");
                 }
@@ -705,6 +713,7 @@ function StudentsTab() {
 }
 
 function InstructorsTab() {
+  const toast = useToast();
   const { data: list, loading, error, refetch } = useDataFetch("/instructors");
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [details, setDetails] = useState({ courses: [], loading: false });
@@ -866,6 +875,7 @@ function InstructorsTab() {
                   });
                   setDeleteState({ id: null, open: false, reason: "" });
                   refetch();
+                  toast.add("Instructor deleted successfully");
                 } catch (e) {
                   alert("Failed to delete");
                 }
@@ -882,6 +892,7 @@ function InstructorsTab() {
 }
 
 function CoursesTab() {
+  const toast = useToast();
   const { data: list, loading, error, refetch } = useDataFetch("/courses");
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [details, setDetails] = useState({
@@ -1161,6 +1172,7 @@ function CoursesTab() {
                   });
                   setDeleteCourse({ id: null, open: false, reason: "" });
                   refetch();
+                  toast.add("Course deleted successfully");
                 } catch (e) {
                   alert("Failed to delete course");
                 }

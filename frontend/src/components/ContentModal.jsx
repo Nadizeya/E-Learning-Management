@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import apiClient from "../api/apiClient";
 import QuizModal from "./QuizModal";
+import { useToast } from "../state/ToastContext.jsx";
 
 export default function ContentModal({ module, onClose }) {
+  const toast = useToast();
   const [contents, setContents] = useState([]);
   const [showCreateContent, setShowCreateContent] = useState(false);
   const [contentType, setContentType] = useState("VIDEO");
@@ -37,6 +39,7 @@ export default function ContentModal({ module, onClose }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchContents();
+      toast.add("Content deleted successfully");
     } catch (error) {
       alert("Error: " + (error.response?.data?.message || error.message));
     }
@@ -110,6 +113,7 @@ export default function ContentModal({ module, onClose }) {
             onSuccess={() => {
               setShowCreateContent(false);
               fetchContents();
+              toast.add("Content added successfully");
             }}
           />
         )}
@@ -125,6 +129,7 @@ export default function ContentModal({ module, onClose }) {
               setShowQuizModal(false);
               setSelectedContentForQuiz(null);
               fetchContents();
+              toast.add("Quiz saved successfully");
             }}
           />
         )}
@@ -520,30 +525,14 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
 
           {contentType === "QUIZ" && (
             <div className="form-group">
-              <div
-                style={{
-                  padding: "16px",
-                  background: "#eff6ff",
-                  border: "1px solid #3b82f6",
-                  borderRadius: "8px",
-                  marginBottom: "12px",
-                }}
-              >
-                <p style={{ margin: 0, color: "#1e40af", fontWeight: "600" }}>
-                  ℹ️ Quiz Content Created
-                </p>
-                <p
-                  style={{
-                    margin: "8px 0 0 0",
-                    color: "#1e3a8a",
-                    fontSize: "0.9rem",
-                  }}
-                >
+              <div className="info-banner">
+                <p className="title">ℹ️ Quiz Content Created</p>
+                <p className="desc">
                   After creating this quiz content, click the "✏️ Quiz" button
                   to add questions and create the actual quiz.
                 </p>
               </div>
-              <small style={{ color: "#6b7280" }}>
+              <small className="muted-text">
                 Note: You only need to provide a title. The quiz questions will
                 be added using the Quiz editor.
               </small>
