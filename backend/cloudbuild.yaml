@@ -49,6 +49,7 @@ substitutions:
   _REGION: "us-central1"
   _REPO_NAME: "learnhub"
   _SERVICE_NAME: "learnhub-backend"
+  _PROJECT_ID: "learnhub-478103"
 
   # <-- Set these explicitly. Use "backend/Dockerfile" and "backend" for backend builds.
   _DOCKERFILE_PATH: "backend/Dockerfile"   # path to your Dockerfile relative to repo root
