@@ -15,6 +15,7 @@ import RowActionMenu from "../../components/admin/RowActionMenu.jsx";
 import { formatDate } from "../../utils/format.js";
 import AdminAnalytics from "../../components/AdminAnalytics.jsx";
 import "../styles/AdminDashboard.css";
+import CourseModal from "../../components/CourseModal.jsx";
 
 export default function AdminDashboard() {
   const toast = useToast();
@@ -903,8 +904,7 @@ function CoursesTab() {
   });
   const [editCourse, setEditCourse] = useState({
     open: false,
-    id: null,
-    title: "",
+    course: null,
   }); // will be removed
   const [deleteCourse, setDeleteCourse] = useState({
     id: null,
@@ -1042,9 +1042,10 @@ function CoursesTab() {
       render: (c) => (
         <RowActionMenu
           placement="right"
-          onDelete={() =>
-            setDeleteCourse({ id: c.courseId || c.id, open: true, reason: "" })
-          }
+            onEdit={() => setEditCourse({ open: true, course: c })}
+            onDelete={() =>
+              setDeleteCourse({ id: c.courseId || c.id, open: true, reason: "" })
+            }
         />
       ),
     },
@@ -1182,6 +1183,18 @@ function CoursesTab() {
             </button>
           </div>
         </Modal>
+
+        {editCourse.open && editCourse.course && (
+          <CourseModal
+            course={editCourse.course}
+            onClose={() => setEditCourse({ open: false, course: null })}
+            onSuccess={async () => {
+              setEditCourse({ open: false, course: null });
+              await refetch();
+              toast.add("Course updated successfully");
+            }}
+          />
+        )}
 
         <Modal
           show={modules.open}

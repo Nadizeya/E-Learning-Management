@@ -8,7 +8,8 @@ import { useToast } from '../state/ToastContext.jsx'
 export default function CourseManagement() {
   const toast = useToast()
   const [courses, setCourses] = useState([])
-  const [showCreateCourse, setShowCreateCourse] = useState(false)
+  const [showCourseModal, setShowCourseModal] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState(null)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -79,7 +80,7 @@ export default function CourseManagement() {
           <h1>My Courses</h1>
           <p>Create and manage your courses</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreateCourse(true)}>
+        <button className="btn-primary" onClick={() => { setSelectedCourse(null); setShowCourseModal(true) }}>
           <span>+</span> Create New Course
         </button>
       </div>
@@ -127,6 +128,13 @@ export default function CourseManagement() {
                   >
                     Manage
                   </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => { setSelectedCourse(course); setShowCourseModal(true) }}
+                    style={{ marginLeft: '8px' }}
+                  >
+                    Edit
+                  </button>
                   <button 
                     className="btn-danger" 
                     onClick={() => handleDeleteCourse(course.courseId)}
@@ -140,13 +148,15 @@ export default function CourseManagement() {
         </div>
       )}
 
-      {showCreateCourse && (
+      {showCourseModal && (
         <CourseModal 
-          onClose={() => setShowCreateCourse(false)}
+          course={selectedCourse}
+          onClose={() => { setShowCourseModal(false); setSelectedCourse(null) }}
           onSuccess={() => {
-            setShowCreateCourse(false)
+            setShowCourseModal(false)
             fetchCourses()
-            toast.add('Course created successfully')
+            toast.add(selectedCourse ? 'Course updated successfully' : 'Course created successfully')
+            setSelectedCourse(null)
           }}
         />
       )}

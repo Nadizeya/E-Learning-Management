@@ -14,6 +14,7 @@ export default function ModuleContentManage() {
   const [contents, setContents] = useState([])
   const [contentType, setContentType] = useState('VIDEO')
   const [showCreateContent, setShowCreateContent] = useState(false)
+  const [editingContent, setEditingContent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -140,6 +141,11 @@ export default function ModuleContentManage() {
                       setSelectedContentForQuiz(content)
                       setShowQuizModal(true)
                     }}
+                    onEdit={() => {
+                      setEditingContent(content)
+                      setContentType(content.contentType === 'Video' ? 'VIDEO' : content.contentType === 'Reading' ? 'READING' : 'QUIZ')
+                      setShowCreateContent(true)
+                    }}
                   />
                 ))}
               </div>
@@ -150,11 +156,13 @@ export default function ModuleContentManage() {
             <CreateContentForm
               moduleId={Number(moduleId)}
               contentType={contentType}
-              onClose={() => setShowCreateContent(false)}
+              editingContent={editingContent}
+              onClose={() => { setShowCreateContent(false); setEditingContent(null) }}
               onSuccess={async () => {
                 setShowCreateContent(false)
+                setEditingContent(null)
                 await fetchModuleAndContents()
-                toast.add('Content added successfully')
+                toast.add(editingContent ? 'Content updated successfully' : 'Content added successfully')
               }}
             />
           )}
@@ -180,7 +188,7 @@ export default function ModuleContentManage() {
   )
 }
 
-function ContentItem({ content, index, onDelete, onCreateQuiz }) {
+function ContentItem({ content, index, onDelete, onCreateQuiz, onEdit }) {
   const getIcon = () => {
     switch (content.contentType) {
       case 'Video':
@@ -209,13 +217,14 @@ function ContentItem({ content, index, onDelete, onCreateQuiz }) {
         {(content.contentType === 'Quiz' || content.contentType === 'QUIZ') && (
           <button className="btn-secondary small" onClick={onCreateQuiz} title="Create/Edit Quiz">✏️ Quiz</button>
         )}
+        <button className="btn-secondary small" onClick={onEdit} title="Edit Content" style={{ marginLeft: 8 }}>✏️ Edit</button>
         <button className="btn-icon" onClick={onDelete}>🗑️</button>
       </div>
     </div>
   )
 }
 
-function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
+function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingContent }) {
   const [formData, setFormData] = useState({
     title: '',
     type: contentType,
@@ -231,6 +240,27 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
   useEffect(() => {
     setFormData((prev) => ({ ...prev, type: contentType }))
   }, [contentType])
+
+  useEffect(() => {
+    if (editingContent) {
+      setFormData({
+        title: editingContent.title || '',
+        type: editingContent.contentType === 'Video' ? 'VIDEO' : editingContent.contentType === 'Reading' ? 'READING' : 'QUIZ',
+        videoUrl: editingContent.contentUrl || '',
+        readingContent: editingContent.contentUrl || '',
+      })
+      setUploadType(editingContent.filePath ? 'file' : 'url')
+      setVideoFile(null)
+      setDocumentFile(null)
+      setUploadError('')
+    } else {
+      setFormData({ title: '', type: contentType, videoUrl: '', readingContent: '' })
+      setUploadType('url')
+      setVideoFile(null)
+      setDocumentFile(null)
+      setUploadError('')
+    }
+  }, [editingContent])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -285,6 +315,58 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
     try {
       const token = localStorage.getItem('token')
 
+      // If editing existing content
+      if (editingContent) {
+        const contentTypeMap = { VIDEO: 'Video', READING: 'Reading', QUIZ: 'Quiz' }
+        const payload = {
+          moduleId: moduleId,
+          title: formData.title,
+          contentType: contentTypeMap[formData.type],
+          contentUrl: formData.type === 'VIDEO' ? formData.videoUrl : formData.type === 'READING' ? formData.readingContent : '',
+          contentOrder: editingContent.contentOrder || 0,
+        }
+
+        // If replacing file while editing: upload new file then update
+        if (uploadType === 'file' && (videoFile || documentFile)) {
+          const formDataUpload = new FormData()
+          const file = videoFile || documentFile
+          formDataUpload.append('file', file)
+          formDataUpload.append('moduleId', moduleId)
+          formDataUpload.append('title', formData.title)
+          formDataUpload.append('contentType', payload.contentType)
+          formDataUpload.append('contentOrder', payload.contentOrder)
+
+          const uploadResp = await apiClient.post(`/course-contents/upload`, formDataUpload, {
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+          })
+
+          const created = uploadResp.data?.data
+          if (!created) throw new Error('Upload failed')
+
+          // set filePath to new uploaded file
+          payload.filePath = created.filePath
+
+          // update existing content
+          await apiClient.put(`/course-contents/${editingContent.contentId}`, payload, { headers: { Authorization: `Bearer ${token}` } })
+
+          // cleanup temporary created record
+          try {
+            await apiClient.delete(`/course-contents/${created.contentId}`, { headers: { Authorization: `Bearer ${token}` } })
+          } catch (cleanupErr) {
+            console.warn('Failed to delete temporary content record:', cleanupErr)
+          }
+
+          onSuccess()
+          return
+        }
+
+        // no file replace: update metadata
+        await apiClient.put(`/course-contents/${editingContent.contentId}`, payload, { headers: { Authorization: `Bearer ${token}` } })
+        onSuccess()
+        return
+      }
+
+      // Creation flow (unchanged)
       if (formData.type === 'VIDEO' && uploadType === 'file') {
         if (!videoFile) {
           setUploadError('Please select a video file')
@@ -297,9 +379,7 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
         formDataUpload.append('title', formData.title)
         formDataUpload.append('contentType', 'Video')
         formDataUpload.append('contentOrder', 0)
-        await apiClient.post(`/course-contents/upload`, formDataUpload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
-        })
+        await apiClient.post(`/course-contents/upload`, formDataUpload, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } })
         onSuccess()
         return
       }
@@ -316,31 +396,21 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
         formDataUpload.append('title', formData.title)
         formDataUpload.append('contentType', 'Reading')
         formDataUpload.append('contentOrder', 0)
-        await apiClient.post(`/course-contents/upload`, formDataUpload, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
-        })
+        await apiClient.post(`/course-contents/upload`, formDataUpload, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } })
         onSuccess()
         return
       }
 
       let contentUrl = ''
-      if (formData.type === 'VIDEO') {
-        contentUrl = formData.videoUrl
-      } else if (formData.type === 'READING') {
-        contentUrl = formData.readingContent
-      } else if (formData.type === 'QUIZ') {
-        contentUrl = ''
-      }
+      if (formData.type === 'VIDEO') contentUrl = formData.videoUrl
+      else if (formData.type === 'READING') contentUrl = formData.readingContent
 
       const contentTypeMap = { VIDEO: 'Video', READING: 'Reading', QUIZ: 'Quiz' }
       const payload = { moduleId: moduleId, title: formData.title, contentType: contentTypeMap[formData.type], contentUrl, contentOrder: 0 }
 
       const response = await apiClient.post(`/course-contents`, payload, { headers: { Authorization: `Bearer ${token}` } })
-      if (response.data.success || response.data.data) {
-        onSuccess()
-      } else {
-        setUploadError(response.data.message || 'Failed to create content')
-      }
+      if (response.data.success || response.data.data) onSuccess()
+      else setUploadError(response.data.message || 'Failed to create content')
     } catch (error) {
       setUploadError(error.response?.data?.message || error.message)
     } finally {
@@ -351,7 +421,7 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
   return (
     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
       <div className="modal-header">
-        <h3>Add {contentType}</h3>
+        <h3>{editingContent ? 'Edit' : 'Add'} {contentType}</h3>
         <button className="modal-close" onClick={onClose}>×</button>
       </div>
 
@@ -366,8 +436,8 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
             <div className="form-group">
               <label>Upload Method</label>
               <div className="upload-type-tabs">
-                <button type="button" className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`} onClick={() => setUploadType('url')}>🔗 Video URL</button>
-                <button type="button" className={`upload-tab ${uploadType === 'file' ? 'active' : ''}`} onClick={() => setUploadType('file')}>📁 Upload File</button>
+                <button type="button" className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`} onClick={() => { setUploadType('url'); setVideoFile(null); setUploadError('') }}>🔗 Video URL</button>
+                <button type="button" className={`upload-tab ${uploadType === 'file' ? 'active' : ''}`} onClick={() => { setUploadType('file'); setFormData((f) => ({ ...f, videoUrl: '' })); setUploadError('') }}>📁 Upload File</button>
               </div>
             </div>
 
@@ -380,7 +450,7 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
             ) : (
               <div className="form-group">
                 <label>Video File *</label>
-                <input type="file" accept="video/mp4,video/avi,video/mov,video/mkv,video/webm" onChange={handleFileChange} required className="file-input" />
+                <input type="file" accept="video/mp4,video/avi,video/mov,video/mkv,video/webm" onChange={handleFileChange} className="file-input" />
                 {videoFile && (
                   <div className="file-info">
                     <span>📹 {videoFile.name}</span>
@@ -398,8 +468,8 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
             <div className="form-group">
               <label>Content Method</label>
               <div className="upload-type-tabs">
-                <button type="button" className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`} onClick={() => setUploadType('url')}>✍️ Write Text</button>
-                <button type="button" className={`upload-tab ${uploadType === 'file' ? 'active' : ''}`} onClick={() => setUploadType('file')}>📄 Upload Document</button>
+                <button type="button" className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`} onClick={() => { setUploadType('url'); setDocumentFile(null); setUploadError('') }}>✍️ Write Text</button>
+                <button type="button" className={`upload-tab ${uploadType === 'file' ? 'active' : ''}`} onClick={() => { setUploadType('file'); setFormData((f) => ({ ...f, readingContent: '' })); setUploadError('') }}>📄 Upload Document</button>
               </div>
             </div>
 
@@ -411,7 +481,7 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
             ) : (
               <div className="form-group">
                 <label>Document File *</label>
-                <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleDocumentFileChange} required className="file-input" />
+                <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleDocumentFileChange} className="file-input" />
                 {documentFile && (
                   <div className="file-info">
                     <span>📄 {documentFile.name}</span>
@@ -438,7 +508,7 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess }) {
 
         <div className="modal-actions">
           <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={loading}>{loading ? (uploadType === 'file' && contentType === 'VIDEO' ? 'Uploading...' : 'Adding...') : 'Add Content'}</button>
+          <button type="submit" className="btn-primary" disabled={loading}>{loading ? (uploadType === 'file' && contentType === 'VIDEO' ? 'Uploading...' : 'Saving...') : (editingContent ? 'Save Changes' : 'Add Content')}</button>
         </div>
       </form>
     </div>
