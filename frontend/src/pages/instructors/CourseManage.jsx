@@ -4,6 +4,8 @@ import apiClient from '../../api/apiClient'
 import ModuleModal from '../../components/ModuleModal'
 import ContentModal from '../../components/ContentModal'
 import { categoryAPI } from '../../services/api.js'
+import { useToast } from '../../state/ToastContext.jsx'
+import '../styles/InstructorDashboard.css'
 
 export default function CourseManage() {
   const { courseId } = useParams()
@@ -21,6 +23,7 @@ export default function CourseManage() {
   const [showContentModal, setShowContentModal] = useState(false)
   const [selectedModule, setSelectedModule] = useState(null)
   const [loadingCategories, setLoadingCategories] = useState(false)
+  const toast = useToast()
 
   useEffect(() => {
     fetchCourse()
@@ -101,6 +104,7 @@ export default function CourseManage() {
 
       setEditingCourse(false)
       fetchCourse()
+      toast.add('Course updated successfully')
     } catch (err) {
       alert('Error: ' + (err.response?.data?.message || err.message))
     }
@@ -114,6 +118,7 @@ export default function CourseManage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       fetchModules(courseId)
+      toast.add('Module deleted successfully')
     } catch (err) {
       alert('Error: ' + (err.response?.data?.message || err.message))
     }
@@ -122,6 +127,16 @@ export default function CourseManage() {
   const openContentModal = (module) => {
     setSelectedModule(module)
     setShowContentModal(true)
+  }
+
+  const openCreateModuleModal = () => {
+    setSelectedModule(null)
+    setShowModuleModal(true)
+  }
+
+  const openEditModuleModal = (module) => {
+    setSelectedModule(module)
+    setShowModuleModal(true)
   }
 
   const closeContentModal = () => {
@@ -282,7 +297,7 @@ export default function CourseManage() {
                   Organise your course content into modular lessons and add videos, slides, and quizzes.
                 </p>
               </div>
-              <button className="btn-primary" onClick={() => setShowModuleModal(true)}>
+              <button className="btn-primary" onClick={openCreateModuleModal}>
                 + Add Module
               </button>
             </div>
@@ -292,7 +307,7 @@ export default function CourseManage() {
                 <div className="empty-icon">📘</div>
                 <h4>No modules yet</h4>
                 <p>Create your first module to start adding lessons and activities.</p>
-                <button className="btn-primary" onClick={() => setShowModuleModal(true)}>
+                <button className="btn-primary" onClick={openCreateModuleModal}>
                   Create Module
                 </button>
               </div>
@@ -306,8 +321,14 @@ export default function CourseManage() {
                       <p>{module.description || 'No module description provided.'}</p>
                     </div>
                     <div className="module-actions">
-                      <button className="btn-secondary small" onClick={() => openContentModal(module)}>
+                      <button
+                        className="btn-secondary small"
+                        onClick={() => navigate(`/instructor/course/${courseId}/module/${module.moduleId}`)}
+                      >
                         Manage Contents
+                      </button>
+                      <button className="btn-secondary small" onClick={() => openEditModuleModal(module)}>
+                        Edit
                       </button>
                       <button className="btn-icon" onClick={() => handleDeleteModule(module.moduleId)}>
                         🗑️
@@ -324,10 +345,12 @@ export default function CourseManage() {
       {showModuleModal && (
         <ModuleModal
           courseId={Number(courseId)}
+          module={selectedModule || undefined}
           onClose={() => setShowModuleModal(false)}
-          onSuccess={() => {
+          onSuccess={(updatedId) => {
             setShowModuleModal(false)
             fetchModules(courseId)
+            toast.add(selectedModule ? 'Module updated successfully' : 'Module created successfully')
           }}
         />
       )}

@@ -187,6 +187,9 @@ export default function CoursePlayer() {
 
   const activeContent = contents.find(c => c.contentId === activeContentId)
   const activeIndex = contents.findIndex(c => c.contentId === activeContentId)
+  const isLast = activeIndex >= contents.length - 1 && contents.length > 0
+  const allCompleted = contents.length > 0 && contents.every(c => completedContents.includes(c.contentId))
+    || (courseProgress?.progressPercentage >= 100)
 
   if (!course) {
     return (
@@ -202,7 +205,18 @@ export default function CoursePlayer() {
   }
   
   const goNext = () => {
-    if (activeIndex < contents.length - 1) setActiveContentId(contents[activeIndex + 1].contentId)
+    if (activeIndex < contents.length - 1) {
+      setActiveContentId(contents[activeIndex + 1].contentId)
+      return
+    }
+    // If at last content and all contents are completed, go to My Courses
+    const contentIds = contents.map(c => c.contentId)
+    const completedSet = new Set(completedContents)
+    const allCompleted = contentIds.length > 0 && contentIds.every(id => completedSet.has(id))
+      || (courseProgress?.progressPercentage >= 100)
+    if (allCompleted) {
+      navigate('/my-courses')
+    }
   }
   
   const markAsCompleted = async (contentId) => {
@@ -429,21 +443,74 @@ export default function CoursePlayer() {
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="btn btn-outline-secondary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={goPrev} disabled={activeIndex<=0}>Previous</button>
-                <button className="btn btn-primary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={goNext} disabled={activeIndex>=contents.length-1}>Next</button>
+                <button className="btn btn-primary" style={{ borderRadius: 10, padding: '8px 14px' }} onClick={goNext} disabled={isLast && !allCompleted}>
+                  {isLast && allCompleted ? 'Go to My Courses' : 'Next'}
+                </button>
               </div>
             </div>
 
             <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', boxShadow: '0 12px 30px rgba(0,0,0,0.06)' }}>
               {activeContent?.contentType?.toUpperCase() === 'VIDEO' ? (
                 <div style={{ position: 'relative', paddingTop: '56.25%' }}>
-                  <video
-                    controls
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: '0', background: '#000' }}
-                    src={`http://localhost:8080/api/course-contents/files/${activeContent.filePath}`}
-                    onError={(e) => console.error('Video load error:', e, 'URL:', e.target.src)}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
+                  {(() => {
+                    const fileSrc = activeContent?.filePath
+                      ? `http://localhost:8080/api/course-contents/files/${activeContent.filePath}`
+                      : ''
+                    const url = activeContent?.contentUrl || ''
+                    const isYouTube = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)/i.test(url)
+                    const isVimeo = /vimeo\.com\//i.test(url)
+
+                    if (isYouTube) {
+                      // Normalize to embed URL
+                      let videoId = ''
+                      try {
+                        const ytMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]+)/)
+                        videoId = ytMatch && ytMatch[1] ? ytMatch[1] : ''
+                      } catch {}
+                      const embed = videoId ? `https://www.youtube.com/embed/${videoId}` : url
+                      return (
+                        <iframe
+                          title="YouTube Player"
+                          src={embed}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                        />
+                      )
+                    }
+
+                    if (isVimeo) {
+                      // Try to convert to player embed
+                      let videoId = ''
+                      try {
+                        const vmMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)
+                        videoId = vmMatch && vmMatch[1] ? vmMatch[1] : ''
+                      } catch {}
+                      const embed = videoId ? `https://player.vimeo.com/video/${videoId}` : url
+                      return (
+                        <iframe
+                          title="Vimeo Player"
+                          src={embed}
+                          allow="autoplay; fullscreen; picture-in-picture"
+                          allowFullScreen
+                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                        />
+                      )
+                    }
+
+                    // Default: use fileSrc if available, else try the raw URL in a <video> tag
+                    const finalSrc = fileSrc || url
+                    return (
+                      <video
+                        controls
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: '0', background: '#000' }}
+                        src={finalSrc}
+                        onError={(e) => console.error('Video load error:', e, 'URL:', e.target.src, 'content:', activeContent)}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    )
+                  })()}
                 </div>
               ) : activeContent?.contentType?.toUpperCase() === 'DOCUMENT' || activeContent?.contentType?.toUpperCase() === 'READING' ? (
                 <div style={{ padding: 20, color: '#1f2937', lineHeight: 1.7 }}>
@@ -523,9 +590,9 @@ export default function CoursePlayer() {
                 className="btn btn-primary" 
                 style={{ borderRadius: 8, flex: 1 }} 
                 onClick={goNext} 
-                disabled={activeIndex>=contents.length-1}
+                disabled={isLast && !allCompleted}
               >
-                Next Lesson
+                {isLast && allCompleted ? 'Go to My Courses' : 'Next Lesson'}
               </button>
             </div>
           </main>

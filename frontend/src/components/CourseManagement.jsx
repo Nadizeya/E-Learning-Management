@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/apiClient'
 import CourseModal from './CourseModal'
 import { categoryAPI } from '../services/api.js'
+import { useToast } from '../state/ToastContext.jsx'
 
 export default function CourseManagement() {
+  const toast = useToast()
   const [courses, setCourses] = useState([])
   const [showCreateCourse, setShowCreateCourse] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -64,6 +66,7 @@ export default function CourseManagement() {
         headers: { Authorization: `Bearer ${token}` }
       })
       fetchCourses()
+      toast.add('Course deleted successfully')
     } catch (error) {
       alert('Error: ' + (error.response?.data?.message || error.message))
     }
@@ -143,6 +146,7 @@ export default function CourseManagement() {
           onSuccess={() => {
             setShowCreateCourse(false)
             fetchCourses()
+            toast.add('Course created successfully')
           }}
         />
       )}
