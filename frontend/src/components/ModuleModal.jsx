@@ -16,16 +16,18 @@ export default function ModuleModal({ courseId, module, onClose, onSuccess }) {
 
     try {
       const token = localStorage.getItem('token')
+      let updatedId = module?.moduleId
       if (module) {
         await apiClient.put(`/course-modules/${module.moduleId}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
       } else {
-        await apiClient.post(`/course-modules`, formData, {
+        const res = await apiClient.post(`/course-modules`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
+        updatedId = res?.data?.data?.moduleId || res?.data?.moduleId || updatedId
       }
-      onSuccess()
+      onSuccess(updatedId)
     } catch (error) {
       alert('Error: ' + (error.response?.data?.message || error.message))
     } finally {
