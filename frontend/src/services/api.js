@@ -128,6 +128,21 @@ export const courseContentAPI = {
     return data.data;
   },
 
+  // Update content
+  updateContent: async (id, contentData, token) => {
+    const response = await fetch(`${API_BASE_URL}/course-contents/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(contentData),
+    });
+    if (!response.ok) throw new Error('Failed to update content');
+    const data = await response.json();
+    return data.data;
+  },
+
   // Upload file
   uploadFile: async (file, moduleId, title, contentType, contentOrder) => {
     const formData = new FormData();

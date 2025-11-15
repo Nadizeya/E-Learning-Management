@@ -862,7 +862,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.25rem;
+  padding: 1.25rem 1.5rem; /* more horizontal breathing room to avoid badge touching edge */
   background: #f7f8fa;
   border-radius: 12px;
   transition: all 0.2s ease;
@@ -886,6 +886,11 @@
   font-weight: 700;
   font-size: 1.1rem;
   flex-shrink: 0;
+}
+
+/* small nudge so the badge sits clear of the card's rounded corner */
+.module-number {
+  margin-left: 4px;
 }
 
 .module-info {
