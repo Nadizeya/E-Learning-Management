@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiClient from "../../api/apiClient";
@@ -22,6 +23,8 @@ export default function InstructorSettings() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingProfile, setPendingProfile] = useState({ firstName: '', lastName: '', email: '', bio: '', expertise: '' });
 
   useEffect(() => {
     const userRaw = localStorage.getItem("user");
@@ -57,22 +60,46 @@ export default function InstructorSettings() {
       setError("Missing instructor id in local storage");
       return;
     }
+    // If profile or email changed, show confirmation box
+    if (
+      firstName !== (instructor?.firstName || "") ||
+      lastName !== (instructor?.lastName || "") ||
+      email !== (instructor?.email || "") ||
+      bio !== (instructor?.bio || "") ||
+      expertise !== (instructor?.expertise || "")
+    ) {
+      setPendingProfile({ firstName, lastName, email, bio, expertise });
+      setShowConfirm(true);
+      return;
+    }
+    // If no changes, do nothing
+    return;
+  };
+
+  // Confirm and actually update profile/email
+  const confirmProfileChange = async () => {
     setLoading(true);
     setError("");
     setMessage("");
     try {
       const id = instructor.id || instructor.instructorId || instructor._id;
-      const res = await apiClient.put(`/instructors/${id}`, {
-        firstName,
-        lastName,
-        email,
-        bio,
-        expertise
+      await apiClient.put(`/instructors/${id}`, {
+        firstName: pendingProfile.firstName,
+        lastName: pendingProfile.lastName,
+        email: pendingProfile.email,
+        bio: pendingProfile.bio,
+        expertise: pendingProfile.expertise
       });
-      const updated = res.data;
-      localStorage.setItem("user", JSON.stringify(updated));
-      setInstructor(updated);
-      setMessage("Profile updated");
+      // Remove user info and redirect immediately
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("userRole");
+      setShowConfirm(false);
+      navigate("/instructor/signin", {
+        state: {
+          message: "If you change your profile or email, you have to sign in again."
+        }
+      });
     } catch (err) {
       setError(err?.response?.data?.message || "Update failed");
     } finally {
@@ -284,27 +311,69 @@ export default function InstructorSettings() {
                         </div>
                       </div>
                       <div className="mt-4 d-flex gap-2">
-                        <button
-                          type="submit"
-                          className="btn btn-primary"
-                          disabled={loading}
-                        >
-                          {loading ? "Saving..." : "Save Changes"}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() => {
-                            setFirstName(instructor?.firstName || "");
-                            setLastName(instructor?.lastName || "");
-                            setEmail(instructor?.email || "");
-                            setBio(instructor?.bio || "");
-                            setExpertise(instructor?.expertise || "");
-                          }}
-                          disabled={loading}
-                        >
-                          Reset
-                        </button>
+                        {/* Hide Save Changes button when confirmation box is shown */}
+                        {!showConfirm && (
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={
+                              loading ||
+                              (
+                                firstName === (instructor?.firstName || "") &&
+                                lastName === (instructor?.lastName || "") &&
+                                email === (instructor?.email || "") &&
+                                bio === (instructor?.bio || "") &&
+                                expertise === (instructor?.expertise || "")
+                              )
+                            }
+                          >
+                            {loading ? "Saving..." : "Save Changes"}
+                          </button>
+                        )}
+                        {/* Confirmation modal/box for profile change */}
+                        {showConfirm ? (
+                          <div className="alert alert-warning mt-3 p-4 d-flex flex-column align-items-start" style={{ zIndex: 10, minWidth: 320, maxWidth: 400 }}>
+                            <h6 className="alert-heading mb-2">Are you sure you want to change your profile or email?</h6>
+                            <p className="mb-3" style={{ fontSize: 15 }}>
+                              If you change your profile or email, you have to sign in again.<br />
+                              Click <strong>Save Changes</strong> below to confirm and continue.
+                            </p>
+                            <div className="d-flex gap-2">
+                              <button
+                                type="button"
+                                className="btn btn-danger px-4"
+                                onClick={confirmProfileChange}
+                                disabled={loading}
+                              >
+                                {loading ? "Saving..." : "Save Changes"}
+                              </button>
+                              <button
+                                className="btn btn-outline-secondary px-4"
+                                onClick={() => setShowConfirm(false)}
+                                disabled={loading}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+                        {/* Hide Reset button when confirmation box is shown */}
+                        {!showConfirm && (
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            onClick={() => {
+                              setFirstName(instructor?.firstName || "");
+                              setLastName(instructor?.lastName || "");
+                              setEmail(instructor?.email || "");
+                              setBio(instructor?.bio || "");
+                              setExpertise(instructor?.expertise || "");
+                            }}
+                            disabled={loading}
+                          >
+                            Reset
+                          </button>
+                        )}
                       </div>
                     </form>
                   </div>

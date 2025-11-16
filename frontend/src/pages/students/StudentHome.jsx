@@ -521,13 +521,6 @@ export default function StudentHome() {
               <span className="brand-icon">🎓</span>
               <span className="brand-name">LearnHub</span>
             </div>
-            <p className="footer-tagline">Empowering learners worldwide ✨</p>
-            <div className="footer-links">
-              <a href="#">About</a>
-              <a href="#">Careers</a>
-              <a href="#">Help</a>
-              <a href="#">Privacy</a>
-            </div>
             <p className="footer-copyright">
               © 2025 LearnHub. All rights reserved.
             </p>
