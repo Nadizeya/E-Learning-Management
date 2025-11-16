@@ -102,7 +102,20 @@ export default function CourseManagement() {
             <div key={course.courseId} className="course-card">
               <div className="course-card-header">
                 <div className="course-thumbnail">
-                  <span className="course-emoji">📖</span>
+                  {course.thumbnail ? (
+                    <img
+                      src={course.thumbnail}
+                      alt={course.title || 'Course thumbnail'}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '10px'
+                      }}
+                    />
+                  ) : (
+                    <span className="course-emoji">📖</span>
+                  )}
                 </div>
                 <span className={`status-badge ${course.status === 'Published' ? 'published' : 'draft'}`}>
                   {course.status}

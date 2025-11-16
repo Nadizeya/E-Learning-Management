@@ -42,12 +42,12 @@ export default function ModuleModal({ courseId, module, onClose, onSuccess }) {
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        backdropFilter: 'blur(3px)'
+        backdropFilter: 'blur(4px)'
       }}
     >
       <div
@@ -56,49 +56,51 @@ export default function ModuleModal({ courseId, module, onClose, onSuccess }) {
         style={{
           backgroundColor: 'white',
           borderRadius: '12px',
-          boxShadow: '0 30px 60px rgba(0,0,0,0.12)',
-          width: '92%',
-          maxWidth: '520px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+          width: '90%',
+          maxWidth: '600px',
           maxHeight: '90vh',
           overflowY: 'auto',
-          animation: 'slideUp 0.28s ease-out'
+          animation: 'slideUp 0.3s ease-out'
         }}
       >
         <div
           className="modal-header"
           style={{
             padding: '20px 24px',
-            borderBottom: '1px solid #eef2ff',
+            borderBottom: '1px solid #e5e7eb',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',
-            borderTopLeftRadius: '12px',
-            borderTopRightRadius: '12px'
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
           }}
         >
-          <h3 style={{ margin: 0, color: 'white', fontSize: '22px', fontWeight: 700 }}>{module ? '✏️ Edit Module' : '➕ Create Module'}</h3>
+          <h3
+            style={{
+              margin: 0,
+              color: 'white',
+              fontSize: 22,
+              fontWeight: 700
+            }}
+          >
+            {module ? '✏️ Edit Module' : '➕ Create Module'}
+          </h3>
           <button
             onClick={onClose}
             style={{
               border: 'none',
-              background: 'rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.2)',
               color: 'white',
-              fontSize: 22,
-              width: 44,
-              height: 44,
+              fontSize: 24,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
               cursor: 'pointer',
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'transform 0.12s ease, background 0.12s ease',
-              boxShadow: 'none'
+              transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.background = 'rgba(255,255,255,0.26)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-            onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(102,126,234,0.12)'; }}
-            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
             aria-label="Close"
           >
             ×
