@@ -1,6 +1,7 @@
 package com.elearn.lms.controller;
 
 import com.elearn.lms.dto.InstructorSignupRequest;
+import com.elearn.lms.dto.InstructorUpdateRequest;
 import com.elearn.lms.entity.Instructor;
 import com.elearn.lms.service.InstructorService;
 import jakarta.validation.Valid;
@@ -53,7 +54,18 @@ public class InstructorController {
         }
     }
 
-    // Update endpoint removed
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody InstructorUpdateRequest request) {
+        logger.info("Updating instructor with ID: {}", id);
+        try {
+            Instructor updated = instructorService.update(id, request);
+            logger.info("Instructor updated successfully with ID: {}", id);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException ex) {
+            logger.error("Update failed for instructor ID {}: {}", id, ex.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", ex.getMessage()));
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {

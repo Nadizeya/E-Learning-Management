@@ -1,6 +1,7 @@
 package com.elearn.lms.service;
 
 import com.elearn.lms.dto.InstructorSignupRequest;
+import com.elearn.lms.dto.InstructorUpdateRequest;
 import com.elearn.lms.entity.Instructor;
 import com.elearn.lms.repository.InstructorRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,7 +49,21 @@ public class InstructorService {
         return instructorRepository.save(i);
     }
 
-    // Update method removed
+    @Transactional
+    public Instructor update(Long id, InstructorUpdateRequest request) {
+        Instructor existing = findByIdOrThrow(id);
+        // If email is changing and already taken by another, reject
+        if (!existing.getEmail().equalsIgnoreCase(request.getEmail())
+                && instructorRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        existing.setFirstName(request.getFirstName());
+        existing.setLastName(request.getLastName());
+        existing.setEmail(request.getEmail());
+        existing.setBio(request.getBio().trim());
+        existing.setExpertise(request.getExpertise().trim());
+        return instructorRepository.save(existing);
+    }
 
     @Transactional
     public void delete(Long id) { instructorRepository.deleteById(id); }

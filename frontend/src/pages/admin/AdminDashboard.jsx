@@ -3,8 +3,6 @@ import { useToast } from "../../state/ToastContext.jsx";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../api/apiClient";
 import { useAuth } from "../../state/AuthContext.jsx";
-import Sidebar from "../../components/Sidebar.jsx";
-import Topbar from "../../components/Topbar.jsx";
 import Modal from "../../components/admin/Modal.jsx";
 import DataTable from "../../components/admin/DataTable.jsx";
 import DetailSection from "../../components/admin/DetailSection.jsx";
@@ -14,7 +12,7 @@ import DetailModal from "../../components/admin/DetailModal.jsx";
 import RowActionMenu from "../../components/admin/RowActionMenu.jsx";
 import { formatDate } from "../../utils/format.js";
 import AdminAnalytics from "../../components/AdminAnalytics.jsx";
-import "../styles/AdminDashboard.css";
+import "../styles/InstructorDashboard.css";
 import CourseModal from "../../components/CourseModal.jsx";
 
 export default function AdminDashboard() {
@@ -27,30 +25,93 @@ export default function AdminDashboard() {
     if (!admin) navigate("/admin/login");
   }, [admin, navigate]);
 
-  useEffect(() => {
-    const onLogout = () => {
-      logout();
-      navigate("/admin/login");
-    };
-    document.addEventListener("topbar:logout", onLogout);
-    return () => {
-      document.removeEventListener("topbar:logout", onLogout);
-    };
-  }, [logout, navigate]);
+  const handleLogout = () => {
+    logout();
+    navigate("/admin/login");
+  };
 
   return (
-    <div className="d-flex admin-dashboard-container">
-      <Sidebar active={tab} onSelect={setTab} />
-      <div className="flex-grow-1 d-flex flex-column admin-dashboard-content">
-        <Topbar title="E‑Learning Management System" admin={admin} />
-        <div className="detail-container container-fluid p-5">
+    <div className="instructor-dashboard">
+      <header className="dashboard-header">
+        <div className="header-content">
+          <div className="brand">
+            <span className="brand-icon">🎓</span>
+            <span className="brand-name">LearnHub Admin</span>
+          </div>
+          <div className="header-actions">
+            <div className="user-info">
+              <div className="user-avatar">
+                <span>{admin?.firstName?.charAt(0) || "A"}</span>
+              </div>
+              <div className="user-details">
+                <span className="user-name">
+                  {admin?.firstName} {admin?.lastName}
+                </span>
+              </div>
+            </div>
+            <button className="btn-logout" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="dashboard-container">
+        <aside className="dashboard-sidebar">
+          <nav className="sidebar-nav">
+            <button
+              className={`nav-item ${tab === "dashboard" ? "active" : ""}`}
+              onClick={() => setTab("dashboard")}
+           >
+              <span className="nav-icon">🏠</span>
+              Overview
+            </button>
+            <button
+              className={`nav-item ${tab === "admins" ? "active" : ""}`}
+              onClick={() => setTab("admins")}
+            >
+              <span className="nav-icon">🛠️</span>
+              Admins
+            </button>
+            <button
+              className={`nav-item ${tab === "students" ? "active" : ""}`}
+              onClick={() => setTab("students")}
+            >
+              <span className="nav-icon">👨‍🎓</span>
+              Students
+            </button>
+            <button
+              className={`nav-item ${tab === "instructors" ? "active" : ""}`}
+              onClick={() => setTab("instructors")}
+            >
+              <span className="nav-icon">👩‍🏫</span>
+              Instructors
+            </button>
+            <button
+              className={`nav-item ${tab === "courses" ? "active" : ""}`}
+              onClick={() => setTab("courses")}
+            >
+              <span className="nav-icon">📚</span>
+              Courses
+            </button>
+            <button
+              className={`nav-item ${tab === "enrollment" ? "active" : ""}`}
+              onClick={() => setTab("enrollment")}
+            >
+              <span className="nav-icon">📝</span>
+              Enrollment
+            </button>
+          </nav>
+        </aside>
+
+        <main className="dashboard-main">
           {tab === "dashboard" && <AdminAnalytics />}
           {tab === "admins" && <AdminsTab />}
           {tab === "courses" && <CoursesTab />}
           {tab === "students" && <StudentsTab />}
           {tab === "instructors" && <InstructorsTab />}
           {tab === "enrollment" && <EnrollmentTab />}
-        </div>
+        </main>
       </div>
     </div>
   );
@@ -94,6 +155,7 @@ function AdminsTab() {
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const createAdmin = async (e) => {
     e.preventDefault();
@@ -189,17 +251,37 @@ function AdminsTab() {
     },
   ];
 
+  const filteredList = (list || []).filter((a) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    const name = `${a.firstName || ""} ${a.lastName || ""}`.toLowerCase();
+    const email = (a.email || "").toLowerCase();
+    return name.includes(q) || email.includes(q);
+  });
+
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-2">
           <h5 className="card-title m-0 text-info">Admins List</h5>
-          <button
-            className="btn btn-info text-white"
-            onClick={() => setCreateOpen(true)}
-          >
-            Create
-          </button>
+          <div className="d-flex align-items-center justify-content-end" style={{ minWidth: "260px" }}>
+            <div className="input-group input-group-sm me-2">
+              <span className="input-group-text">🔍</span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search "
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <button
+              className="btn btn-info btn-sm text-white"
+              onClick={() => setCreateOpen(true)}
+            >
+              Create
+            </button>
+          </div>
         </div>
         {(error || errorMsg) && (
           <div className="alert alert-danger" role="alert">
@@ -211,7 +293,7 @@ function AdminsTab() {
         ) : (
           <DataTable
             columns={columns}
-            data={list}
+            data={filteredList}
             emptyMessage="No admins found"
           />
         )}
@@ -420,6 +502,7 @@ function StudentsTab() {
     open: false,
     reason: "",
   });
+  const [search, setSearch] = useState("");
 
   const fetchStudentDetails = async (studentId) => {
     setDetails({
@@ -524,11 +607,33 @@ function StudentsTab() {
       ),
     },
   ];
+  const filteredList = (list || []).filter((s) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    const name = `${s.firstName || ""} ${s.lastName || ""}`.toLowerCase();
+    const email = (s.email || "").toLowerCase();
+    const idStr = String(s.id || s.studentId || "").toLowerCase();
+    return name.includes(q) || email.includes(q) || idStr.includes(q);
+  });
 
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Students List</h5>
+        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-2">
+          <h5 className="card-title m-0 text-info">Students List</h5>
+          <div className="d-flex align-items-center justify-content-end" style={{ minWidth: "260px" }}>
+            <div className="input-group input-group-sm">
+              <span className="input-group-text">🔍</span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search "
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}
@@ -539,7 +644,7 @@ function StudentsTab() {
         ) : (
           <DataTable
             columns={columns}
-            data={list}
+            data={filteredList}
             onRowClick={(s) => fetchStudentDetails(s.id)}
             emptyMessage="No students found"
           />
@@ -723,6 +828,7 @@ function InstructorsTab() {
     open: false,
     reason: "",
   });
+  const [search, setSearch] = useState("");
 
   const fetchInstructorDetails = async (instructorId) => {
     setDetails({ courses: [], loading: true });
@@ -781,10 +887,33 @@ function InstructorsTab() {
     },
   ];
 
+  const filteredList = (list || []).filter((i) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    const name = `${i.firstName || ""} ${i.lastName || ""}`.toLowerCase();
+    const email = (i.email || "").toLowerCase();
+    const idStr = String(i.id || i.instructorId || "").toLowerCase();
+    return name.includes(q) || email.includes(q) || idStr.includes(q);
+  });
+
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Instructors List</h5>
+        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-2">
+          <h5 className="card-title m-0 text-info">Instructors List</h5>
+          <div className="d-flex align-items-center justify-content-end" style={{ minWidth: "260px" }}>
+            <div className="input-group input-group-sm">
+              <span className="input-group-text">🔍</span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search "
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}
@@ -795,7 +924,7 @@ function InstructorsTab() {
         ) : (
           <DataTable
             columns={columns}
-            data={list}
+            data={filteredList}
             onRowClick={(i) => fetchInstructorDetails(i.id)}
             emptyMessage="No instructors found"
           />
@@ -917,6 +1046,7 @@ function CoursesTab() {
     loading: false,
   });
   const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState("");
 
   // Fetch all categories when component mounts
   useEffect(() => {
@@ -1055,10 +1185,37 @@ function CoursesTab() {
   ).length;
   const enrolledCount = details.enrollments.length;
 
+  const filteredList = (list || []).filter((c) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    const title = (c.title || "").toLowerCase();
+    const idStr = String(c.courseId || c.id || "").toLowerCase();
+    const categoryType = (c.categoryType || "").toLowerCase();
+    return (
+      title.includes(q) ||
+      idStr.includes(q) ||
+      categoryType.includes(q)
+    );
+  });
+
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Courses List</h5>
+        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-2">
+          <h5 className="card-title m-0 text-info">Courses List</h5>
+          <div className="d-flex align-items-center justify-content-end" style={{ minWidth: "260px" }}>
+            <div className="input-group input-group-sm">
+              <span className="input-group-text">🔍</span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search "
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}
@@ -1069,7 +1226,7 @@ function CoursesTab() {
         ) : (
           <DataTable
             columns={columns}
-            data={list}
+            data={filteredList}
             onRowClick={(c) => fetchCourseDetails(c.courseId)}
             emptyMessage="No courses found"
           />
@@ -1242,6 +1399,7 @@ function EnrollmentTab() {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
 
   const fetchAllEnrollments = async () => {
     setLoading(true);
@@ -1337,10 +1495,33 @@ function EnrollmentTab() {
     },
   ];
 
+  const filteredEnrollments = (enrollments || []).filter((e) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    const student = (e.studentName || "").toLowerCase();
+    const course = (e.courseName || "").toLowerCase();
+    const status = (e.completionStatus || "").toLowerCase();
+    return student.includes(q) || course.includes(q) || status.includes(q);
+  });
+
   return (
     <div className="card shadow-sm w-100">
       <div className="card-body">
-        <h5 className="card-title m-0 text-info mb-3">Enrollment List</h5>
+        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-2">
+          <h5 className="card-title m-0 text-info">Enrollment List</h5>
+          <div className="d-flex align-items-center justify-content-end" style={{ minWidth: "260px" }}>
+            <div className="input-group input-group-sm">
+              <span className="input-group-text">🔍</span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search "
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}
@@ -1356,7 +1537,7 @@ function EnrollmentTab() {
         ) : (
           <DataTable
             columns={columns}
-            data={enrollments}
+            data={filteredEnrollments}
             emptyMessage="No enrollments found"
           />
         )}

@@ -58,6 +58,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  position: relative; /* anchor for dropdown */
 }
 
 .user-avatar {
@@ -72,11 +73,6 @@
   font-weight: 700;
 }
 
-.user-details {
-  display: flex;
-  flex-direction: column;
-}
-
 .user-name {
   font-weight: 600;
   font-size: 1rem;
@@ -85,6 +81,72 @@
 .user-role {
   font-size: 0.85rem;
   opacity: 0.9;
+}
+
+/* Header user dropdown (name + email + actions) */
+.dashboard-user-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: #ffffff;
+  color: #1f2933;
+  min-width: 240px;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+  padding: 0.5rem 0;
+  z-index: 200;
+}
+
+.dashboard-user-menu-header {
+  padding: 0.75rem 1rem 0.5rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dashboard-user-menu-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.dashboard-user-menu-email {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.dashboard-user-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dashboard-user-menu-item span:first-child {
+  width: 20px;
+}
+
+.dashboard-user-menu-item:hover {
+  background: #f3f4f6;
+}
+
+.dashboard-user-menu-item.danger {
+  color: #b91c1c;
+}
+
+.dashboard-user-menu-item.danger:hover {
+  background: #fef2f2;
+}
+
+.dashboard-user-menu-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0.25rem 0.75rem;
 }
 
 .btn-logout {
