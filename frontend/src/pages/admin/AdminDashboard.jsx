@@ -277,11 +277,26 @@ function AdminsTab() {
           <h5 className="card-title m-0 text-info">Admins List</h5>
           <div className="d-flex align-items-center justify-content-end" style={{ minWidth: "260px" }}>
             <div className="input-group input-group-sm me-2">
-              <span className="input-group-text">🔍</span>
+              <span
+                className="input-group-text"
+                // Use the cyan theme color for the icon box
+                style={{
+                  backgroundColor: "#0dcaf0",
+                  borderColor: "#0dcaf0"
+                }}
+              >
+                {/* Use a clean, white SVG icon instead of the emoji */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="white" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                </svg>
+              </span>
+
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search "
+                // Use the cyan theme color for the input border
+                style={{ borderColor: "#0dcaf0" }}
+                placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -593,7 +608,7 @@ function StudentsTab() {
     { key: "email", label: "Email" },
     {
       key: "studentId",
-      label: "Student Id",
+      label: <span className="text-nowrap">Student Id</span>,
       render: (s) => s.id || s.studentId || "N/A",
     },
     {
@@ -882,7 +897,7 @@ function InstructorsTab() {
     { key: "email", label: "Email" },
     {
       key: "instructorId",
-      label: "Instructor Id",
+      label: <span className="text-nowrap">Instructor Id</span>,
       render: (i) => i.id || i.instructorId || "N/A",
     },
     {
@@ -1165,7 +1180,7 @@ function CoursesTab() {
     { key: "title", label: "Course name" },
     {
       key: "courseId",
-      label: "Course Id",
+      label: <span className="text-nowrap">Course Id</span>,
       render: (c) => c.courseId || c.id || "N/A",
     },
     {
@@ -1181,7 +1196,7 @@ function CoursesTab() {
     },
     {
       key: "createdBy",
-      label: "Created By",
+      label: <span className="text-nowrap">Created At</span>,
       render: (c) => (c.instructorId ? `Instructor #${c.instructorId}` : "N/A"),
     },
     { key: "status", label: "Status", render: (c) => c.status || "N/A" },
