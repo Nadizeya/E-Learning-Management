@@ -104,6 +104,14 @@
   /* Matches main page theme color */
 }
 
+.dashboard-main .card-title.text-info {
+  color: #667eea !important;
+}
+
+.analytics-header h2.text-info {
+  color: #667eea !important;
+}
+
 .modal-backdrop .detail-section .fw-semibold {
   font-weight: normal !important;
 }

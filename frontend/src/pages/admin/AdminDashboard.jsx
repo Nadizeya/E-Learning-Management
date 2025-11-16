@@ -610,19 +610,19 @@ function StudentsTab() {
       key: "actions",
       label: "Actions",
       align: "end",
-      render: (c) => (
-        <div className="d-flex gap-2"> {/* <-- This is the fix */}
+      render: (s) => (
+        <div className="d-flex gap-2">
+
           <button
-            className="btn btn-sm btn-outline-info"
-            onClick={() => setEditCourse({ open: true, course: c })}
+            className="btn btn-sm btn-outline-primary"
+            onClick={() => fetchStudentDetails(s.id)}
           >
-            Edit
+            View
           </button>
+
           <button
             className="btn btn-sm btn-outline-danger"
-            onClick={() =>
-              setDeleteCourse({ id: c.courseId || c.id, open: true, reason: "" })
-            }
+            onClick={() => setDeleteState({ id: s.id, open: true, reason: "" })}
           >
             Delete
           </button>
@@ -668,7 +668,6 @@ function StudentsTab() {
           <DataTable
             columns={columns}
             data={filteredList}
-            onRowClick={(s) => fetchStudentDetails(s.id)}
             emptyMessage="No students found"
           />
         )}
@@ -900,19 +899,19 @@ function InstructorsTab() {
       key: "actions",
       label: "Actions",
       align: "end",
-      render: (c) => (
-        <div className="d-flex gap-2"> {/* <-- This is the fix */}
+      render: (i) => (
+        <div className="d-flex gap-2">
+
           <button
-            className="btn btn-sm btn-outline-info"
-            onClick={() => setEditCourse({ open: true, course: c })}
+            className="btn btn-sm btn-outline-primary"
+            onClick={() => fetchInstructorDetails(i.id)}
           >
-            Edit
+            View
           </button>
+
           <button
             className="btn btn-sm btn-outline-danger"
-            onClick={() =>
-              setDeleteCourse({ id: c.courseId || c.id, open: true, reason: "" })
-            }
+            onClick={() => setDeleteState({ id: i.id, open: true, reason: "" })}
           >
             Delete
           </button>
@@ -959,7 +958,6 @@ function InstructorsTab() {
           <DataTable
             columns={columns}
             data={filteredList}
-            onRowClick={(i) => fetchInstructorDetails(i.id)}
             emptyMessage="No instructors found"
           />
         )}
@@ -1203,13 +1201,16 @@ function CoursesTab() {
       label: "Actions",
       align: "end",
       render: (c) => (
-        <div className="d-flex gap-2"> {/* <-- This is the fix */}
+        <div className="d-flex gap-2">
+
           <button
-            className="btn btn-sm btn-outline-info"
-            onClick={() => setEditCourse({ open: true, course: c })}
+            className="btn btn-sm btn-outline-primary"
+            onClick={() => fetchCourseDetails(c.courseId)}
           >
-            Edit
+            View
           </button>
+
+
           <button
             className="btn btn-sm btn-outline-danger"
             onClick={() =>
@@ -1269,7 +1270,6 @@ function CoursesTab() {
           <DataTable
             columns={columns}
             data={filteredList}
-            onRowClick={(c) => fetchCourseDetails(c.courseId)}
             emptyMessage="No courses found"
           />
         )}
