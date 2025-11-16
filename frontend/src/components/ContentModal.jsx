@@ -676,18 +676,6 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingC
                 <div className="upload-type-tabs">
                   <button
                     type="button"
-                    className={`upload-tab ${uploadType === "url" ? "active" : ""}`}
-                    onClick={() => {
-                      setUploadType("url");
-                      setDocumentFile(null);
-                      setUploadError("");
-                    }}
-                    aria-pressed={uploadType === "url"}
-                  >
-                    ✍️ Write Text
-                  </button>
-                  <button
-                    type="button"
                     className={`upload-tab ${uploadType === "file" ? "active" : ""}`}
                     onClick={() => {
                       setUploadType("file");
@@ -697,6 +685,18 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingC
                     aria-pressed={uploadType === "file"}
                   >
                     📄 Upload Document
+                  </button>
+                  <button
+                    type="button"
+                    className={`upload-tab ${uploadType === "url" ? "active" : ""}`}
+                    onClick={() => {
+                      setUploadType("url");
+                      setDocumentFile(null);
+                      setUploadError("");
+                    }}
+                    aria-pressed={uploadType === "url"}
+                  >
+                    ✍️ Write Text
                   </button>
                 </div>
               </div>
