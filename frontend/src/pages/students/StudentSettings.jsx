@@ -123,7 +123,7 @@ export default function StudentSettings() {
         className={`navbar navbar-expand-lg navbar-dark fixed-top  ${
           isScrolled ? "navbar-scrolled" : ""
         }`}
-        style={{ background: "#4041D2" }}
+        style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
       >
         <div className="container-fluid px-4">
           <a className="navbar-brand" href="/">
@@ -288,11 +288,6 @@ export default function StudentSettings() {
                 <small className="text-muted">
                   Manage your profile, security and achievements
                 </small>
-              </div>
-              <div className="d-none d-md-flex align-items-center gap-2 text-muted">
-                <span className="badge bg-light text-dark">
-                  {student?.email || ""}
-                </span>
               </div>
             </div>
 

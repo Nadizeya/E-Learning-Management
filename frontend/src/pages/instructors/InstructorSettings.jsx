@@ -53,7 +53,7 @@ export default function InstructorSettings() {
 
   const saveProfile = async (e) => {
     e.preventDefault();
-    if (!instructor?.id && !instructor?.instructorId) {
+    if (!instructor?.id && !instructor?.instructorId && !instructor?._id) {
       setError("Missing instructor id in local storage");
       return;
     }
@@ -61,7 +61,7 @@ export default function InstructorSettings() {
     setError("");
     setMessage("");
     try {
-      const id = instructor.id || instructor.instructorId;
+      const id = instructor.id || instructor.instructorId || instructor._id;
       const res = await apiClient.put(`/instructors/${id}`, {
         firstName,
         lastName,
@@ -129,7 +129,7 @@ export default function InstructorSettings() {
         className={`navbar navbar-expand-lg navbar-dark fixed-top ${
           isScrolled ? "navbar-scrolled" : ""
         }`}
-        style={{ background: "#4041D2" }}
+        style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
       >
         <div className="container-fluid px-4">
           <a className="navbar-brand" href="/">
@@ -156,81 +156,16 @@ export default function InstructorSettings() {
                   Dashboard
                 </Link>
               </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/instructor/courses">
-                  My Courses
-                </Link>
-              </li>
             </ul>
             <div className="d-flex align-items-center gap-3">
               {isLoggedIn ? (
-                <div className="user-dropdown-wrapper">
-                  <div
-                    className="user-profile-button"
-                    onClick={() => setShowSignInDropdown(!showSignInDropdown)}
-                  >
-                    <div className="user-avatar">
-                      <span>{instructor?.firstName?.charAt(0) || "I"}</span>
-                    </div>
-                    <span className="user-name d-none d-md-inline">
-                      Hi, {instructor?.firstName || "Instructor"}!
-                    </span>
+                <div className="user-profile-static">
+                  <div className="user-avatar">
+                    <span>{instructor?.firstName?.charAt(0) || "I"}</span>
                   </div>
-
-                  {showSignInDropdown && (
-                    <div className="user-dropdown">
-                      <div className="user-dropdown-header">
-                        <div className="user-dropdown-name">
-                          {instructor?.firstName} {instructor?.lastName}
-                        </div>
-                        <div className="user-dropdown-email">
-                          {instructor?.email}
-                        </div>
-                      </div>
-
-                      <div className="user-dropdown-menu">
-                        <Link
-                          to="/instructor/settings"
-                          className="dropdown-item"
-                          onClick={() => setShowSignInDropdown(false)}
-                        >
-                          <span className="dropdown-item-icon">⚙️</span>{" "}
-                          Settings
-                        </Link>
-                        <Link
-                          to="/instructor/courses"
-                          className="dropdown-item"
-                          onClick={() => setShowSignInDropdown(false)}
-                        >
-                          <span className="dropdown-item-icon">📚</span> My
-                          Courses
-                        </Link>
-                        <Link
-                          to="/forgot-password?role=INSTRUCTOR"
-                          className="dropdown-item"
-                          onClick={() => setShowSignInDropdown(false)}
-                        >
-                          <span className="dropdown-item-icon">🔒</span> Change
-                          Password
-                        </Link>
-                        <div className="dropdown-divider"></div>
-                        <button
-                          className="dropdown-item dropdown-item-logout"
-                          onClick={() => {
-                            localStorage.removeItem("token");
-                            localStorage.removeItem("user");
-                            localStorage.removeItem("userRole");
-                            setIsLoggedIn(false);
-                            setInstructor(null);
-                            setShowSignInDropdown(false);
-                            navigate("/");
-                          }}
-                        >
-                          <span className="dropdown-item-icon">🚪</span> Log Out
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <span className="user-name d-none d-md-inline">
+                    Hi, {instructor?.firstName || "Instructor"}!
+                  </span>
                 </div>
               ) : (
                 <Link to="/instructor/signin" className="btn btn-light">
@@ -254,11 +189,6 @@ export default function InstructorSettings() {
                 <small className="text-muted">
                   Manage your profile and account settings
                 </small>
-              </div>
-              <div className="d-none d-md-flex align-items-center gap-2 text-muted">
-                <span className="badge bg-light text-dark">
-                  {instructor?.email || ""}
-                </span>
               </div>
             </div>
 
@@ -397,18 +327,6 @@ export default function InstructorSettings() {
                   </div>
                 </div>
 
-                <div className="card mb-4" style={{ borderRadius: 16 }}>
-                  <div className="card-body">
-                    <h6 className="card-title">My Courses</h6>
-                    <p className="text-muted" style={{ fontSize: 14 }}>
-                      Manage your courses and create new content.
-                    </p>
-                    <Link to="/instructor/courses" className="btn btn-light w-100">
-                      View courses
-                    </Link>
-                  </div>
-                </div>
-                
                 {/* Delete Account Card */}
                 <div className="card mt-4" style={{ borderRadius: 16, borderColor: showDeleteConfirm ? '#dc3545' : null }}>
                   <div className="card-body">
