@@ -153,18 +153,36 @@ export default function ModuleContentManage() {
           </div>
 
           {showCreateContent && (
-            <CreateContentForm
-              moduleId={Number(moduleId)}
-              contentType={contentType}
-              editingContent={editingContent}
-              onClose={() => { setShowCreateContent(false); setEditingContent(null) }}
-              onSuccess={async () => {
+            <div
+              className="modal-overlay"
+              onClick={() => {
                 setShowCreateContent(false)
                 setEditingContent(null)
-                await fetchModuleAndContents()
-                toast.add(editingContent ? 'Content updated successfully' : 'Content added successfully')
               }}
-            />
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                backdropFilter: 'blur(4px)'
+              }}
+            >
+              <CreateContentForm
+                moduleId={Number(moduleId)}
+                contentType={contentType}
+                editingContent={editingContent}
+                onClose={() => { setShowCreateContent(false); setEditingContent(null) }}
+                onSuccess={async () => {
+                  setShowCreateContent(false)
+                  setEditingContent(null)
+                  await fetchModuleAndContents()
+                  toast.add(editingContent ? 'Content updated successfully' : 'Content added successfully')
+                }}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -419,13 +437,64 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingC
   }
 
   return (
-    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-      <div className="modal-header">
-        <h3>{editingContent ? 'Edit' : 'Add'} {contentType}</h3>
-        <button className="modal-close" onClick={onClose}>×</button>
+    <div
+      className="modal-content large"
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+        width: '90%',
+        maxWidth: '760px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        animation: 'slideUp 0.3s ease-out'
+      }}
+    >
+      <div
+        className="modal-header"
+        style={{
+          padding: '20px 24px',
+          borderBottom: '1px solid #e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontSize: 20,
+            fontWeight: 700,
+            color: 'white'
+          }}
+        >
+          {editingContent ? '✏️ Edit Content' : '➕ Add Content'}
+        </h3>
+        <button
+          className="modal-close"
+          onClick={onClose}
+          style={{
+            border: 'none',
+            background: 'rgba(255,255,255,0.2)',
+            color: 'white',
+            fontSize: 24,
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s'
+          }}
+        >
+          ×
+        </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="modal-form">
+      <form onSubmit={handleSubmit} className="modal-form" style={{ padding: 24 }}>
         <div className="form-group">
           <label>Title *</label>
           <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder={`${contentType} title`} required />

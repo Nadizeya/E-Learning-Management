@@ -324,16 +324,80 @@ export default function QuizModal({ content, onClose, onSuccess }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{existingQuiz ? 'Edit Quiz' : 'Create Quiz'}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        backdropFilter: 'blur(4px)'
+      }}
+    >
+      <div
+        className="modal-content large"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+          width: '90%',
+          maxWidth: '900px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          animation: 'slideUp 0.3s ease-out'
+        }}
+      >
+        <div
+          className="modal-header"
+          style={{
+            padding: '20px 24px',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 22,
+              fontWeight: 700,
+              color: 'white'
+            }}
+          >
+            {existingQuiz ? '✏️ Edit Quiz' : '➕ Create Quiz'}
+          </h2>
+          <button
+            className="modal-close"
+            onClick={onClose}
+            style={{
+              border: 'none',
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              fontSize: 24,
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s'
+            }}
+          >
+            ×
+          </button>
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="modal-form">
+        <form onSubmit={handleSubmit} className="modal-form" style={{ padding: 24 }}>
           <div className="form-group">
             <label>Quiz Title *</label>
             <input

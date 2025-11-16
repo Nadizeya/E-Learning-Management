@@ -47,14 +47,84 @@ export default function ContentModal({ module, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        backdropFilter: 'blur(4px)'
+      }}
+    >
+      <div
+        className="modal-content large"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+          width: '90%',
+          maxWidth: '760px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          animation: 'slideUp 0.3s ease-out'
+        }}
+      >
+        <div
+          className="modal-header"
+          style={{
+            padding: '20px 24px',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          }}
+        >
           <div>
-            <h3>{module.title}</h3>
-            <p>{module.description}</p>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: 20,
+                fontWeight: 600,
+                color: 'white'
+              }}
+            >
+              {module.title}
+            </h3>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 16,
+                color: 'white'
+              }}
+            >
+              {module.description}
+            </p>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button
+            className="modal-close"
+            onClick={onClose}
+            style={{
+              border: 'none',
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              fontSize: 24,
+              cursor: 'pointer',
+              borderRadius: '50%',
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s'
+            }}
+          >
             ×
           </button>
         </div>
