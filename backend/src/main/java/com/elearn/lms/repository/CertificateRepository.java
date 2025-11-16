@@ -24,6 +24,9 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     
     // Check if a student has a certificate for a specific course
     boolean existsByStudentIdAndCourseId(Long studentId, Long courseId);
+
+    // Find a certificate for a specific student-course pair
+    Optional<Certificate> findByStudentIdAndCourseId(Long studentId, Long courseId);
     
     // Find a certificate for a specific enrollment
     Optional<Certificate> findByEnrollmentId(Long enrollmentId);

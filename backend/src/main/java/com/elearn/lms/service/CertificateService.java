@@ -7,6 +7,7 @@ import com.elearn.lms.entity.Enrollment;
 import com.elearn.lms.repository.CertificateRepository;
 import com.elearn.lms.repository.CourseRepository;
 import com.elearn.lms.repository.EnrollmentRepository;
+import com.elearn.lms.repository.StudentRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,17 +25,20 @@ public class CertificateService {
     private final com.elearn.lms.repository.InstructorRepository instructorRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final com.elearn.lms.service.BadgeService badgeService;
+    private final StudentRepository studentRepository;
 
     public CertificateService(CertificateRepository certificateRepository,
                              CourseRepository courseRepository,
                              EnrollmentRepository enrollmentRepository,
                              com.elearn.lms.repository.InstructorRepository instructorRepository,
-                             com.elearn.lms.service.BadgeService badgeService) {
+                             com.elearn.lms.service.BadgeService badgeService,
+                             StudentRepository studentRepository) {
         this.certificateRepository = certificateRepository;
         this.courseRepository = courseRepository;
         this.enrollmentRepository = enrollmentRepository;
         this.instructorRepository = instructorRepository;
         this.badgeService = badgeService;
+        this.studentRepository = studentRepository;
     }
 
     /**
@@ -42,14 +46,10 @@ public class CertificateService {
      */
     @Transactional
     public CertificateResponse generateCertificate(@NonNull Long studentId, @NonNull Long courseId) {
-        // Check if certificate already exists
-        if (certificateRepository.existsByStudentIdAndCourseId(studentId, courseId)) {
-            Optional<Certificate> existingCert = certificateRepository.findAll().stream()
-                .filter(c -> c.getStudentId().equals(studentId) && c.getCourseId().equals(courseId))
-                .findFirst();
-            if (existingCert.isPresent()) {
-                return createCertificateResponse(existingCert.get());
-            }
+        // Short-circuit when the certificate was already issued
+        Optional<Certificate> existingCert = certificateRepository.findByStudentIdAndCourseId(studentId, courseId);
+        if (existingCert.isPresent()) {
+            return createCertificateResponse(existingCert.get());
         }
 
         // Get enrollment
@@ -144,8 +144,25 @@ public class CertificateService {
             // ignore
         }
 
-        // Note: In a real implementation, you would also fetch student name from StudentRepository
-        response.setStudentName("Student #" + certificate.getStudentId());
+        // Try to hydrate the response with the student's real name; fall back to the legacy label otherwise
+        studentRepository.findById(certificate.getStudentId()).ifPresent(student -> {
+            StringBuilder nameBuilder = new StringBuilder();
+            if (student.getFirstName() != null && !student.getFirstName().isBlank()) {
+                nameBuilder.append(student.getFirstName().trim());
+            }
+            if (student.getLastName() != null && !student.getLastName().isBlank()) {
+                if (nameBuilder.length() > 0) {
+                    nameBuilder.append(' ');
+                }
+                nameBuilder.append(student.getLastName().trim());
+            }
+            if (nameBuilder.length() > 0) {
+                response.setStudentName(nameBuilder.toString());
+            }
+        });
+        if (response.getStudentName() == null || response.getStudentName().isBlank()) {
+            response.setStudentName("Student #" + certificate.getStudentId());
+        }
 
         // Platform name
         response.setPlatformName("LearnHub");
