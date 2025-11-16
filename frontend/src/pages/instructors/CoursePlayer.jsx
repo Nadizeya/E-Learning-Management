@@ -8,6 +8,7 @@ import {
   progressAPI,
 } from "../../services/api.js";
 import QuizPlayer from "../../components/QuizPlayer.jsx";
+import { useToast } from "../../state/ToastContext.jsx";
 
 export default function CoursePlayer() {
   const { id } = useParams();
@@ -24,6 +25,7 @@ export default function CoursePlayer() {
     completedModules: 0,
     totalModules: 0,
   });
+  const toast = useToast();
 
   // Fetch student progress from backend
   const fetchStudentProgress = async (studentId) => {
@@ -171,7 +173,10 @@ export default function CoursePlayer() {
       }
     } catch (error) {
       console.error("Failed to fetch course data:", error);
-      alert("Failed to load course data. Please try again later.");
+      toast.add("Failed to load course data. Please try again later.", {
+        type: "error",
+        title: "Course Player",
+      });
     } finally {
       setLoading(false);
     }
@@ -278,7 +283,13 @@ export default function CoursePlayer() {
         const activeContent = contents.find((c) => c.contentId === contentId);
         if (!activeContent) {
           console.error("Could not find active content with ID:", contentId);
-          alert("Error: Could not find the content to mark as completed.");
+          toast.add(
+            "We couldn't find that content block. Please refresh and try again.",
+            {
+              type: "error",
+              title: "Mark as Completed",
+            }
+          );
           return;
         }
 
@@ -290,7 +301,13 @@ export default function CoursePlayer() {
 
         if (!moduleForContent) {
           console.error("Could not find module for content:", contentId);
-          alert("Error: Could not find the module for this content.");
+          toast.add(
+            "Unable to locate the module for this lesson. Please refresh and try again.",
+            {
+              type: "error",
+              title: "Mark as Completed",
+            }
+          );
           return;
         }
 
@@ -338,7 +355,10 @@ export default function CoursePlayer() {
           );
 
           // Show success message
-          alert("Progress saved! This content has been marked as completed.");
+          toast.add("This content has been marked as completed.", {
+            type: "success",
+            title: "Progress Saved",
+          });
 
           // Force a refresh of the progress data
           await fetchStudentProgress(studentId);
@@ -347,26 +367,40 @@ export default function CoursePlayer() {
 
           // Handle specific error messages
           if (apiError.message && apiError.message.includes("403")) {
-            alert(
-              "Permission denied. You may need to log in again to continue."
+            toast.add(
+              "Permission denied. Please sign in again to continue learning.",
+              {
+                type: "error",
+                title: "Session expired",
+              }
             );
             // Optionally refresh the token or redirect to login
             // localStorage.removeItem('token');
             // navigate('/student/signin');
           } else {
-            alert(
+            toast.add(
               `Failed to save progress: ${
                 apiError.message || "Unknown error"
-              }. Please try again.`
+              }. Please try again.`,
+              {
+                type: "error",
+                title: "Mark as Completed",
+              }
             );
           }
         }
       } catch (error) {
         console.error("Error in markAsCompleted:", error);
-        alert("An error occurred while saving progress.");
+        toast.add("Something went wrong while saving your progress.", {
+          type: "error",
+          title: "Mark as Completed",
+        });
       }
     } else {
-      alert("You have already completed this content.");
+      toast.add("You have already completed this content.", {
+        type: "info",
+        title: "Already Completed",
+      });
     }
   };
 
@@ -390,8 +424,13 @@ export default function CoursePlayer() {
 
       if (progressData.progressPercentage >= 100) {
         console.log("Course completed! Showing certificate notification");
-        alert(
-          "Congratulations! You have completed this course. A certificate has been issued to you!"
+        toast.add(
+          "A certificate has been issued for this course. Great job!",
+          {
+            type: "success",
+            title: "Course completed",
+            duration: 3200,
+          }
         );
 
         // Force refresh the page to show the certificate link
