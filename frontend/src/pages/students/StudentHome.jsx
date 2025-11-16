@@ -24,6 +24,32 @@ export default function StudentHome() {
     userType: 'student',
     mode: 'signin'
   });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const openAuthModalWith = (config) => {
+    setAuthModalConfig(config);
+    setShowAuthModal(true);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    setShowSignInDropdown(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setShowSignInDropdown(false);
+    setIsMobileMenuOpen((prev) => !prev);
+  };
+
+  const handleAuthSelection = (userType, mode = 'signin') => {
+    openAuthModalWith({ userType, mode });
+    closeMobileMenu();
+  };
+
+  const navigateAndCloseMenu = (path) => {
+    navigate(path);
+    closeMobileMenu();
+  };
 
   useEffect(() => {
     // Check if user is logged in
@@ -149,12 +175,54 @@ export default function StudentHome() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isLoggedIn, student?.studentId]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+    if (isMobileMenuOpen) {
+      document.body.style.setProperty('overflow', 'hidden');
+    } else {
+      document.body.style.removeProperty('overflow');
+    }
+    return () => {
+      document.body.style.removeProperty('overflow');
+    };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isMobileMenuOpen) {
+      return undefined;
+    }
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        setShowSignInDropdown(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    const handleResize = () => {
+      if (window.innerWidth >= 992) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('userRole')
     setIsLoggedIn(false)
     setStudent(null)
+    closeMobileMenu()
     navigate('/')
   }
 
@@ -187,12 +255,14 @@ export default function StudentHome() {
           <button
             className="navbar-toggler"
             type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="studentHomeNav"
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            onClick={toggleMobileMenu}
           >
             <span className="navbar-toggler-icon"></span>
           </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
+          <div className="collapse navbar-collapse" id="studentHomeNav">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               {/* Navigation items removed for branch merging */}
             </ul>
@@ -312,8 +382,98 @@ export default function StudentHome() {
         </div>
       </nav>
 
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-overlay" onClick={closeMobileMenu}>
+          <div
+            className="mobile-menu-panel"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mobile-menu-header">
+              <div className="mobile-menu-brand">
+                <span className="brand-icon">🎓</span>
+                <span>LearnHub</span>
+              </div>
+              <button
+                className="mobile-menu-close"
+                onClick={closeMobileMenu}
+                aria-label="Close navigation menu"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mobile-menu-auth">
+              {isLoggedIn ? (
+                <>
+                  <div className="mobile-menu-user-card">
+                    <div className="mobile-menu-user-avatar">
+                      {student?.firstName?.charAt(0) || 'H'}
+                    </div>
+                    <div>
+                      <div className="mobile-menu-user-name">
+                        {student?.firstName} {student?.lastName}
+                      </div>
+                      <div className="mobile-menu-user-email">{student?.email}</div>
+                    </div>
+                  </div>
+                  <div className="mobile-menu-actions">
+                    <button
+                      type="button"
+                      onClick={() => navigateAndCloseMenu('/my-courses')}
+                    >
+                      📚 My Courses
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigateAndCloseMenu('/accomplishments')}
+                    >
+                      🏆 Accomplishments
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigateAndCloseMenu('/student/settings')}
+                    >
+                      ⚙️ Settings
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className="mobile-menu-logout"
+                    onClick={handleLogout}
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <div className="mobile-menu-auth-buttons">
+                  <button
+                    type="button"
+                    onClick={() => handleAuthSelection('student')}
+                  >
+                    👨‍🎓 Sign in as Student
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAuthSelection('instructor')}
+                  >
+                    👨‍🏫 Sign in as Instructor
+                  </button>
+                  <button
+                    type="button"
+                    className="mobile-menu-secondary"
+                    onClick={() => handleAuthSelection('student', 'signup')}
+                  >
+                    Create a student account
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <section className="hero-section">
+      <section className="hero-section" id="hero">
         {/* Animated shapes */}
         <div
           style={{
@@ -451,7 +611,7 @@ export default function StudentHome() {
       </section>
 
       {/* Course Catalog */}
-      <section className="section course-catalog">
+      <section className="section course-catalog" id="courses">
         <div className="container">
           {/* Quick Links */}
           <div className="row g-3 mb-3"></div>
@@ -463,7 +623,7 @@ export default function StudentHome() {
           </div>
 
           {/* Categories */}
-          <div className="categories-filter">
+          <div className="categories-filter" id="categories-filter">
             {categories.map((cat) => (
               <button
                 key={cat}
