@@ -257,6 +257,12 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingC
 
   useEffect(() => {
     setFormData((prev) => ({ ...prev, type: contentType }))
+    // Default upload method: Video uses URL, Reading uses Document upload
+    if (contentType === 'READING') {
+      setUploadType('file')
+    } else {
+      setUploadType('url')
+    }
   }, [contentType])
 
   useEffect(() => {
@@ -273,7 +279,12 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingC
       setUploadError('')
     } else {
       setFormData({ title: '', type: contentType, videoUrl: '', readingContent: '' })
-      setUploadType('url')
+      // When creating new content, default Reading to document upload, others to URL
+      if (contentType === 'READING') {
+        setUploadType('file')
+      } else {
+        setUploadType('url')
+      }
       setVideoFile(null)
       setDocumentFile(null)
       setUploadError('')
@@ -537,8 +548,28 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingC
             <div className="form-group">
               <label>Content Method</label>
               <div className="upload-type-tabs">
-                <button type="button" className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`} onClick={() => { setUploadType('url'); setDocumentFile(null); setUploadError('') }}>✍️ Write Text</button>
-                <button type="button" className={`upload-tab ${uploadType === 'file' ? 'active' : ''}`} onClick={() => { setUploadType('file'); setFormData((f) => ({ ...f, readingContent: '' })); setUploadError('') }}>📄 Upload Document</button>
+                <button
+                  type="button"
+                  className={`upload-tab ${uploadType === 'file' ? 'active' : ''}`}
+                  onClick={() => {
+                    setUploadType('file')
+                    setFormData((f) => ({ ...f, readingContent: '' }))
+                    setUploadError('')
+                  }}
+                >
+                  📄 Upload Document
+                </button>
+                <button
+                  type="button"
+                  className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`}
+                  onClick={() => {
+                    setUploadType('url')
+                    setDocumentFile(null)
+                    setUploadError('')
+                  }}
+                >
+                  ✍️ Write Text
+                </button>
               </div>
             </div>
 
