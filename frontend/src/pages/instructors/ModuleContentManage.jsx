@@ -505,8 +505,8 @@ function CreateContentForm({ moduleId, contentType, onClose, onSuccess, editingC
             <div className="form-group">
               <label>Upload Method</label>
               <div className="upload-type-tabs">
-                <button type="button" className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`} onClick={() => { setUploadType('url'); setVideoFile(null); setUploadError('') }}>🔗 Video URL</button>
                 <button type="button" className={`upload-tab ${uploadType === 'file' ? 'active' : ''}`} onClick={() => { setUploadType('file'); setFormData((f) => ({ ...f, videoUrl: '' })); setUploadError('') }}>📁 Upload File</button>
+                <button type="button" className={`upload-tab ${uploadType === 'url' ? 'active' : ''}`} onClick={() => { setUploadType('url'); setVideoFile(null); setUploadError('') }}>🔗 Video URL</button>
               </div>
             </div>
 
