@@ -357,46 +357,90 @@ export default function Enroll() {
           <div
             style={{
               backgroundColor: 'white',
-              borderRadius: 20,
-              padding: 32,
+              borderRadius: 24,
+              padding: 24,
               maxWidth: 420,
               width: '90%',
               boxShadow: '0 40px 80px rgba(15,23,42,0.35)',
               textAlign: 'center'
             }}
           >
-            <h3 style={{ marginTop: 0, color: '#111827' }}>Sign in required</h3>
-            <p style={{ color: '#4b5563', marginBottom: 24 }}>Please sign in or create a free account to enroll in this course.</p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button
-                onClick={() => setShowSignInPrompt(false)}
-                style={{
-                  padding: '10px 18px',
-                  borderRadius: 12,
-                  border: '1px solid #d1d5db',
-                  backgroundColor: 'white',
-                  color: '#4b5563',
-                  fontWeight: 500,
-                  cursor: 'pointer'
-                }}
-              >
-                Not now
-              </button>
-              <button
-                onClick={() => navigate('/student/signin')}
-                style={{
-                  padding: '10px 18px',
-                  borderRadius: 12,
-                  border: 'none',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Sign in
-              </button>
-            </div>
+            {isLoggedIn ? (
+              <>
+                <h3 style={{ marginTop: 0, color: '#111827' }}>Please enroll first</h3>
+                <p style={{ color: '#4b5563', marginBottom: 24 }}>
+                  You need to enroll in this course before you can view its modules and lessons.
+                </p>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <button
+                    onClick={() => setShowSignInPrompt(false)}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: 12,
+                      border: '1px solid #d1d5db',
+                      backgroundColor: 'white',
+                      color: '#4b5563',
+                      fontWeight: 500,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Not now
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSignInPrompt(false)
+                      onEnroll()
+                    }}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: 12,
+                      border: 'none',
+                      backgroundColor: '#4338ca',
+                      color: 'white',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Enroll now
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ marginTop: 0, color: '#111827' }}>Sign in required</h3>
+                <p style={{ color: '#4b5563', marginBottom: 24 }}>Please sign in or create a new account to enroll in this course.</p>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <button
+                    onClick={() => setShowSignInPrompt(false)}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: 12,
+                      border: '1px solid #d1d5db',
+                      backgroundColor: 'white',
+                      color: '#4b5563',
+                      fontWeight: 500,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Not now
+                  </button>
+                  <button
+                    onClick={() => navigate('/student/signin')}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: 12,
+                      border: 'none',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Sign in
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -609,33 +653,7 @@ export default function Enroll() {
               )}
             </div>
 
-            <div
-              style={{
-                background: 'linear-gradient(135deg,#ecfeff,#e0e7ff)',
-                borderRadius: 32,
-                padding: 32,
-                boxShadow: '0 25px 50px rgba(14,165,233,0.15)'
-              }}
-            >
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>What you'll learn</h2>
-              <p style={{ color: '#0f172a', maxWidth: 620 }}>
-                {course.description || 'Build confidence with curated lessons, live sessions, and project-based checkpoints.'}
-              </p>
-              {modules.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16, marginTop: 20 }}>
-                  {modules.slice(0, 4).map((module) => (
-                    <div key={module.moduleId} style={{ background: '#fff', borderRadius: 18, padding: 18, color: '#0f172a', fontWeight: 600 }}>
-                      {module.title}
-                    </div>
-                  ))}
-                  {modules.length > 4 && (
-                    <div style={{ background: '#fff', borderRadius: 18, padding: 18, color: '#475569' }}>
-                      + {modules.length - 4} more modules
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* What you'll learn section removed as requested */}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -656,10 +674,7 @@ export default function Enroll() {
                   <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: 0.8 }}>Created</div>
                   <div style={{ fontWeight: 600 }}>{createdDate}</div>
                 </div>
-                <div>
-                  <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: 0.8 }}>Learning style</div>
-                  <div style={{ fontWeight: 600 }}>Self-paced · Guided projects</div>
-                </div>
+                
               </div>
             </div>
 
@@ -674,26 +689,7 @@ export default function Enroll() {
               </div>
             )}
 
-            <div style={{ background: '#fff', borderRadius: 28, padding: 24, boxShadow: '0 25px 60px rgba(15,23,42,0.08)' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 12 }}>Need help?</h3>
-              <p style={{ color: '#475569', marginBottom: 16 }}>Chat with an advisor to see if this course fits your goals.</p>
-              <a
-                href="mailto:support@learnhub.com"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '10px 18px',
-                  borderRadius: 14,
-                  border: `1px solid ${courseColor}`,
-                  color: courseColor,
-                  fontWeight: 600,
-                  textDecoration: 'none'
-                }}
-              >
-                Contact support →
-              </a>
-            </div>
+            {/* Need help card removed as requested */}
           </div>
         </div>
       </div>
