@@ -13,6 +13,7 @@ import RowActionMenu from "../../components/admin/RowActionMenu.jsx";
 import { formatDate } from "../../utils/format.js";
 import AdminAnalytics from "../../components/AdminAnalytics.jsx";
 import "../styles/InstructorDashboard.css";
+import "../styles/AdminDashboard.css";
 import CourseModal from "../../components/CourseModal.jsx";
 
 export default function AdminDashboard() {
@@ -62,7 +63,7 @@ export default function AdminDashboard() {
             <button
               className={`nav-item ${tab === "dashboard" ? "active" : ""}`}
               onClick={() => setTab("dashboard")}
-           >
+            >
               <span className="nav-icon">🏠</span>
               Overview
             </button>
@@ -231,22 +232,32 @@ function AdminsTab() {
       label: "Actions",
       align: "end",
       render: (a) => (
-        <RowActionMenu
-          placement="right"
-          onEdit={() =>
-            setEditState({
-              open: true,
-              id: a.adminId || a.id,
-              firstName: a.firstName || "",
-              lastName: a.lastName || "",
-              email: a.email || "",
-              permissions: a.permissions || "",
-            })
-          }
-          onDelete={() =>
-            setDeleteState({ id: a.adminId || a.id, reason: "", open: true })
-          }
-        />
+        // Use a div to hold both buttons
+        <div>
+          <button
+            className="btn btn-sm btn-outline-info me-2" // "me-2" adds margin to the right
+            onClick={() =>
+              setEditState({
+                open: true,
+                id: a.adminId || a.id,
+                firstName: a.firstName || "",
+                lastName: a.lastName || "",
+                email: a.email || "",
+                permissions: a.permissions || "",
+              })
+            }
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={() =>
+              setDeleteState({ id: a.adminId || a.id, reason: "", open: true })
+            }
+          >
+            Delete
+          </button>
+        </div>
       ),
     },
   ];
@@ -599,11 +610,23 @@ function StudentsTab() {
       key: "actions",
       label: "Actions",
       align: "end",
-      render: (s) => (
-        <RowActionMenu
-          placement="right"
-          onDelete={() => setDeleteState({ id: s.id, open: true, reason: "" })}
-        />
+      render: (c) => (
+        <div className="d-flex gap-2"> {/* <-- This is the fix */}
+          <button
+            className="btn btn-sm btn-outline-info"
+            onClick={() => setEditCourse({ open: true, course: c })}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={() =>
+              setDeleteCourse({ id: c.courseId || c.id, open: true, reason: "" })
+            }
+          >
+            Delete
+          </button>
+        </div>
       ),
     },
   ];
@@ -654,9 +677,8 @@ function StudentsTab() {
           show={!!selectedStudent}
           onClose={() => setSelectedStudent(null)}
           title={
-            `${selectedStudent?.firstName ?? ""} ${
-              selectedStudent?.lastName ?? ""
-            }`.trim() || "Student"
+            `${selectedStudent?.firstName ?? ""} ${selectedStudent?.lastName ?? ""
+              }`.trim() || "Student"
           }
           loading={details.loading}
         >
@@ -878,11 +900,23 @@ function InstructorsTab() {
       key: "actions",
       label: "Actions",
       align: "end",
-      render: (i) => (
-        <RowActionMenu
-          placement="right"
-          onDelete={() => setDeleteState({ id: i.id, open: true, reason: "" })}
-        />
+      render: (c) => (
+        <div className="d-flex gap-2"> {/* <-- This is the fix */}
+          <button
+            className="btn btn-sm btn-outline-info"
+            onClick={() => setEditCourse({ open: true, course: c })}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={() =>
+              setDeleteCourse({ id: c.courseId || c.id, open: true, reason: "" })
+            }
+          >
+            Delete
+          </button>
+        </div>
       ),
     },
   ];
@@ -934,9 +968,8 @@ function InstructorsTab() {
           show={!!selectedInstructor}
           onClose={() => setSelectedInstructor(null)}
           title={
-            `${selectedInstructor?.firstName ?? ""} ${
-              selectedInstructor?.lastName ?? ""
-            }`.trim() || "Instructor"
+            `${selectedInstructor?.firstName ?? ""} ${selectedInstructor?.lastName ?? ""
+              }`.trim() || "Instructor"
           }
           loading={details.loading}
         >
@@ -1170,13 +1203,22 @@ function CoursesTab() {
       label: "Actions",
       align: "end",
       render: (c) => (
-        <RowActionMenu
-          placement="right"
-            onEdit={() => setEditCourse({ open: true, course: c })}
-            onDelete={() =>
+        <div className="d-flex gap-2"> {/* <-- This is the fix */}
+          <button
+            className="btn btn-sm btn-outline-info"
+            onClick={() => setEditCourse({ open: true, course: c })}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={() =>
               setDeleteCourse({ id: c.courseId || c.id, open: true, reason: "" })
             }
-        />
+          >
+            Delete
+          </button>
+        </div>
       ),
     },
   ];
@@ -1238,42 +1280,48 @@ function CoursesTab() {
           title={selectedCourse?.title || "Course"}
           loading={details.loading}
         >
+          {/* --- CHANGE 1 --- */}
           <DetailSection label="1. Category">
-            <p className="form-control-plaintext fs-5">
+            <p className="fs-5 fw-semibold mb-1"> {/* <-- MODIFIED */}
               {details.category
                 ? details.category.name
                 : selectedCourse?.categoryType || "N/A"}
             </p>
             {details.category && details.category.description && (
-              <p className="form-control-plaintext text-muted">
+              <p className="text-muted mb-3"> {/* <-- MODIFIED */}
                 {details.category.description}
               </p>
             )}
           </DetailSection>
+
+          {/* --- CHANGE 2 --- */}
           <DetailSection label="2. Created By">
-            <p className="form-control-plaintext fs-5">
+            <p className="fs-5 fw-semibold mb-3"> {/* <-- MODIFIED */}
               {details.instructor
                 ? `${details.instructor.firstName} ${details.instructor.lastName}`
                 : "N/A"}
             </p>
           </DetailSection>
+
+          {/* --- CHANGE 3 --- */}
           <DetailSection label="3. Enroll">
-            <p className="form-control-plaintext fs-5">
+            <p className="fs-5 fw-semibold mb-3"> {/* <-- MODIFIED */}
               {enrolledCount} {enrolledCount === 1 ? "person" : "people"}{" "}
               enrolled
             </p>
           </DetailSection>
+
+          {/* --- CHANGE 4 (THEME COLOR) --- */}
           <DetailSection label="4. Modules">
-            <div className="mt-2">
+            <div className="mt-2 mb-3"> {/* <-- Added mb-3 for spacing */}
               <button
-                className="btn btn-outline-info view-modules-btn"
+                className="btn btn-info text-white view-modules-btn" /* <-- MODIFIED */
                 onClick={async () => {
                   if (!selectedCourse) return;
                   setModules({ open: true, list: [], loading: true });
                   try {
                     const res = await apiClient.get(
-                      `/course-modules/course/${
-                        selectedCourse.courseId || selectedCourse.id
+                      `/course-modules/course/${selectedCourse.courseId || selectedCourse.id
                       }`
                     );
                     const data = res.data?.data || [];
@@ -1287,8 +1335,10 @@ function CoursesTab() {
               </button>
             </div>
           </DetailSection>
+
+          {/* --- CHANGE 5 --- */}
           <DetailSection label="5. Completion">
-            <p className="form-control-plaintext fs-5">
+            <p className="fs-5 fw-semibold mb-3"> {/* <-- MODIFIED */}
               {completedCount} {completedCount === 1 ? "person" : "people"}{" "}
               completed
             </p>
