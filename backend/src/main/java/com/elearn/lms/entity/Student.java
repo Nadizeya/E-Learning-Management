@@ -29,10 +29,10 @@ public class Student {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at",  updatable = false)
     private Timestamp createdAt;
 
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Column(name = "updated_at")
     private Timestamp updatedAt;
 
     public Long getId() { return id; }
