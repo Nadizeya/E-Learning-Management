@@ -6,6 +6,8 @@ import "../styles/StudentHome.css";
 import { studentAPI } from "../../services/api.js";
 
 export default function StudentSettings() {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingProfile, setPendingProfile] = useState({ firstName: '', lastName: '', email: '' });
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
   const [firstName, setFirstName] = useState("");
@@ -53,20 +55,43 @@ export default function StudentSettings() {
       setError("Missing student id in local storage");
       return;
     }
+    // If profile or email changed, show confirmation box
+    if (
+      firstName !== (student?.firstName || "") ||
+      lastName !== (student?.lastName || "") ||
+      email !== (student?.email || "")
+    ) {
+      setPendingProfile({ firstName, lastName, email });
+      setShowConfirm(true);
+      return;
+    }
+    // If no changes, do nothing
+    return;
+
+  };
+
+  // Confirm and actually update profile/email
+  const confirmProfileChange = async () => {
     setLoading(true);
     setError("");
     setMessage("");
     try {
       const id = student.id || student.studentId;
       const res = await apiClient.put(`/students/${id}`, {
-        firstName,
-        lastName,
-        email,
+        firstName: pendingProfile.firstName,
+        lastName: pendingProfile.lastName,
+        email: pendingProfile.email,
       });
-      const updated = res.data;
-      localStorage.setItem("user", JSON.stringify(updated));
-      setStudent(updated);
-      setMessage("Profile updated");
+      // Remove user info and redirect immediately
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("userRole");
+      setShowConfirm(false);
+      navigate("/student/signin", {
+        state: {
+          message: "If you change your profile or email, you have to sign in again."
+        }
+      });
     } catch (err) {
       setError(err?.response?.data?.message || "Update failed");
     } finally {
@@ -120,10 +145,11 @@ export default function StudentSettings() {
     <div style={{ minHeight: "100vh", background: "#f7f8fa" }}>
       {/* Match StudentHome header/navbar */}
       <nav
-        className={`navbar navbar-expand-lg navbar-dark fixed-top  ${
-          isScrolled ? "navbar-scrolled" : ""
+      style={{backgroundColor: "#4046D7"}}
+        className={`navbar navbar-expand-lg navbar-dark   fixed-top ${
+          isScrolled ? "" : ""
+        
         }`}
-        style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
       >
         <div className="container-fluid px-4">
           <a className="navbar-brand" href="/">
@@ -139,23 +165,9 @@ export default function StudentSettings() {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
-            {/* <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              <li className="nav-item">
-                <Link className="nav-link" to="/">
-                  Explore
-                </Link>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
-                  My Learning
-                </a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">
-                  Career Goals
-                </a>
-              </li>
-            </ul> */}
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              {/* Navigation items removed for branch merging */}
+            </ul>
             <div className="d-flex align-items-center gap-3">
               {isLoggedIn ? (
                 <div className="user-dropdown-wrapper">
@@ -183,6 +195,8 @@ export default function StudentSettings() {
                       </div>
 
                       <div className="user-dropdown-menu">
+                        {/* Profile link removed */}
+
                         <Link
                           to="/student/settings"
                           className="dropdown-item"
@@ -191,6 +205,7 @@ export default function StudentSettings() {
                           <span className="dropdown-item-icon">⚙️</span>{" "}
                           Settings
                         </Link>
+
                         <Link
                           to="/my-courses"
                           className="dropdown-item"
@@ -199,6 +214,7 @@ export default function StudentSettings() {
                           <span className="dropdown-item-icon">📚</span> My
                           Courses
                         </Link>
+
                         <Link
                           to="/accomplishments"
                           className="dropdown-item"
@@ -207,25 +223,14 @@ export default function StudentSettings() {
                           <span className="dropdown-item-icon">🏆</span>{" "}
                           Accomplishments
                         </Link>
-                        <Link
-                          to="/forgot-password?role=STUDENT"
-                          className="dropdown-item"
-                          onClick={() => setShowSignInDropdown(false)}
-                        >
-                          <span className="dropdown-item-icon">🔒</span> Change
-                          Password
-                        </Link>
+
                         <div className="dropdown-divider"></div>
+
                         <button
                           className="dropdown-item dropdown-item-logout"
                           onClick={() => {
-                            localStorage.removeItem("token");
-                            localStorage.removeItem("user");
-                            localStorage.removeItem("userRole");
-                            setIsLoggedIn(false);
-                            setStudent(null);
+                            handleLogout();
                             setShowSignInDropdown(false);
-                            navigate("/");
                           }}
                         >
                           <span className="dropdown-item-icon">🚪</span> Log Out
@@ -249,14 +254,22 @@ export default function StudentSettings() {
                     <div className="signin-dropdown">
                       <button
                         className="dropdown-item"
-                        onClick={() => navigate("/student/signin")}
+                        onClick={() => {
+                          setShowSignInDropdown(false);
+                          setAuthModalConfig({ userType: 'student', mode: 'signin' });
+                          setShowAuthModal(true);
+                        }}
                       >
                         <span className="item-icon">👨‍🎓</span>
                         Sign in as Student
                       </button>
                       <button
                         className="dropdown-item"
-                        onClick={() => navigate("/instructor/signin")}
+                        onClick={() => {
+                          setShowSignInDropdown(false);
+                          setAuthModalConfig({ userType: 'instructor', mode: 'signin' });
+                          setShowAuthModal(true);
+                        }}
                       >
                         <span className="item-icon">👨‍🏫</span>
                         Sign in as Instructor
@@ -265,12 +278,7 @@ export default function StudentSettings() {
                   )}
                 </div>
               )}
-              {/* <Link to="/signin" className="btn btn-outline-light">
-                Admin Sign In
-              </Link>
-              <Link to="/admin" className="btn btn-primary">
-                Admin Dashboard
-              </Link> */}
+              {/* Admin buttons removed for branch merging */}
             </div>
           </div>
         </div>
@@ -296,11 +304,7 @@ export default function StudentSettings() {
                 {error}
               </div>
             )}
-            {message && (
-              <div className="alert alert-success" role="alert">
-                {message}
-              </div>
-            )}
+            {/* Only show error messages, not confirmation message after Save Changes */}
 
             <div className="row g-4">
               <div className="col-12 col-xl-8">
@@ -359,25 +363,62 @@ export default function StudentSettings() {
                         </div>
                       </div>
                       <div className="mt-4 d-flex gap-2">
-                        <button
-                          type="submit"
-                          className="btn btn-primary"
-                          disabled={loading}
-                        >
-                          {loading ? "Saving..." : "Save Changes"}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() => {
-                            setFirstName(student?.firstName || "");
-                            setLastName(student?.lastName || "");
-                            setEmail(student?.email || "");
-                          }}
-                          disabled={loading}
-                        >
-                          Reset
-                        </button>
+                        {/* Hide Save Changes button when confirmation box is shown */}
+                        {!showConfirm && (
+                          <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={loading || (
+                              firstName === (student?.firstName || "") &&
+                              lastName === (student?.lastName || "") &&
+                              email === (student?.email || "")
+                            )}
+                          >
+                            {loading ? "Saving..." : "Save Changes"}
+                          </button>
+                        )}
+                        {/* Confirmation modal/box for profile change */}
+                        {showConfirm ? (
+                          <div className="alert alert-warning mt-3 p-4 d-flex flex-column align-items-start" style={{ zIndex: 10, minWidth: 320, maxWidth: 400 }}>
+                            <h6 className="alert-heading mb-2">Are you sure you want to change your profile or email?</h6>
+                            <p className="mb-3" style={{ fontSize: 15 }}>
+                              If you change your profile or email, you have to sign in again.<br />
+                              Click <strong>Save Changes</strong> below to confirm and continue.
+                            </p>
+                            <div className="d-flex gap-2">
+                              <button
+                                type="button"
+                                className="btn btn-danger px-4"
+                                onClick={confirmProfileChange}
+                                disabled={loading}
+                              >
+                                {loading ? "Saving..." : "Save Changes"}
+                              </button>
+                              <button
+                                className="btn btn-outline-secondary px-4"
+                                onClick={() => setShowConfirm(false)}
+                                disabled={loading}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+                        {/* Hide Reset button when confirmation box is shown */}
+                        {!showConfirm && (
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            onClick={() => {
+                              setFirstName(student?.firstName || "");
+                              setLastName(student?.lastName || "");
+                              setEmail(student?.email || "");
+                            }}
+                            disabled={loading}
+                          >
+                            Reset
+                          </button>
+                        )}
                       </div>
                     </form>
                   </div>

@@ -341,15 +341,15 @@ export default function Enroll() {
         </div>
       )}
       
-      <div className="container" style={{ paddingTop: 40, paddingBottom: 40, maxWidth: 1000 }}>
-        {/* Header with logo and back button - simplified */}
+      <div className="container" style={{ paddingTop: 40, paddingBottom: 40, maxWidth: 1100 }}>
+        {/* Header with logo and back button - improved */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
             {course.thumbnail && course.thumbnail.startsWith('data:image') ? (
               <img 
                 src={course.thumbnail} 
                 alt={course.title} 
-                style={{ height: 60, width: 120, objectFit: 'contain' }}
+                style={{ height: 60, width: 120, objectFit: 'contain', borderRadius: 8, boxShadow: '0 2px 8px rgba(67,97,238,0.08)' }}
               />
             ) : (
               <div style={{ 
@@ -358,111 +358,91 @@ export default function Enroll() {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                fontSize: 24,
+                fontSize: 32,
                 color: '#4361ee',
                 border: '1px solid #e5e7eb',
-                borderRadius: 8
+                borderRadius: 8,
+                background: '#f3f4f6',
+                boxShadow: '0 2px 8px rgba(67,97,238,0.08)'
               }}>
                 {course.thumbnail || '🎓'}
               </div>
             )}
-          </div>
-          <Link to="/" className="btn btn-outline-secondary" style={{ 
-            height: 38, 
-            padding: '6px 14px', 
-            borderRadius: 6,
-            border: '1px solid #e5e7eb',
-            color: '#4b5563',
-            background: 'white'
-          }}>Back to Home</Link>
-        </div>
-
-        {/* Course Title and Info */}
-        <div style={{ marginBottom: 30 }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: 12, color: '#111827' }}>
-            {course.title}
-          </h1>
-          <p style={{ fontSize: '1.1rem', color: '#4b5563', marginBottom: 16, maxWidth: 800 }}>
-            {course.description || 'No description available'}
-          </p>
-          
-          {/* Course Stats - simplified */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 24 }}>
-            <div style={{ marginRight: 24 }}>
-              <span style={{ color: '#6b7280' }}>Beginner level</span>
-            </div>
-            
-            <div style={{ marginRight: 24 }}>
-              <span style={{ color: '#6b7280' }}>2 weeks</span>
-            </div>
-            
             <div>
-              <span style={{ color: '#6b7280' }}>Learn at your own pace</span>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: 4, color: '#111827' }}>{course.title}</h1>
+              <p style={{ fontSize: '1.1rem', color: '#4b5563', marginBottom: 0, maxWidth: 800 }}>{course.description || 'No description available'}</p>
             </div>
           </div>
-
-          {/* Enroll/Start Learning Button */}
-          <div style={{ marginBottom: 40 }}>
-            {!isLoggedIn ? (
-              <button 
-                className="btn" 
-                style={{ 
-                  padding: '12px 24px', 
-                  borderRadius: 6, 
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  background: '#4361ee',
-                  color: 'white',
-                  border: 'none'
-                }} 
-                onClick={() => setShowSignInPrompt(true)}
-              >
-                Sign In to Enroll
-              </button>
-            ) : !enrolled ? (
-              <button 
-                className="btn" 
-                style={{ 
-                  padding: '12px 24px', 
-                  borderRadius: 6, 
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  background: '#4361ee',
-                  color: 'white',
-                  border: 'none'
-                }} 
-                onClick={onEnroll} 
-                disabled={enrolling}
-              >
-                {enrolling ? 'Enrolling...' : 'Enroll'}
-              </button>
-            ) : (
-              <button 
-                className="btn" 
-                style={{ 
-                  padding: '12px 24px', 
-                  borderRadius: 6, 
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  background: '#2e7d32',
-                  color: 'white',
-                  border: 'none'
-                }}
-                onClick={() => navigate(`/course-player/${course.courseId}`)}
-              >
-                Start Learning
-              </button>
-            )}
-            <p style={{ marginTop: 8, color: '#6b7280', fontSize: 14 }}>
-              {enrolled ? 'You are enrolled in this course' : ''}
-            </p>
-          </div>
+          <Link to="/" className="btn btn-outline-secondary" style={{ height: 38, padding: '6px 14px', borderRadius: 6, border: '1px solid #e5e7eb', color: '#4b5563', background: 'white' }}>Back to Home</Link>
         </div>
 
-        {/* Course Content */}
+        {/* Course Stats - modernized */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 24, gap: 24 }}>
+          <span style={{ color: '#6b7280', fontWeight: 500, fontSize: 15 }}>Beginner level</span>
+          <span style={{ color: '#6b7280', fontWeight: 500, fontSize: 15 }}>2 weeks</span>
+          <span style={{ color: '#6b7280', fontWeight: 500, fontSize: 15 }}>Learn at your own pace</span>
+        </div>
+
+        {/* Enroll/Start Learning Button */}
+        <div style={{ marginBottom: 40 }}>
+          {!isLoggedIn ? (
+            <button 
+              className="btn" 
+              style={{ 
+                padding: '12px 24px', 
+                borderRadius: 6, 
+                fontWeight: 600,
+                fontSize: '1rem',
+                background: '#4361ee',
+                color: 'white',
+                border: 'none'
+              }} 
+              onClick={() => setShowSignInPrompt(true)}
+            >
+              Sign In to Enroll
+            </button>
+          ) : !enrolled ? (
+            <button 
+              className="btn" 
+              style={{ 
+                padding: '12px 24px', 
+                borderRadius: 6, 
+                fontWeight: 600,
+                fontSize: '1rem',
+                background: '#4361ee',
+                color: 'white',
+                border: 'none'
+              }} 
+              onClick={onEnroll} 
+              disabled={enrolling}
+            >
+              {enrolling ? 'Enrolling...' : 'Enroll'}
+            </button>
+          ) : (
+            <button 
+              className="btn" 
+              style={{ 
+                padding: '12px 24px', 
+                borderRadius: 6, 
+                fontWeight: 600,
+                fontSize: '1rem',
+                background: '#2e7d32',
+                color: 'white',
+                border: 'none'
+              }}
+              onClick={() => navigate(`/course-player/${course.courseId}`)}
+            >
+              Start Learning
+            </button>
+          )}
+          <p style={{ marginTop: 8, color: '#6b7280', fontSize: 14 }}>
+            {enrolled ? 'You are enrolled in this course' : ''}
+          </p>
+        </div>
+
         <div className="row">
           <div className="col-lg-8">
-            {/* Course Series */}
+            {/* Course Series - improved module list */}
             <div style={{ marginBottom: 40 }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>
                 {moduleLoading ? 'Loading modules...' : 
@@ -471,8 +451,6 @@ export default function Enroll() {
                  `${modules.length} modules`}
               </h2>
               <p style={{ color: '#4b5563', marginBottom: 24 }}>Course content and materials</p>
-              
-              {/* Module List */}
               <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                 {moduleLoading ? (
                   <div style={{ padding: 24, textAlign: 'center' }}>
