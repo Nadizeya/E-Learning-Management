@@ -97,7 +97,7 @@ export default function ModuleContentManage() {
           <span className="status-badge published">Module #{module.moduleId}</span>
         </div>
 
-        <div className="course-manage-card">
+        <div className="course-manage-card" style={{ minHeight: '650px' }}>
           <div className="course-section">
             <div className="section-header">
               <div>
@@ -167,7 +167,7 @@ export default function ModuleContentManage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 zIndex: 1000,
-                backdropFilter: 'blur(4px)'
+                backdropFilter: 'blur(4px)',  
               }}
             >
               <CreateContentForm
@@ -233,7 +233,7 @@ function ContentItem({ content, index, onDelete, onCreateQuiz, onEdit }) {
       </div>
       <div className="content-actions">
         {(content.contentType === 'Quiz' || content.contentType === 'QUIZ') && (
-          <button className="btn-secondary small" onClick={onCreateQuiz} title="Create/Edit Quiz">✏️ Quiz</button>
+          <button className="btn-secondary small" onClick={onCreateQuiz} title="Create/Edit Quiz">Manage</button>
         )}
         <button className="btn-secondary small" onClick={onEdit} title="Edit Content" style={{ marginLeft: 8 }}>✏️ Edit</button>
         <button className="btn-icon" onClick={onDelete}>🗑️</button>
