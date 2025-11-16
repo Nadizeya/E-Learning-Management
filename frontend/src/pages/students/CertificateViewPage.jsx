@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CertificateView from '../../components/CertificateView';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { progressAPI, certificateAPI } from '../../services/api.js';
 
 const CertificateViewPage = () => {
@@ -126,20 +128,39 @@ const CertificateViewPage = () => {
     );
   }
 
+  // Download certificate as PDF using html2canvas and jsPDF
+  const downloadCertificate = async () => {
+    const certElem = document.querySelector('.certificate-container');
+    if (!certElem) {
+      alert('Certificate view not found.');
+      return;
+    }
+    const canvas = await html2canvas(certElem, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [certElem.offsetWidth, certElem.offsetHeight] });
+    pdf.addImage(imgData, 'PNG', 0, 0, certElem.offsetWidth, certElem.offsetHeight);
+    const safeTitle = (certificate?.courseTitle || 'certificate').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+    pdf.save(`${safeTitle}-certificate.pdf`);
+  };
+
   return (
     <div className="container py-5">
       <div className="row mb-4">
-        <div className="col-12">
-          <Link to="/accomplishments" className="btn btn-outline-secondary mb-3">
-            &larr; Back to Accomplishments
-          </Link>
-          <h2>Certificate of Completion</h2>
-          <p className="text-muted">
-            Congratulations on completing the course!
-          </p>
+        <div className="col-12 d-flex justify-content-between align-items-center">
+          <div>
+            <Link to="/accomplishments" className="btn btn-outline-secondary mb-3">
+              &larr; Back to Accomplishments
+            </Link>
+            <h2>Certificate of Completion</h2>
+            <p className="text-muted">
+              Congratulations on completing the course!
+            </p>
+          </div>
+          <button className="btn btn-primary" onClick={downloadCertificate} disabled={!certificate}>
+            Download Certificate
+          </button>
         </div>
       </div>
-
       <div className="row">
         <div className="col-12">
           <CertificateView certificate={certificate} />

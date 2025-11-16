@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { useNavigate, Link } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { courseAPI, enrollmentAPI, certificateAPI, badgeAPI } from '../../services/api.js'
@@ -64,11 +66,11 @@ export default function Accomplishments() {
               // Transform badge data to match our UI needs
               const processedBadges = badgesData.map(badge => ({
                 id: badge.userBadgeId || badge.badgeId,
-                name: badge.badgeName,
-                description: badge.badgeDescription,
-                iconUrl: badge.badgeIconUrl,
+                badgeName: badge.badgeName,
+                badgeDescription: badge.badgeDescription,
+                badgeIconUrl: badge.badgeIconUrl,
                 earnedAt: badge.earnedAt,
-                color: getBadgeColor(badge.badgeName) // Helper function to assign colors
+                color: getBadgeColor(badge.badgeName)
               }));
               console.log('Processed badges:', processedBadges);
               setBadges(processedBadges);
@@ -137,61 +139,20 @@ export default function Accomplishments() {
     return colors[hash % colors.length];
   };
 
-  const generateCertificateSvg = (courseTitle, studentName, issuedOn, certId) => {
-    const safeCourse = (courseTitle || '').replace(/&/g, '&amp;')
-    const safeName = (studentName || '').replace(/&/g, '&amp;')
-    const safeDate = (issuedOn || '').replace(/&/g, '&amp;')
-    const safeId = (certId || '').replace(/&/g, '&amp;')
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="792" viewBox="0 0 1120 792">
-  <defs>
-    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#e8f0ff"/>
-      <stop offset="100%" stop-color="#f6fffb"/>
-    </linearGradient>
-  </defs>
-  <rect width="1120" height="792" fill="url(#g)"/>
-  <rect x="32" y="32" width="1056" height="728" rx="24" fill="#fff" stroke="#e5e7eb"/>
-  <text x="560" y="160" font-family="Segoe UI, Roboto, Arial" font-size="44" font-weight="700" fill="#111827" text-anchor="middle">Certificate of Completion</text>
-  <text x="560" y="230" font-family="Segoe UI, Roboto, Arial" font-size="20" fill="#6b7280" text-anchor="middle">This certifies that</text>
-  <text x="560" y="300" font-family="Segoe UI, Roboto, Arial" font-size="40" font-weight="700" fill="#0f766e" text-anchor="middle">${safeName}</text>
-  <text x="560" y="360" font-family="Segoe UI, Roboto, Arial" font-size="18" fill="#6b7280" text-anchor="middle">has successfully completed the course</text>
-  <text x="560" y="410" font-family="Segoe UI, Roboto, Arial" font-size="28" font-weight="700" fill="#111827" text-anchor="middle">${safeCourse}</text>
-  <text x="560" y="470" font-family="Segoe UI, Roboto, Arial" font-size="16" fill="#6b7280" text-anchor="middle">Issued on ${safeDate}  •  ID: ${safeId}</text>
-  <g transform="translate(380,520)">
-    <rect width="360" height="80" rx="12" fill="#eef2ff" stroke="#e5e7eb"/>
-    <text x="180" y="48" font-family="Segoe UI, Roboto, Arial" font-size="18" fill="#1f2937" text-anchor="middle">LearnHub Academy</text>
-  </g>
-</svg>`
-  }
-
-  const downloadCertificate = (cert) => {
-    // Get user name from localStorage
-    const userData = localStorage.getItem('user')
-    const studentName = userData ? `${JSON.parse(userData).firstName} ${JSON.parse(userData).lastName}` : 'Student'
-    
-    const svg = generateCertificateSvg(cert.courseTitle, studentName, cert.issueDate, cert.certId)
-    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${cert.courseTitle.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-certificate.svg`
-    document.body.appendChild(a)
-    a.click()
-    URL.revokeObjectURL(url)
-    a.remove()
-  }
-
-  const viewCertificate = (cert) => {
-    // Get user name from localStorage
-    const userData = localStorage.getItem('user')
-    const studentName = userData ? `${JSON.parse(userData).firstName} ${JSON.parse(userData).lastName}` : 'Student'
-    
-    const svg = generateCertificateSvg(cert.courseTitle, studentName, cert.issueDate, cert.certId)
-    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-    // URL will be reclaimed when the tab closes; keeping it open allows preview
+  // Download certificate as PDF using html2canvas and jsPDF
+  const downloadCertificate = async (cert) => {
+    // Find the certificate view element by courseId
+    const certElem = document.getElementById(`certificate-view-${cert.courseId}`);
+    if (!certElem) {
+      alert('Certificate view not found. Please use the View button first.');
+      return;
+    }
+    const canvas = await html2canvas(certElem, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [certElem.offsetWidth, certElem.offsetHeight] });
+    pdf.addImage(imgData, 'PNG', 0, 0, certElem.offsetWidth, certElem.offsetHeight);
+    const safeTitle = (cert.courseTitle || 'certificate').replace(/[^a-z0-9]+/gi,'-').toLowerCase();
+    pdf.save(`${safeTitle}-certificate.pdf`);
   }
 
   return (
@@ -276,21 +237,15 @@ export default function Accomplishments() {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="d-flex gap-2">
-                                  <button 
+                                  <div className="d-flex gap-2">
+                                  <Link 
+                                    to={`/certificate/${cert.courseId}`} 
                                     className="btn btn-outline-secondary" 
-                                    style={{ borderRadius: 8 }} 
-                                    onClick={() => viewCertificate(cert)}
+                                    style={{ borderRadius: 8 }}
                                   >
                                     View
-                                  </button>
-                                  <button 
-                                    className="btn btn-primary" 
-                                    style={{ borderRadius: 8 }} 
-                                    onClick={() => downloadCertificate(cert)}
-                                  >
-                                    Download
-                                  </button>
+                                  </Link>
+                                    {/* Download button removed. Only allow download from certificate view page. */}
                                 </div>
                               </div>
                             </div>
@@ -308,7 +263,6 @@ export default function Accomplishments() {
               <div className="card mt-4" style={{ borderRadius: 16, border: '1px solid #e5e7eb', boxShadow: '0 10px 28px rgba(0,0,0,0.06)' }}>
                 <div className="card-body">
                   <h5 className="card-title mb-4">Badges</h5>
-                  
                   {badges.length === 0 ? (
                     <div className="text-center py-5" style={{ background: '#f9fafb', borderRadius: 12 }}>
                       <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#d1d5db' }}>🏅</div>
@@ -333,19 +287,19 @@ export default function Accomplishments() {
                                 justifyContent: 'center',
                                 margin: '0 auto 16px auto'
                               }}>
-                                {badge.iconUrl ? (
+                                {badge.badgeIconUrl ? (
                                   <img 
-                                    src={badge.iconUrl} 
-                                    alt={badge.name} 
+                                    src={badge.badgeIconUrl} 
+                                    alt={badge.badgeName} 
                                     style={{ width: '60%', height: '60%', objectFit: 'contain' }}
                                   />
                                 ) : (
                                   <span>🏅</span>
                                 )}
                               </div>
-                              <h5 className="fw-bold">{badge.name}</h5>
+                              <h5 className="fw-bold">{badge.badgeName}</h5>
                               <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-                                {badge.description || 'Earned for your achievements'}
+                                {badge.badgeDescription || 'Earned for your achievements'}
                               </p>
                               {badge.earnedAt && (
                                 <div className="mt-2 small text-muted">

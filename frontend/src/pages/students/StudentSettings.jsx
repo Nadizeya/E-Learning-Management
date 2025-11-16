@@ -139,7 +139,7 @@ export default function StudentSettings() {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+            {/* <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
                 <Link className="nav-link" to="/">
                   Explore
@@ -155,7 +155,7 @@ export default function StudentSettings() {
                   Career Goals
                 </a>
               </li>
-            </ul>
+            </ul> */}
             <div className="d-flex align-items-center gap-3">
               {isLoggedIn ? (
                 <div className="user-dropdown-wrapper">
@@ -265,12 +265,12 @@ export default function StudentSettings() {
                   )}
                 </div>
               )}
-              <Link to="/signin" className="btn btn-outline-light">
+              {/* <Link to="/signin" className="btn btn-outline-light">
                 Admin Sign In
               </Link>
               <Link to="/admin" className="btn btn-primary">
                 Admin Dashboard
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>

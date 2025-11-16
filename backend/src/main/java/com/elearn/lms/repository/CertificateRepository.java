@@ -19,6 +19,9 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     // Find a certificate by its unique code
     Optional<Certificate> findByUniqueCode(String uniqueCode);
     
+    // Case-insensitive lookup for verification convenience
+    Optional<Certificate> findByUniqueCodeIgnoreCase(String uniqueCode);
+    
     // Check if a student has a certificate for a specific course
     boolean existsByStudentIdAndCourseId(Long studentId, Long courseId);
     

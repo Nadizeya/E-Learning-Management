@@ -21,14 +21,20 @@ public class CertificateService {
 
     private final CertificateRepository certificateRepository;
     private final CourseRepository courseRepository;
+    private final com.elearn.lms.repository.InstructorRepository instructorRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final com.elearn.lms.service.BadgeService badgeService;
 
     public CertificateService(CertificateRepository certificateRepository,
                              CourseRepository courseRepository,
-                             EnrollmentRepository enrollmentRepository) {
+                             EnrollmentRepository enrollmentRepository,
+                             com.elearn.lms.repository.InstructorRepository instructorRepository,
+                             com.elearn.lms.service.BadgeService badgeService) {
         this.certificateRepository = certificateRepository;
         this.courseRepository = courseRepository;
         this.enrollmentRepository = enrollmentRepository;
+        this.instructorRepository = instructorRepository;
+        this.badgeService = badgeService;
     }
 
     /**
@@ -41,31 +47,38 @@ public class CertificateService {
             Optional<Certificate> existingCert = certificateRepository.findAll().stream()
                 .filter(c -> c.getStudentId().equals(studentId) && c.getCourseId().equals(courseId))
                 .findFirst();
-            
             if (existingCert.isPresent()) {
                 return createCertificateResponse(existingCert.get());
             }
         }
-        
+
         // Get enrollment
         Optional<Enrollment> enrollment = enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId);
         if (enrollment.isEmpty()) {
             throw new RuntimeException("Student is not enrolled in this course");
         }
-        
+
         // Create certificate
         Certificate certificate = new Certificate();
         certificate.setEnrollmentId(enrollment.get().getEnrollmentId());
         certificate.setStudentId(studentId);
         certificate.setCourseId(courseId);
         certificate.setUniqueCode("CERT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        
+
         Certificate saved = certificateRepository.save(certificate);
-        
+
         // Update enrollment status to completed
         enrollment.get().setCompletionStatus("Completed");
         enrollmentRepository.save(enrollment.get());
-        
+
+        // Award badge for course completion
+        try {
+            badgeService.awardCourseBadge(studentId, courseId);
+        } catch (Exception e) {
+            // Log but don't fail certificate creation if badge fails
+            System.err.println("Failed to award badge: " + e.getMessage());
+        }
+
         return createCertificateResponse(saved);
     }
 
@@ -102,8 +115,12 @@ public class CertificateService {
      */
     @Transactional(readOnly = true)
     public CertificateResponse verifyCertificate(@NonNull String uniqueCode) {
-        Certificate certificate = certificateRepository.findByUniqueCode(uniqueCode)
-            .orElseThrow(() -> new RuntimeException("Certificate not found with code: " + uniqueCode));
+        // Try exact match first, then fall back to a case-insensitive lookup
+        Optional<Certificate> certOpt = certificateRepository.findByUniqueCode(uniqueCode);
+        if (certOpt.isEmpty()) {
+            certOpt = certificateRepository.findByUniqueCodeIgnoreCase(uniqueCode.trim());
+        }
+        Certificate certificate = certOpt.orElseThrow(() -> new RuntimeException("Certificate not found with code: " + uniqueCode));
         return createCertificateResponse(certificate);
     }
 
@@ -117,8 +134,21 @@ public class CertificateService {
         CertificateResponse response = new CertificateResponse(certificate);
         response.setCourseTitle(course.getTitle());
         
+        // Fetch instructor name if possible
+        try {
+            Long instrId = course.getInstructorId();
+            instructorRepository.findById(instrId).ifPresent(instr -> {
+                response.setInstructorName(instr.getFirstName() + " " + instr.getLastName());
+            });
+        } catch (Exception e) {
+            // ignore
+        }
+
         // Note: In a real implementation, you would also fetch student name from StudentRepository
         response.setStudentName("Student #" + certificate.getStudentId());
+
+        // Platform name
+        response.setPlatformName("LearnHub");
         
         return response;
     }

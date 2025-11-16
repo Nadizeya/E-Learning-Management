@@ -23,12 +23,7 @@ const CertificateView = ({ certificate }) => {
     <div className="card shadow">
       <div className="card-header bg-light d-flex justify-content-between align-items-center">
         <h5 className="mb-0">Course Completion Certificate</h5>
-        <button 
-          className="btn btn-primary btn-sm" 
-          onClick={handlePrint}
-        >
-          <i className="bi bi-printer me-1"></i> Print Certificate
-        </button>
+        {/* Print button removed, only Download in parent */}
       </div>
       
       <div className="card-body p-4">
@@ -68,6 +63,8 @@ const CertificateView = ({ certificate }) => {
             Issued on {new Date(certificate.issueDate).toLocaleDateString()}
           </p>
           
+          {/* Instructor and Platform (moved into signature area below) */}
+
           {/* Certificate ID */}
           <div className="certificate-id mb-4">
             <small className="text-muted">Certificate ID: {certificate.uniqueCode}</small>
@@ -76,12 +73,14 @@ const CertificateView = ({ certificate }) => {
           {/* Signature */}
           <div className="row mt-5">
             <div className="col-6 text-center">
+              <p style={{ marginBottom: 8, fontWeight: 700 }}>{certificate.instructorName || 'Teacher Testing'}</p>
               <div className="signature-line" style={{ borderTop: '1px solid #2c3e50', width: '80%', margin: '0 auto' }}></div>
-              <p className="mt-1">Course Instructor</p>
+              <p style={{ marginTop: 8, color: '#6c757d' }}>Instructor</p>
             </div>
             <div className="col-6 text-center">
+              <p style={{ marginBottom: 8, fontWeight: 700 }}>{certificate.platformName || 'LearnHub'}</p>
               <div className="signature-line" style={{ borderTop: '1px solid #2c3e50', width: '80%', margin: '0 auto' }}></div>
-              <p className="mt-1">Platform Director</p>
+              <p style={{ marginTop: 8, color: '#6c757d' }}>Platform</p>
             </div>
           </div>
           
@@ -108,12 +107,12 @@ const CertificateView = ({ certificate }) => {
       
       <div className="card-footer bg-light">
         <div className="d-flex justify-content-between align-items-center">
-          <small className="text-muted">
-            This certificate can be verified at: 
-            <a href={`${window.location.origin}/verify-certificate/${certificate.uniqueCode}`} target="_blank" rel="noreferrer">
-              {window.location.origin}/verify-certificate/{certificate.uniqueCode}
-            </a>
-          </small>
+            <small className="text-muted" style={{ display: 'block', overflowWrap: 'anywhere' }}>
+              This certificate can be verified at:{' '}
+              <a href={`${window.location.origin}/verify-certificate/${certificate.uniqueCode}`} target="_blank" rel="noreferrer" style={{ wordBreak: 'break-all' }}>
+                {window.location.origin}/verify-certificate/{certificate.uniqueCode}
+              </a>
+            </small>
         </div>
       </div>
     </div>
