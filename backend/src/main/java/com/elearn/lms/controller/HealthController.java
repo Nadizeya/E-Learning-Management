@@ -17,7 +17,7 @@ public class HealthController {
     public ResponseEntity<?> health() {
         Map<String, Object> body = new HashMap<>();
         body.put("status", "UP");
-        body.put("timestamp", Instant.now().toString());
+        body.put("LocalDateTime", Instant.now().toString());
         return ResponseEntity.ok(body);
     }
 }

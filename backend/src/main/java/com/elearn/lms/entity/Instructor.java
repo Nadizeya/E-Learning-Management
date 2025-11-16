@@ -1,7 +1,7 @@
 package com.elearn.lms.entity;
 
 import jakarta.persistence.*;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "INSTRUCTORS")
@@ -31,10 +31,10 @@ public class Instructor {
     private String expertise;
 
     @Column(name = "created_at", insertable = false, updatable = false)
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at", insertable = false, updatable = false)
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,8 +50,8 @@ public class Instructor {
     public void setBio(String bio) { this.bio = bio; }
     public String getExpertise() { return expertise; }
     public void setExpertise(String expertise) { this.expertise = expertise; }
-    public Timestamp getCreatedAt() { return createdAt; }
-    public Timestamp getUpdatedAt() { return updatedAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
 
 

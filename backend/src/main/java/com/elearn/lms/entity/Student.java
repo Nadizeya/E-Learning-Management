@@ -6,7 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.sql.Timestamp;
+// import java.sql.LocalDateTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "STUDENTS")
@@ -30,10 +31,10 @@ public class Student {
     private String passwordHash;
 
     @Column(name = "created_at",  updatable = false)
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -45,8 +46,8 @@ public class Student {
     public void setEmail(String email) { this.email = email; }
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-    public Timestamp getCreatedAt() { return createdAt; }
-    public Timestamp getUpdatedAt() { return updatedAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
 
 
