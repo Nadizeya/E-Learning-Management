@@ -31,8 +31,9 @@ export default function Enroll() {
 
         const userData = localStorage.getItem('user')
         const token = localStorage.getItem('token')
+        const userRole = localStorage.getItem('userRole')
 
-        if (userData && token) {
+        if (userData && token && userRole === 'STUDENT') {
           setIsLoggedIn(true)
           const user = JSON.parse(userData)
           try {
@@ -123,8 +124,9 @@ export default function Enroll() {
 
     const userData = localStorage.getItem('user')
     const token = localStorage.getItem('token')
+    const userRole = localStorage.getItem('userRole')
 
-    if (!userData || !token) {
+    if (!userData || !token || userRole !== 'STUDENT') {
       setShowSignInPrompt(true)
       return
     }
