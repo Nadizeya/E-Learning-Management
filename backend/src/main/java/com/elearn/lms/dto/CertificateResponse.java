@@ -12,6 +12,8 @@ public class CertificateResponse {
     private String studentName;
     private LocalDateTime issueDate;
     private String uniqueCode;
+    private String instructorName;
+    private String platformName;
 
     // Constructors
     public CertificateResponse() {
@@ -36,6 +38,22 @@ public class CertificateResponse {
         this.courseId = certificate.getCourseId();
         this.issueDate = certificate.getIssueDate();
         this.uniqueCode = certificate.getUniqueCode();
+    }
+
+    public String getInstructorName() {
+        return instructorName;
+    }
+
+    public void setInstructorName(String instructorName) {
+        this.instructorName = instructorName;
+    }
+
+    public String getPlatformName() {
+        return platformName;
+    }
+
+    public void setPlatformName(String platformName) {
+        this.platformName = platformName;
     }
 
     // Getters and Setters

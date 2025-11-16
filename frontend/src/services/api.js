@@ -142,7 +142,7 @@ export const progressAPI = {
   getStudentProgress: (courseId, studentId) =>
     apiClient
       .get(`/progress/course/${courseId}/student/${studentId}`)
-      .then((r) => r.data.data),
+      .then((r) => r.data),
 
   markContentAsCompleted: async (studentId, contentId, moduleId, courseId) => {
     const resp = await apiClient.post("/progress/mark-completed", {
@@ -162,23 +162,30 @@ export const progressAPI = {
 /* ------------------- CERTIFICATES ------------------ */
 export const certificateAPI = {
   getCertificateById: (id) =>
-    apiClient.get(`/certificates/${id}`).then((r) => r.data.data),
+    apiClient.get(`/certificates/${id}`).then((r) => r.data),
 
-  getCertificateByCourseAndStudent: (courseId, studentId) =>
-    apiClient
-      .get(`/certificates/course/${courseId}/student/${studentId}`)
-      .then((r) => r.data.data)
-      .catch(() => null),
+  // Backend exposes student certificates at /certificates/student/{studentId}
+  // so fetch those and find the one matching the courseId
+  getCertificateByCourseAndStudent: async (courseId, studentId) => {
+    try {
+      const certs = await apiClient.get(`/certificates/student/${studentId}`).then((r) => r.data || []);
+      if (!Array.isArray(certs)) return null;
+      return certs.find((c) => String(c.courseId) === String(courseId)) || null;
+    } catch (e) {
+      return null;
+    }
+  },
 
+  // Backend endpoint expects path params: /certificates/generate/student/{studentId}/course/{courseId}
   generateCertificate: (courseId, studentId) =>
     apiClient
-      .post(`/certificates/generate`, { courseId, studentId })
-      .then((r) => r.data.data),
+      .post(`/certificates/generate/student/${studentId}/course/${courseId}`)
+      .then((r) => r.data),
 
   getStudentCertificates: (studentId) =>
-    apiClient
-      .get(`/certificates/student/${studentId}`)
-      .then((r) => r.data.data || []),
+    apiClient.get(`/certificates/student/${studentId}`).then((r) => r.data || []),
+  verifyCertificate: (uniqueCode) =>
+    apiClient.get(`/certificates/verify/${uniqueCode}`).then((r) => r.data),
 };
 
 /* ------------------- BADGE API ------------------ */
@@ -186,7 +193,7 @@ export const badgeAPI = {
   getStudentBadges: (studentId) =>
     apiClient
       .get(`/badges/student/${studentId}`)
-      .then((r) => r.data.data || []),
+      .then((r) => Array.isArray(r.data) ? r.data : (r.data.data || [])),
 };
 
 /* ---------------------- EXPORT ---------------------- */

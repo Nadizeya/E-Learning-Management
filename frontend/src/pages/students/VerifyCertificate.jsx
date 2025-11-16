@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import CertificateView from '../../components/CertificateView';
+import { certificateAPI } from '../../services/api.js';
 
 const VerifyCertificate = () => {
   const { code } = useParams();
@@ -24,18 +24,30 @@ const VerifyCertificate = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`http://localhost:8080/api/certificates/verify/${certCode}`);
-      
-      if (!response.ok) {
-        throw new Error('Certificate not found or invalid');
-      }
-      
-      const data = await response.json();
+      const data = await certificateAPI.verifyCertificate(certCode.trim());
+      if (!data) throw new Error('Certificate not found or invalid');
       setCertificate(data);
       setVerified(true);
     } catch (err) {
       console.error('Error verifying certificate:', err);
-      setError(err.message);
+      // Create a friendly, user-facing message based on error shape/status
+      let friendly = 'An unexpected error occurred. Please try again later.';
+      const resp = err && err.response ? err.response : null;
+      if (resp && resp.status) {
+        const status = resp.status;
+        if (status === 404) {
+          friendly = 'Certificate not found. Please check the certificate code and try again.';
+        } else if (status === 400) {
+          friendly = 'Invalid certificate code. Please verify the code format and try again.';
+        } else if (status >= 500) {
+          friendly = 'Server error while verifying the certificate. Please try again later.';
+        } else {
+          friendly = `Verification failed (code ${status}). Please try again.`;
+        }
+      } else if (err && err.message && err.message.toLowerCase().includes('network')) {
+        friendly = 'Network error. Please check your connection and try again.';
+      }
+      setError(friendly);
       setVerified(false);
     } finally {
       setLoading(false);
@@ -107,11 +119,14 @@ const VerifyCertificate = () => {
           <div className="col-md-8">
             <div className="alert alert-danger">
               <h4 className="alert-heading">Verification Failed</h4>
-              <p>{error}</p>
+              <p className="mb-2">{error}</p>
+              <ul className="mb-0">
+                <li>Double-check the certificate code you entered.</li>
+                <li>Try again after a moment.</li>
+                <li>If the problem persists, contact support.</li>
+              </ul>
               <hr />
-              <p className="mb-0">
-                Please check the certificate code and try again. If you believe this is an error, please contact support.
-              </p>
+              <p className="mb-0 small text-muted">Need help? Email <a href="mailto:support@learnhub.example">support@learnhub.example</a></p>
             </div>
           </div>
         </div>
@@ -124,8 +139,17 @@ const VerifyCertificate = () => {
               <h4 className="alert-heading">Certificate Verified!</h4>
               <p>This certificate is valid and was issued by our platform.</p>
             </div>
-            
-            <CertificateView certificate={certificate} />
+
+            <div className="card mb-4">
+              <div className="card-body">
+                <p className="mb-1"><strong>Certificate ID:</strong> {certificate.uniqueCode}</p>
+                <p className="mb-1"><strong>Student:</strong> {certificate.studentName || '—'}</p>
+                <p className="mb-1"><strong>Course:</strong> {certificate.courseTitle || '—'}</p>
+                <p className="mb-0"><strong>Issued:</strong> {certificate.issueDate ? new Date(certificate.issueDate).toLocaleDateString() : '—'}</p>
+                <hr />
+                <p className="text-muted mb-0">The full certificate view is hidden for verification. Use the certificate ID to reference this verification.</p>
+              </div>
+            </div>
           </div>
         </div>
       )}

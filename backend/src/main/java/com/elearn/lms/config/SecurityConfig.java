@@ -52,6 +52,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/quizzes/**").permitAll()
                         // Allow enrollment endpoints (students need to enroll)
                         .requestMatchers("/api/enrollments/**").permitAll()
+                        // Allow public access to certificate verification and viewing
+                        .requestMatchers(HttpMethod.GET, "/api/certificates/**").permitAll()
                         // Temporarily allow student profile updates without auth
                         .requestMatchers(HttpMethod.PUT, "/api/students/**").permitAll()
                         // Analytics endpoints require authentication

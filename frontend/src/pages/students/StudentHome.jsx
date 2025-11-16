@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/StudentHome.css";
-import { courseAPI, categoryAPI } from "../../services/api.js";
+import { courseAPI, categoryAPI, enrollmentAPI } from "../../services/api.js";
 import AuthModal from "../../components/auth/AuthModal";
 
 // Categories will be fetched from the backend
@@ -98,7 +98,28 @@ export default function StudentHome() {
           // Log the mapped courses to see what we're working with
           console.log('Mapped courses with categories:', mappedCourses.map(c => ({ title: c.title, category: c.category })))
           
-          setCourses(mappedCourses)
+            // If logged in as a student, filter out courses the student already enrolled in
+            let finalCourses = mappedCourses
+            try {
+              const token = localStorage.getItem('token')
+              const userRole = localStorage.getItem('userRole')
+              // Use the student from localStorage (set above) or current state
+              const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
+              const currentStudent = student || storedUser
+
+              if (token && userRole === 'STUDENT' && currentStudent) {
+                const studentId = currentStudent.id || currentStudent.studentId
+                if (studentId) {
+                  const enrollments = await enrollmentAPI.getEnrollmentsByStudentId(studentId)
+                  const enrolledIds = new Set((enrollments || []).map(e => e.courseId))
+                  finalCourses = mappedCourses.filter(c => !enrolledIds.has(c.id))
+                }
+              }
+            } catch (enrErr) {
+              console.warn('Failed to fetch enrollments for filtering:', enrErr)
+            }
+
+            setCourses(finalCourses)
           
           if (mappedCourses.length === 0) {
             setError(
@@ -126,7 +147,7 @@ export default function StudentHome() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isLoggedIn, student?.studentId]);
 
   const handleLogout = () => {
     localStorage.removeItem('token')
