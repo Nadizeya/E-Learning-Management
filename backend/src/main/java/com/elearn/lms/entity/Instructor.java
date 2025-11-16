@@ -30,10 +30,10 @@ public class Instructor {
     @Column(name = "expertise", nullable = false, length = 500)
     private String expertise;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at",  updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -46,7 +46,7 @@ public class Instructor {
 	protected void onUpdate() {
 		updatedAt = LocalDateTime.now();
 	}
-    
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFirstName() { return firstName; }
