@@ -159,48 +159,10 @@ export default function InstructorSettings() {
         style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
       >
         <div className="container-fluid px-4">
-          <a className="navbar-brand" href="/">
+          <a className="navbar-brand" href="/instructor/dashboard">
             <span className="brand-icon">🎓</span>
             LearnHub
           </a>
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              <li className="nav-item">
-                <Link className="nav-link" to="/">
-                  Home
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/instructor/dashboard">
-                  Dashboard
-                </Link>
-              </li>
-            </ul>
-            <div className="d-flex align-items-center gap-3">
-              {isLoggedIn ? (
-                <div className="user-profile-static">
-                  <div className="user-avatar">
-                    <span>{instructor?.firstName?.charAt(0) || "I"}</span>
-                  </div>
-                  <span className="user-name d-none d-md-inline">
-                    Hi, {instructor?.firstName || "Instructor"}!
-                  </span>
-                </div>
-              ) : (
-                <Link to="/instructor/signin" className="btn btn-light">
-                  Sign In
-                </Link>
-              )}
-            </div>
-          </div>
         </div>
       </nav>
 

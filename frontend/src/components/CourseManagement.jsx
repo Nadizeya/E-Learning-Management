@@ -92,9 +92,7 @@ export default function CourseManagement() {
           <div className="empty-icon">📚</div>
           <h3>No courses yet</h3>
           <p>Create your first course to start teaching</p>
-          <button className="btn-primary" onClick={() => setShowCreateCourse(true)}>
-            Create Course
-          </button>
+         
         </div>
       ) : (
         <div className="courses-grid">

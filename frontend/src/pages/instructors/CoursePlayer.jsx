@@ -227,6 +227,16 @@ export default function CoursePlayer() {
       contents.every((c) => completedContents.includes(c.contentId))) ||
     courseProgress?.progressPercentage >= 100;
 
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 900, margin: "10vh auto", textAlign: "center" }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3">Loading course...</p>
+      </div>
+    );
+  }
   if (!course) {
     return (
       <div style={{ maxWidth: 900, margin: "10vh auto", textAlign: "left" }}>

@@ -165,9 +165,6 @@ export default function StudentSettings() {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              {/* Navigation items removed for branch merging */}
-            </ul>
             <div className="d-flex align-items-center gap-3">
               {isLoggedIn ? (
                 <div className="user-dropdown-wrapper">
@@ -224,17 +221,7 @@ export default function StudentSettings() {
                           Accomplishments
                         </Link>
 
-                        <div className="dropdown-divider"></div>
-
-                        <button
-                          className="dropdown-item dropdown-item-logout"
-                          onClick={() => {
-                            handleLogout();
-                            setShowSignInDropdown(false);
-                          }}
-                        >
-                          <span className="dropdown-item-icon">🚪</span> Log Out
-                        </button>
+                       
                       </div>
                     </div>
                   )}
