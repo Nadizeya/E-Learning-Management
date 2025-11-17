@@ -891,7 +891,7 @@ function InstructorsTab() {
   const columns = [
     {
       key: "name",
-      label: "Full name",
+      label: "Name",
       render: (i) => `${i.firstName} ${i.lastName}`,
     },
     { key: "email", label: "Email" },
@@ -902,12 +902,12 @@ function InstructorsTab() {
     },
     {
       key: "createdAt",
-      label: "Created at",
+      label: "Create At",
       render: (i) => formatDate(i.createdAt || i.created_at),
     },
     {
       key: "updatedAt",
-      label: "Updated at",
+      label: "Update At",
       render: (i) => formatDate(i.updatedAt || i.updated_at),
     },
     {
@@ -1177,7 +1177,7 @@ function CoursesTab() {
   };
 
   const columns = [
-    { key: "title", label: "Course name" },
+    { key: "title", label: "Name" },
     {
       key: "courseId",
       label: <span className="text-nowrap">Course Id</span>,
@@ -1194,11 +1194,6 @@ function CoursesTab() {
         return category ? category.name : c.categoryType || "N/A";
       },
     },
-    {
-      key: "createdBy",
-      label: <span className="text-nowrap">Created At</span>,
-      render: (c) => (c.instructorId ? `Instructor #${c.instructorId}` : "N/A"),
-    },
     { key: "status", label: "Status", render: (c) => c.status || "N/A" },
     { key: "duration", label: "Duration", render: (c) => c.duration || "N/A" },
     {
@@ -1206,11 +1201,11 @@ function CoursesTab() {
       label: "Created at",
       render: (c) => formatDate(c.createdAt),
     },
-    {
-      key: "updatedAt",
-      label: "Updated at",
-      render: (c) => formatDate(c.updatedAt),
-    },
+    // {
+    //   key: "updatedAt",
+    //   label: "Updated at",
+    //   render: (c) => formatDate(c.updatedAt),
+    // },
     {
       key: "actions",
       label: "Actions",
