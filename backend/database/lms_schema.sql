@@ -266,12 +266,7 @@ INSERT INTO STUDENTS (first_name, last_name, email, password_hash) VALUES
 ('Alice', 'Williams', 'alice.williams@example.com', '$2a$10$u1YVQv1lX8r0mT3k1mQxpu7wG3c1d8bWb6x8h1Hq3yJbq0nG8l9J6');
 
 -- Insert categories
-INSERT INTO CATEGORIES (name, description) VALUES
-('Web Development', 'Learn web development technologies including HTML, CSS, JavaScript, and frameworks'),
-('Data Science', 'Master data analysis, machine learning, and statistical methods'),
-('Mobile Development', 'Build iOS and Android applications'),
-('Business', 'Business management, entrepreneurship, and leadership courses'),
-('Design', 'Graphic design, UI/UX, and creative skills');
+
 
 -- Insert sample courses
 INSERT INTO COURSES (category_id, instructor_id, title, description, status) VALUES

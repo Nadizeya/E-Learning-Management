@@ -1,44 +1,230 @@
 
-# 🎓 E-Learning Management System (LMS)
 
-**Course**: Software Engineering (1305217) , Database Systems (1501208) & Web Application Development ( 1305215)
+# E-Learning Management System (LMS)
 
+**Course**: Software Engineering (1305217), Database Systems (1501208), Web Application Development (1305215)
 **Institution**: Mae Fah Luang University
+
+---
+
+## Table of Contents
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Tech Stack](#tech-stack)
+4. [Architecture](#architecture)
+5. [Setup & Installation](#setup--installation)
+6. [Usage](#usage)
+7. [API Reference](#api-reference)
+8. [Database Schema](#database-schema)
+9. [Testing](#testing)
+10. [Contributing](#contributing)
+11. [License](#license)
+12. [Team](#team)
+13. [Support](#support)
+
 ---
 
 ## 📖 Overview
 
-The E-Learning Management System is a comprehensive, database-driven web application designed to centralize educational resources, streamline course management, and enhance student engagement. It addresses the challenges of decentralized learning materials and manual administrative tasks by providing a unified platform for Instructors, Students, and Administrators.
-
-This project features a robust backend built with Spring Boot, a responsive frontend using React.js, and a relational MySQL database for data persistence.
+The E-Learning Management System is a comprehensive, database-driven web application designed to centralize educational resources, streamline course management, and enhance student engagement. It provides a unified platform for instructors, students, and administrators, featuring a robust backend (Spring Boot), a responsive frontend (React.js), and a relational MySQL database.
 
 ---
 
-## ✨ Key Features
-
-### 👨‍🎓 For Students
-
-- **Unified Learning Hub**: Browse course catalogs and enroll in courses efficiently.
-- **Interactive Content**: Access video lectures, reading materials (PDFs), and take quizzes.
-- **Progress Tracking**: Real-time visibility of course completion percentages and module progress.
-- **Gamification**: Earn Badges for milestones and receive Certificates (with unique verification codes) upon course completion.
-- **Instant Feedback**: Receive immediate scoring and feedback on quiz submissions.
-
-### 👨‍🏫 For Instructors
-
-- **Course Creation**: Intuitive tools to create, edit, and publish courses with Draft/Published statuses.
-- **Content Management**: Organize curriculum into Modules and upload varied content types (Videos, PDFs, Quizzes).
-- **Assessment Tools**: Create multiple-choice quizzes with automatic grading logic.
-- **Analytics**: View student enrollment data and track performance metrics.
-
-### 🛡️ For Administrators
-
-- **System Oversight**: Comprehensive dashboard to view system-wide statistics (Total Users, Active Courses).
-- **User Management**: Manage Student and Instructor accounts.
+## 🚀 Features
+- User authentication & authorization (JWT)
+- Course & module management
+- File upload (videos, resources)
+- Student enrollment & progress tracking
+- Quiz & assignment system
+- Gamification (badges, achievements)
+- Certificate generation
+- Admin dashboard APIs
+- RESTful API design
+- Dockerized deployment
 
 ---
 
-## 👥 Group Members
+## 🛠️ Tech Stack
+- **Backend:** Spring Boot (Java 17), Spring Security, JWT, Maven
+- **Frontend:** React.js, CSS, Styled Components, Axios
+- **Database:** MySQL 8.0
+- **Containerization:** Docker
+- **Storage:** Local file storage for course content (Videos/PDFs)
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│  Frontend   │ <--> │   Backend   │ <--> │   Database  │
+└─────────────┘      └─────────────┘      └─────────────┘
+		React           Spring Boot           MySQL
+```
+
+---
+
+## ⚡ Setup & Installation
+
+### Prerequisites
+- Java 17+
+- Node.js & npm
+- MySQL Server
+- Docker (optional)
+
+### Local Setup
+1. Clone the repository:
+	```bash
+	git clone https://github.com/your-username/e-learning-management-system.git
+	cd e-learning-management-system
+	```
+2. Configure `backend/src/main/resources/application.properties` with your DB credentials.
+3. Create the database using `backend/database/lms_schema.sql`.
+4. Build & run backend:
+	```bash
+	cd backend
+	./mvnw spring-boot:run
+	```
+5. Build & run frontend:
+	```bash
+	cd ../frontend
+	npm install
+	npm run dev
+	```
+
+---
+
+## ▶️ Usage
+
+Start the backend server and interact with the RESTful API using tools like Postman, curl, or via the frontend application at `http://localhost:5173`.
+
+---
+
+## 📚 API Reference
+
+Base URL: `/api`
+
+### Course Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/courses` | List all courses |
+| GET    | `/courses/{id}` | Get course by ID |
+| POST   | `/courses` | Create new course |
+| PUT    | `/courses/{id}` | Update course |
+| DELETE | `/courses/{id}` | Delete course |
+
+### Module Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/courses/{courseId}/modules` | List modules |
+| POST   | `/courses/{courseId}/modules` | Add module |
+| PUT    | `/modules/{id}` | Update module |
+| DELETE | `/modules/{id}` | Delete module |
+
+### Content Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/modules/{moduleId}/contents` | List contents |
+| POST   | `/modules/{moduleId}/contents` | Add content |
+| PUT    | `/contents/{id}` | Update content |
+| DELETE | `/contents/{id}` | Delete content |
+
+### Enrollment Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/enrollments` | Enroll student |
+| GET    | `/enrollments/{userId}` | Get user enrollments |
+
+### Progress Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/progress/{userId}/{courseId}` | Get progress |
+| POST   | `/progress` | Update progress |
+
+### Quiz Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/quizzes/{courseId}` | List quizzes |
+| POST   | `/quizzes` | Create quiz |
+| POST   | `/quizzes/{quizId}/attempt` | Submit attempt |
+
+### Certificate Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/certificates/{userId}` | List certificates |
+
+### Authentication Endpoints (Planned)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/login` | User login |
+| POST | `/auth/logout` | User logout |
+
+### User Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/users` | Create new user |
+| GET | `/users` | Get all users |
+| GET | `/users/{id}` | Get user by ID |
+| GET | `/users/email/{email}` | Get user by email |
+| PUT | `/users/{id}` | Update user |
+| DELETE | `/users/{id}` | Delete user |
+
+---
+
+## 🗄️ Database Schema
+
+The system utilizes a relational database with 15+ normalized tables including:
+
+1. **User Management**: `ADMINS`, `INSTRUCTORS`, `STUDENTS`
+2. **Course Structure**: `CATEGORIES`, `COURSES`, `COURSE_MODULES`, `COURSE_CONTENT`
+3. **Engagement**: `ENROLLMENTS`, `STUDENT_PROGRESS`
+4. **Assessments & Rewards**: `QUIZZES`, `QUIZ_QUESTIONS`, `QUIZ_ATTEMPTS`, `BADGES`, `USER_BADGES`, `CERTIFICATES`
+
+See [`backend/database/lms_schema.sql`](backend/database/lms_schema.sql) for the complete schema.
+
+---
+
+## 🧪 Testing
+
+### Backend Testing
+```bash
+cd backend
+./mvnw test
+```
+
+### API Testing
+1. Start the application
+2. Import Postman collection
+3. Run test requests
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Coding Standards
+- Follow Java naming conventions
+- Write meaningful commit messages
+- Add comments for complex logic
+- Write unit tests for new features
+- Update documentation
+
+---
+
+## 📝 License
+
+This project is developed for educational purposes at Mae Fah Luang University. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👥 Team
 
 | Name           | Role              | Student ID   |
 | :------------- | :---------------- | :----------- |
@@ -51,94 +237,8 @@ This project features a robust backend built with Spring Boot, a responsive fron
 
 ---
 
-## 🛠️ Technology Stack
+## 📞 Support
 
-### Backend
-- **Framework**: Spring Boot (Java 17)
-- **Security**: Spring Security, JWT (JSON Web Tokens), BCrypt Password Hashing
-- **Build Tool**: Maven/Gradle
-
-### Frontend
-- **Library**: React.js
-- **Styling**: CSS / Styled Components
-- **HTTP Client**: Axios / Fetch API
-
-### Database & Infrastructure
-- **Database**: MySQL 8.0 (Relational Model)
-- **Containerization**: Docker (for Database deployment)
-- **Storage**: Local file storage for course content (Videos/PDFs)
+For support, contact your instructor or open an issue on GitHub.
 
 ---
-
-## 💾 Database Schema
-
-The system utilizes a relational database with 15 normalized tables including:
-
-- **User Management**: `ADMINS`, `INSTRUCTORS`, `STUDENTS`
-- **Course Structure**: `CATEGORIES`, `COURSES`, `COURSE_MODULES`, `COURSE_CONTENT`
-- **Engagement**: `ENROLLMENTS`, `STUDENT_PROGRESS`
-- **Assessments & Rewards**: `QUIZZES`, `QUIZ_QUESTIONS`, `QUIZ_ATTEMPTS`, `BADGES`, `USER_BADGES`, `CERTIFICATES`
-
-Detailed SQL scripts and ER Diagrams can be found in the `docs/database` folder.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Java Development Kit (JDK) 17
-- Node.js & npm
-- MySQL Server
-- Docker (Optional, for containerized DB)
-
-### Installation
-
-#### 1. Clone the Repository
-```bash
-git clone https://github.com/your-username/e-learning-management-system.git
-cd e-learning-management-system
-git checkout asher
-```
-
-#### 2. Database Setup
-- Create a MySQL database named `lms_elearn_db`.
-- Execute the initialization script found in `database/init_script.sql` to create tables and seed initial data.
-- Update `application.properties` in the backend folder with your DB credentials.
-
-#### 3. Backend Setup (Spring Boot)
-```bash
-cd backend
-mvn clean install
-mvn spring-boot:run
-```
-The backend server will start at `http://localhost:8080`.
-
-#### 4. Frontend Setup (React)
-```bash
-cd frontend
-npm i
-npm run dev 
-```
-The frontend client will start at `http://localhost:5173`.
-
----
-
-## 🧪 Testing
-
-The project adheres to strict quality assurance standards as outlined in our Test Case Document.
-
-- **Functional Testing**: Covers User Auth, Course CRUD, Enrollment flows, and Quiz logic.
-- **Performance Testing**: API response time validation (<1000ms for 95% of requests).
-- **Security Testing**: Verification of JWT enforcement and BCrypt hashing.
-
-To run backend unit tests:
-```bash
-cd backend
-./mvnw test
-```
-
----
-
-## 📝 License
-
-This project is developed for educational purposes at LearnHub.
