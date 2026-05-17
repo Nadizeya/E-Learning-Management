@@ -77,6 +77,32 @@ The UI needs the API URL **at image build time** (`VITE_API_BASE_URL`).
 
 ## 5. Typical errors
 
+### `Railpack could not determine how to build the app` (lists `backend/`, `frontend/` at repo root)
+
+Railway is building the **whole repository** with **Railpack**, not your Spring or Vite app.
+
+**Fix (do all of these on the API service):**
+
+1. Open the service → **Settings** → **Source** (or **General**).
+2. Set **Root Directory** to **`backend`** (not empty, not `/`). Save.
+3. Open **Settings** → **Build**.
+4. Set **Builder** to **Dockerfile** (not Railpack / Nixpacks). Save.
+5. **Redeploy** (Deployments → ⋮ → Redeploy).
+
+Repeat for the UI service with Root Directory **`frontend`** and Builder **Dockerfile**.
+
+You should **not** have one GitHub service at repo root for both apps. Use **two** web services (plus MySQL), each with its own root directory.
+
+If Root Directory is correct but Railpack still runs, add variable on that service:
+
+| Variable | Value |
+|----------|--------|
+| `RAILWAY_DOCKERFILE_PATH` | `Dockerfile` |
+
+(Only needed if the UI has no Dockerfile option; prefer **Builder → Dockerfile**.)
+
+---
+
 - **Build failed during “Build image”**  
   - Root directory is still **`.`** → set to `backend` or `frontend`.  
   - Wrong folder → Dockerfile must sit in that root (`backend/Dockerfile` / `frontend/Dockerfile`).
