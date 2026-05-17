@@ -93,6 +93,10 @@ The E-Learning Management System is a comprehensive, database-driven web applica
 	npm run dev
 	```
 
+### Deploy on Railway (MySQL + API + UI)
+
+Step-by-step variables, root directories, and troubleshooting: **[RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md)**.
+
 ---
 
 ## ▶️ Usage

@@ -1,37 +1,26 @@
-# ===============================
-# Stage 1: Build the Spring Boot JAR
-# ===============================
+# Build stage
 FROM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-# Copy Maven descriptor
 COPY pom.xml .
-
-# Download dependencies (cached)
-RUN mvn -q -B dependency:go-offline
-
-# Copy source
 COPY src ./src
 
-# Build application (skip tests for faster CI builds)
-RUN mvn -q -DskipTests package
+# Single build (avoids flaky dependency:go-offline on some CI hosts)
+RUN mvn -B -DskipTests package \
+    && cp "$(ls target/*.jar | grep -v plain | head -n1)" /app/app.jar
 
-# ===============================
-# Stage 2: Run the Spring Boot application
-# ===============================
+# Runtime
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copy the JAR from the build stage
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/app.jar app.jar
 
-# Cloud Run will set PORT dynamically (default 8080)
+# Railway and other hosts set PORT
 ENV PORT=8080
 ENV JAVA_OPTS=""
 
 EXPOSE 8080
 
-# Start the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --server.port=${PORT}"]
