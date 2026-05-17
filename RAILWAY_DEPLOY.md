@@ -12,6 +12,24 @@ Use **three** Railway services: one **MySQL** database and two **GitHub-based** 
 
 Wait until MySQL is **active** before deploying the API.
 
+### Wire MySQL to the backend (not the frontend)
+
+The **React frontend never talks to MySQL**. Only the **backend** service needs database variables.
+
+On your **backend** Railway service → **Variables**:
+
+| Variable | How to set |
+|----------|------------|
+| `SPRING_DATASOURCE_URL` | `jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/${{MySQL.MYSQLDATABASE}}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC` — use **Add Reference** for each `${{MySQL.*}}` part (service name may differ, e.g. `MySQL`) |
+| `SPRING_DATASOURCE_USERNAME` | Reference → MySQL → `MYSQLUSER` |
+| `SPRING_DATASOURCE_PASSWORD` | Reference → MySQL → `MYSQLPASSWORD` |
+
+Railway’s default database name is often **`railway`** (not `lms_elearn_db`). That is fine: Hibernate `ddl-auto=update` creates tables on first API start.
+
+**Public “Connect” URL** (e.g. `autorack.proxy.rlwy.net:45638`) is for tools on your PC. Prefer **private** references above so the API and DB stay on Railway’s internal network.
+
+See also: `backend/railway.env.example` and `frontend/railway.env.example`.
+
 ---
 
 ## 2. Backend (Spring Boot) service
