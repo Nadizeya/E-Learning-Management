@@ -2,8 +2,9 @@
 
 # E-Learning Management System (LMS)
 
-**Course**: Software Engineering (1305217), Database Systems (1501208), Web Application Development (1305215)
-**Institution**: Mae Fah Luang University
+**Repository:** [github.com/Nadizeya/E-Learning-Management](https://github.com/Nadizeya/E-Learning-Management)
+
+A full-stack learning platform with course delivery, assessments, and role-based access for admins, instructors, and students.
 
 ---
 
@@ -19,7 +20,7 @@
 9. [Testing](#testing)
 10. [Contributing](#contributing)
 11. [License](#license)
-12. [Team](#team)
+12. [Contributors](#contributors)
 13. [Support](#support)
 
 ---
@@ -75,10 +76,10 @@ The E-Learning Management System is a comprehensive, database-driven web applica
 ### Local Setup
 1. Clone the repository:
 	```bash
-	git clone https://github.com/your-username/e-learning-management-system.git
-	cd e-learning-management-system
+	git clone https://github.com/Nadizeya/E-Learning-Management.git
+	cd E-Learning-Management
 	```
-2. Configure `backend/src/main/resources/application.properties` with your DB credentials.
+2. Configure database settings (see `backend/.env.local` for local overrides, or `backend/src/main/resources/application.properties`). For a detailed walkthrough, see [LOCAL_SETUP_USER_MANUAL.md](LOCAL_SETUP_USER_MANUAL.md).
 3. Create the database using `backend/database/lms_schema.sql`.
 4. Build & run backend:
 	```bash
@@ -220,25 +221,25 @@ Contributions are welcome! Please follow these steps:
 
 ## 📝 License
 
-This project is developed for educational purposes at Mae Fah Luang University. See the [LICENSE](LICENSE) file for details.
+See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👥 Team
+## 👥 Contributors
 
-| Name           | Role              | Student ID   |
-| :------------- | :---------------- | :----------- |
-| Nadi Zeya      | Project Manager   | 6731503070   |
-| Kyaw Hmue San  | Lead Developer    | 6731503062   |
-| Hein Htut Aung | Data Analyst      | 6731503054   |
-| Nang Shwe Sin  | Frontend Developer| 6731503072   |
-| Min Thein Kyaw | Backend Developer | 6731503067   |
-| Aung Kyaw Soe  | QA Team Leader    | 6731503045   |
+| Name            | Role               |
+| :-------------- | :----------------- |
+| Nadi Zeya       | Project management |
+| Kyaw Hmue San   | Lead developer     |
+| Hein Htut Aung  | Data analyst       |
+| Nang Shwe Sin   | Frontend developer |
+| Min Thein Kyaw  | Backend developer  |
+| Aung Kyaw Soe   | QA lead            |
 
 ---
 
 ## 📞 Support
 
-For support, contact your instructor or open an issue on GitHub.
+Open an issue on GitHub for bugs or questions.
 
 ---

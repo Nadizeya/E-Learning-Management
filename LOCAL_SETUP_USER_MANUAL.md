@@ -22,11 +22,9 @@ You do **not** need a global Maven install if you use the project’s Maven Wrap
 ## 2. Get the project
 
 ```bash
-git clone <YOUR_REPO_URL>
-cd <project-folder>
+git clone https://github.com/Nadizeya/E-Learning-Management.git
+cd E-Learning-Management
 ```
-
-Replace `<YOUR_REPO_URL>` with the real Git URL your team uses.
 
 ---
 
@@ -217,4 +215,4 @@ From **`backend`**:
 
 ---
 
-You can share this file as-is with your friend: they only need Git, Java 17+, Node.js, Docker (for MySQL), and the steps above.
+Anyone cloning the repo only needs Git, Java 17+, Node.js, and Docker (for MySQL), following the steps above.
